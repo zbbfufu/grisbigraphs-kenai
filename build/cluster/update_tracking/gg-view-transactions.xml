@@ -1,7 +1,0 @@
-<?xml version="1.0" encoding="UTF-8"?>
-<module codename="gg.view.transactions">
-    <module_version install_time="1244231754172" last="true" origin="installer" specification_version="1.0">
-        <file crc="1468939041" name="config/Modules/gg-view-transactions.xml"/>
-        <file crc="1978166169" name="modules/gg-view-transactions.jar"/>
-    </module_version>
-</module>

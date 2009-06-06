@@ -1,7 +1,0 @@
-<?xml version="1.0" encoding="UTF-8"?>
-<module codename="gg.application">
-    <module_version install_time="1244231752859" last="true" origin="installer" specification_version="1.0">
-        <file crc="1706068636" name="config/Modules/gg-application.xml"/>
-        <file crc="3381956965" name="modules/gg-application.jar"/>
-    </module_version>
-</module>

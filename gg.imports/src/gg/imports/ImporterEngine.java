@@ -183,8 +183,6 @@ public class ImporterEngine implements Runnable {
         // Get the version of the Grisbi file
         fileVersion = getFileVersion(grisbiFileDocument);
 
-        // TODO: display hourglass
-
         // Depending on the Grisbi file version, use the correct importer class to import the file into the embedded database
         switch (fileVersion) {
             case VERSION_0_5_0:

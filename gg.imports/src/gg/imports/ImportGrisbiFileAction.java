@@ -46,6 +46,8 @@ public final class ImportGrisbiFileAction implements ActionListener {
         fileChooser.setDialogType(JFileChooser.OPEN_DIALOG);
         fileChooser.addChoosableFileFilter(new FilterGSB()); // The GSB filter is displayed (Grisbi files have the extension *.gsb)
 
+        // TODO Remember file path (folder)
+
         // Display the file chooser to select the Grisbi file to import
         int returnVal = fileChooser.showOpenDialog(WindowManager.getDefault().getMainWindow());
 

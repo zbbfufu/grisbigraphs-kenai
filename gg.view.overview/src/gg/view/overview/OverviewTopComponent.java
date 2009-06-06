@@ -21,6 +21,7 @@
  */
 package gg.view.overview;
 
+import gg.application.components.FieldsVisibility;
 import gg.db.datamodel.Datamodel;
 import gg.db.entities.Account;
 import gg.db.entities.Currency;
@@ -38,6 +39,7 @@ import org.netbeans.swing.outline.OutlineModel;
 import org.netbeans.swing.outline.RowModel;
 import org.openide.util.ImageUtilities;
 import org.openide.util.NbBundle;
+import org.openide.util.lookup.Lookups;
 import org.openide.windows.TopComponent;
 import org.openide.windows.WindowManager;
 import org.openide.windows.TopComponentGroup;
@@ -61,6 +63,10 @@ final class OverviewTopComponent extends TopComponent {
         outlineOverview.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
         outlineOverview.setColumnHidingAllowed(false);
         outlineOverview.setPopupUsedFromTheCorner(false);
+
+        FieldsVisibility fieldsVisibility = new FieldsVisibility();
+
+        associateLookup(Lookups.singleton(fieldsVisibility));
     }
 
     /** This method is called from within the constructor to

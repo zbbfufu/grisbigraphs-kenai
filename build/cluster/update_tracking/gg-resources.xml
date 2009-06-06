@@ -1,7 +1,0 @@
-<?xml version="1.0" encoding="UTF-8"?>
-<module codename="gg.resources">
-    <module_version install_time="1244231753273" last="true" origin="installer" specification_version="1.0">
-        <file crc="1167289264" name="config/Modules/gg-resources.xml"/>
-        <file crc="4076197193" name="modules/gg-resources.jar"/>
-    </module_version>
-</module>

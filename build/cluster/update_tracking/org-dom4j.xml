@@ -1,9 +1,0 @@
-<?xml version="1.0" encoding="UTF-8"?>
-<module codename="org.dom4j">
-    <module_version install_time="1244231758756" last="true" origin="installer" specification_version="1.0">
-        <file crc="2994323010" name="config/Modules/org-dom4j.xml"/>
-        <file crc="2050839146" name="modules/ext/dom4j-1.6.1.jar"/>
-        <file crc="365403142" name="modules/ext/jaxen-1.1.1.jar"/>
-        <file crc="1377511083" name="modules/org-dom4j.jar"/>
-    </module_version>
-</module>

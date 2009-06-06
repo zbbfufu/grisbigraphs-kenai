@@ -207,14 +207,10 @@ final class ImportHistoryViewTopComponent extends TopComponent {
             ((DefaultTableModel) eTableImportHistory.getModel()).addRow(new Object[]{
                         fileImport.getImportedOn(), fileImport.getFilePath(), fileImport.getImportDuration(), fileImport.getSuccess()});
         }
-
-        // TODO: set the column positions, widths...
-
     }
 
     @Override
     public void componentClosed() {
-        // TODO: save the column positions, width...
     }
 
     /** replaces this in object stream */

@@ -1,7 +1,0 @@
-<?xml version="1.0" encoding="UTF-8"?>
-<module codename="gg.searchfilter">
-    <module_version install_time="1244231768722" last="true" origin="installer" specification_version="1.0">
-        <file crc="740529781" name="config/Modules/gg-searchfilter.xml"/>
-        <file crc="3279790786" name="modules/gg-searchfilter.jar"/>
-    </module_version>
-</module>

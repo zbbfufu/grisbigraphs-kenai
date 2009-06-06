@@ -1,7 +1,0 @@
-<?xml version="1.0" encoding="UTF-8"?>
-<module codename="gg.view.movementsbalances">
-    <module_version install_time="1244231753923" last="true" origin="installer" specification_version="1.0">
-        <file crc="2498458537" name="config/Modules/gg-view-movementsbalances.xml"/>
-        <file crc="130906762" name="modules/gg-view-movementsbalances.jar"/>
-    </module_version>
-</module>

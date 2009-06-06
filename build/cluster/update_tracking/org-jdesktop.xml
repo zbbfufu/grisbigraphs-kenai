@@ -1,8 +1,0 @@
-<?xml version="1.0" encoding="UTF-8"?>
-<module codename="org.jdesktop">
-    <module_version install_time="1244231760172" last="true" origin="installer" specification_version="1.0">
-        <file crc="1989089720" name="config/Modules/org-jdesktop.xml"/>
-        <file crc="3733742576" name="modules/ext/swingx-0.9.7.jar"/>
-        <file crc="2946242515" name="modules/org-jdesktop.jar"/>
-    </module_version>
-</module>

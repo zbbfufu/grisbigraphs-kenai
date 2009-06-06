@@ -1,7 +1,0 @@
-<?xml version="1.0" encoding="UTF-8"?>
-<module codename="gg.db.entities">
-    <module_version install_time="1244231766346" last="true" origin="installer" specification_version="1.0">
-        <file crc="157154613" name="config/Modules/gg-db-entities.xml"/>
-        <file crc="37086118" name="modules/gg-db-entities.jar"/>
-    </module_version>
-</module>

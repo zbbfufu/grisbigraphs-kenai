@@ -1,7 +1,0 @@
-<?xml version="1.0" encoding="UTF-8"?>
-<module codename="gg.view.overview">
-    <module_version install_time="1244231770907" last="true" origin="installer" specification_version="1.0">
-        <file crc="3905733171" name="config/Modules/gg-view-overview.xml"/>
-        <file crc="2478442588" name="modules/gg-view-overview.jar"/>
-    </module_version>
-</module>

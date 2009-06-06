@@ -4,8 +4,7 @@
  */
 package gg.searchfilter;
 
-import gg.application.components.FromPanel;
-import gg.application.components.ToPanel;
+import gg.application.components.FieldsVisibility;
 import gg.db.datamodel.Datamodel;
 import gg.db.datamodel.Period;
 import gg.db.datamodel.PeriodType;
@@ -58,8 +57,6 @@ final class SearchFilterTopComponent extends TopComponent implements LookupListe
 
         associateLookup(new AbstractLookup(content));
 
-        // TODO: display menu items only if cookie is available
-
         jListAccounts.setModel(listModelAccounts);
         jListCategories.setModel(listModelCategories);
         jListPayees.setModel(listModelPayees);
@@ -67,6 +64,8 @@ final class SearchFilterTopComponent extends TopComponent implements LookupListe
         // Remove the link panel (today is...) from the date picker controls
         jXDatePickerFrom.setLinkPanel(null);
         jXDatePickerTo.setLinkPanel(null);
+
+        loadComboboxes();
     }
 
     /** Loads the "type of graph" and the "type of period" comboboxes */
@@ -127,7 +126,7 @@ final class SearchFilterTopComponent extends TopComponent implements LookupListe
         jLabelAccounts = new javax.swing.JLabel();
         jScrollPaneAccounts = new javax.swing.JScrollPane();
         jListAccounts = new javax.swing.JList();
-        jPanelAccountsCategories = new javax.swing.JPanel();
+        jPanelCategories = new javax.swing.JPanel();
         jLabelCategories = new javax.swing.JLabel();
         jScrollPaneCategories = new javax.swing.JScrollPane();
         jListCategories = new javax.swing.JList();
@@ -140,6 +139,8 @@ final class SearchFilterTopComponent extends TopComponent implements LookupListe
         jTextFieldKeywords = new javax.swing.JTextField();
         jPanelSearch = new javax.swing.JPanel();
         jButtonSearch = new javax.swing.JButton();
+        jPanelNoFieldsSupported = new javax.swing.JPanel();
+        jLabelInformation = new javax.swing.JLabel();
 
         setLayout(new javax.swing.BoxLayout(this, javax.swing.BoxLayout.Y_AXIS));
 
@@ -150,19 +151,19 @@ final class SearchFilterTopComponent extends TopComponent implements LookupListe
         jPanelFromLayout.setHorizontalGroup(
             jPanelFromLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
             .addGroup(jPanelFromLayout.createSequentialGroup()
-                .addContainerGap()
+                .addGap(72, 72, 72)
                 .addComponent(jLabelFrom)
-                .addGap(78, 78, 78)
-                .addComponent(jXDatePickerFrom, javax.swing.GroupLayout.DEFAULT_SIZE, 135, Short.MAX_VALUE)
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                .addComponent(jXDatePickerFrom, javax.swing.GroupLayout.DEFAULT_SIZE, 201, Short.MAX_VALUE)
                 .addContainerGap())
         );
         jPanelFromLayout.setVerticalGroup(
             jPanelFromLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
             .addGroup(jPanelFromLayout.createSequentialGroup()
-                .addContainerGap(12, Short.MAX_VALUE)
-                .addGroup(jPanelFromLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.TRAILING)
-                    .addComponent(jLabelFrom)
-                    .addComponent(jXDatePickerFrom, javax.swing.GroupLayout.PREFERRED_SIZE, 22, javax.swing.GroupLayout.PREFERRED_SIZE)))
+                .addContainerGap()
+                .addGroup(jPanelFromLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
+                    .addComponent(jXDatePickerFrom, javax.swing.GroupLayout.PREFERRED_SIZE, 22, Short.MAX_VALUE)
+                    .addComponent(jLabelFrom)))
         );
 
         add(jPanelFrom);
@@ -174,10 +175,10 @@ final class SearchFilterTopComponent extends TopComponent implements LookupListe
         jPanelToLayout.setHorizontalGroup(
             jPanelToLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
             .addGroup(jPanelToLayout.createSequentialGroup()
-                .addContainerGap()
-                .addComponent(jLabelTo)
                 .addGap(90, 90, 90)
-                .addComponent(jXDatePickerTo, javax.swing.GroupLayout.DEFAULT_SIZE, 135, Short.MAX_VALUE)
+                .addComponent(jLabelTo)
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                .addComponent(jXDatePickerTo, javax.swing.GroupLayout.DEFAULT_SIZE, 201, Short.MAX_VALUE)
                 .addContainerGap())
         );
         jPanelToLayout.setVerticalGroup(
@@ -185,8 +186,8 @@ final class SearchFilterTopComponent extends TopComponent implements LookupListe
             .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, jPanelToLayout.createSequentialGroup()
                 .addContainerGap()
                 .addGroup(jPanelToLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
-                    .addComponent(jLabelTo)
-                    .addComponent(jXDatePickerTo, javax.swing.GroupLayout.DEFAULT_SIZE, 23, Short.MAX_VALUE)))
+                    .addComponent(jXDatePickerTo, javax.swing.GroupLayout.PREFERRED_SIZE, 23, Short.MAX_VALUE)
+                    .addComponent(jLabelTo)))
         );
 
         add(jPanelTo);
@@ -200,10 +201,10 @@ final class SearchFilterTopComponent extends TopComponent implements LookupListe
         jPanelByLayout.setHorizontalGroup(
             jPanelByLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
             .addGroup(jPanelByLayout.createSequentialGroup()
-                .addContainerGap()
+                .addGap(90, 90, 90)
                 .addComponent(jLabelBy)
-                .addGap(89, 89, 89)
-                .addComponent(jComboBoxBy, 0, 136, Short.MAX_VALUE)
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                .addComponent(jComboBoxBy, 0, 200, Short.MAX_VALUE)
                 .addContainerGap())
         );
         jPanelByLayout.setVerticalGroup(
@@ -230,10 +231,10 @@ final class SearchFilterTopComponent extends TopComponent implements LookupListe
         jPanelCurrencyLayout.setHorizontalGroup(
             jPanelCurrencyLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
             .addGroup(jPanelCurrencyLayout.createSequentialGroup()
-                .addContainerGap()
+                .addGap(49, 49, 49)
                 .addComponent(jLabelCurrency)
-                .addGap(58, 58, 58)
-                .addComponent(jComboBoxCurrency, 0, 135, Short.MAX_VALUE)
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                .addComponent(jComboBoxCurrency, 0, 200, Short.MAX_VALUE)
                 .addContainerGap())
         );
         jPanelCurrencyLayout.setVerticalGroup(
@@ -241,8 +242,8 @@ final class SearchFilterTopComponent extends TopComponent implements LookupListe
             .addGroup(jPanelCurrencyLayout.createSequentialGroup()
                 .addContainerGap()
                 .addGroup(jPanelCurrencyLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
-                    .addComponent(jLabelCurrency)
-                    .addComponent(jComboBoxCurrency, javax.swing.GroupLayout.DEFAULT_SIZE, 25, Short.MAX_VALUE)))
+                    .addComponent(jComboBoxCurrency, javax.swing.GroupLayout.DEFAULT_SIZE, 25, Short.MAX_VALUE)
+                    .addComponent(jLabelCurrency)))
         );
 
         add(jPanelCurrency);
@@ -255,11 +256,11 @@ final class SearchFilterTopComponent extends TopComponent implements LookupListe
         jPanelAccounts.setLayout(jPanelAccountsLayout);
         jPanelAccountsLayout.setHorizontalGroup(
             jPanelAccountsLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGroup(jPanelAccountsLayout.createSequentialGroup()
-                .addContainerGap()
-                .addComponent(jLabelAccounts)
-                .addGap(57, 57, 57)
-                .addComponent(jScrollPaneAccounts, javax.swing.GroupLayout.DEFAULT_SIZE, 136, Short.MAX_VALUE)
+            .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, jPanelAccountsLayout.createSequentialGroup()
+                .addGap(48, 48, 48)
+                .addComponent(jLabelAccounts, javax.swing.GroupLayout.PREFERRED_SIZE, 63, javax.swing.GroupLayout.PREFERRED_SIZE)
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                .addComponent(jScrollPaneAccounts, javax.swing.GroupLayout.DEFAULT_SIZE, 199, Short.MAX_VALUE)
                 .addContainerGap())
         );
         jPanelAccountsLayout.setVerticalGroup(
@@ -267,10 +268,10 @@ final class SearchFilterTopComponent extends TopComponent implements LookupListe
             .addGroup(jPanelAccountsLayout.createSequentialGroup()
                 .addContainerGap()
                 .addGroup(jPanelAccountsLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                    .addComponent(jScrollPaneAccounts, javax.swing.GroupLayout.DEFAULT_SIZE, 78, Short.MAX_VALUE)
                     .addGroup(jPanelAccountsLayout.createSequentialGroup()
                         .addComponent(jLabelAccounts)
-                        .addContainerGap())
-                    .addComponent(jScrollPaneAccounts, javax.swing.GroupLayout.DEFAULT_SIZE, 102, Short.MAX_VALUE)))
+                        .addContainerGap())))
         );
 
         jLabelAccounts.getAccessibleContext().setAccessibleName(org.openide.util.NbBundle.getMessage(SearchFilterTopComponent.class, "SearchFilterTopComponent.jLabelAccounts.AccessibleContext.accessibleName")); // NOI18N
@@ -281,29 +282,29 @@ final class SearchFilterTopComponent extends TopComponent implements LookupListe
 
         jScrollPaneCategories.setViewportView(jListCategories);
 
-        javax.swing.GroupLayout jPanelAccountsCategoriesLayout = new javax.swing.GroupLayout(jPanelAccountsCategories);
-        jPanelAccountsCategories.setLayout(jPanelAccountsCategoriesLayout);
-        jPanelAccountsCategoriesLayout.setHorizontalGroup(
-            jPanelAccountsCategoriesLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGroup(jPanelAccountsCategoriesLayout.createSequentialGroup()
-                .addContainerGap()
+        javax.swing.GroupLayout jPanelCategoriesLayout = new javax.swing.GroupLayout(jPanelCategories);
+        jPanelCategories.setLayout(jPanelCategoriesLayout);
+        jPanelCategoriesLayout.setHorizontalGroup(
+            jPanelCategoriesLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+            .addGroup(jPanelCategoriesLayout.createSequentialGroup()
+                .addGap(37, 37, 37)
                 .addComponent(jLabelCategories)
-                .addGap(50, 50, 50)
-                .addComponent(jScrollPaneCategories, javax.swing.GroupLayout.DEFAULT_SIZE, 135, Short.MAX_VALUE)
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                .addComponent(jScrollPaneCategories, javax.swing.GroupLayout.DEFAULT_SIZE, 200, Short.MAX_VALUE)
                 .addContainerGap())
         );
-        jPanelAccountsCategoriesLayout.setVerticalGroup(
-            jPanelAccountsCategoriesLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGroup(jPanelAccountsCategoriesLayout.createSequentialGroup()
+        jPanelCategoriesLayout.setVerticalGroup(
+            jPanelCategoriesLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+            .addGroup(jPanelCategoriesLayout.createSequentialGroup()
                 .addContainerGap()
-                .addGroup(jPanelAccountsCategoriesLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                    .addGroup(jPanelAccountsCategoriesLayout.createSequentialGroup()
+                .addGroup(jPanelCategoriesLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                    .addComponent(jScrollPaneCategories, javax.swing.GroupLayout.DEFAULT_SIZE, 78, Short.MAX_VALUE)
+                    .addGroup(jPanelCategoriesLayout.createSequentialGroup()
                         .addComponent(jLabelCategories)
-                        .addContainerGap())
-                    .addComponent(jScrollPaneCategories, javax.swing.GroupLayout.DEFAULT_SIZE, 102, Short.MAX_VALUE)))
+                        .addContainerGap())))
         );
 
-        add(jPanelAccountsCategories);
+        add(jPanelCategories);
 
         org.openide.awt.Mnemonics.setLocalizedText(jLabelPayees, org.openide.util.NbBundle.getMessage(SearchFilterTopComponent.class, "SearchFilterTopComponent.jLabelPayees.text")); // NOI18N
 
@@ -314,10 +315,10 @@ final class SearchFilterTopComponent extends TopComponent implements LookupListe
         jPanelPayeesLayout.setHorizontalGroup(
             jPanelPayeesLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
             .addGroup(jPanelPayeesLayout.createSequentialGroup()
-                .addContainerGap()
+                .addGap(60, 60, 60)
                 .addComponent(jLabelPayees)
-                .addGap(64, 64, 64)
-                .addComponent(jScrollPanePayees, javax.swing.GroupLayout.DEFAULT_SIZE, 138, Short.MAX_VALUE)
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                .addComponent(jScrollPanePayees, javax.swing.GroupLayout.DEFAULT_SIZE, 200, Short.MAX_VALUE)
                 .addContainerGap())
         );
         jPanelPayeesLayout.setVerticalGroup(
@@ -325,10 +326,10 @@ final class SearchFilterTopComponent extends TopComponent implements LookupListe
             .addGroup(jPanelPayeesLayout.createSequentialGroup()
                 .addContainerGap()
                 .addGroup(jPanelPayeesLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                    .addComponent(jScrollPanePayees, javax.swing.GroupLayout.DEFAULT_SIZE, 78, Short.MAX_VALUE)
                     .addGroup(jPanelPayeesLayout.createSequentialGroup()
                         .addComponent(jLabelPayees)
-                        .addContainerGap())
-                    .addComponent(jScrollPanePayees, javax.swing.GroupLayout.DEFAULT_SIZE, 102, Short.MAX_VALUE)))
+                        .addContainerGap())))
         );
 
         add(jPanelPayees);
@@ -342,10 +343,10 @@ final class SearchFilterTopComponent extends TopComponent implements LookupListe
         jPanelKeywordsLayout.setHorizontalGroup(
             jPanelKeywordsLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
             .addGroup(jPanelKeywordsLayout.createSequentialGroup()
-                .addContainerGap()
+                .addGap(45, 45, 45)
                 .addComponent(jLabelKeywords)
-                .addGap(52, 52, 52)
-                .addComponent(jTextFieldKeywords, javax.swing.GroupLayout.DEFAULT_SIZE, 138, Short.MAX_VALUE)
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                .addComponent(jTextFieldKeywords, javax.swing.GroupLayout.DEFAULT_SIZE, 201, Short.MAX_VALUE)
                 .addContainerGap())
         );
         jPanelKeywordsLayout.setVerticalGroup(
@@ -353,8 +354,8 @@ final class SearchFilterTopComponent extends TopComponent implements LookupListe
             .addGroup(jPanelKeywordsLayout.createSequentialGroup()
                 .addContainerGap()
                 .addGroup(jPanelKeywordsLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
-                    .addComponent(jLabelKeywords)
-                    .addComponent(jTextFieldKeywords, javax.swing.GroupLayout.DEFAULT_SIZE, 25, Short.MAX_VALUE)))
+                    .addComponent(jTextFieldKeywords, javax.swing.GroupLayout.PREFERRED_SIZE, 25, Short.MAX_VALUE)
+                    .addComponent(jLabelKeywords)))
         );
 
         add(jPanelKeywords);
@@ -371,7 +372,7 @@ final class SearchFilterTopComponent extends TopComponent implements LookupListe
         jPanelSearchLayout.setHorizontalGroup(
             jPanelSearchLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
             .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, jPanelSearchLayout.createSequentialGroup()
-                .addContainerGap(186, Short.MAX_VALUE)
+                .addContainerGap(265, Short.MAX_VALUE)
                 .addComponent(jButtonSearch)
                 .addContainerGap())
         );
@@ -380,10 +381,31 @@ final class SearchFilterTopComponent extends TopComponent implements LookupListe
             .addGroup(jPanelSearchLayout.createSequentialGroup()
                 .addContainerGap()
                 .addComponent(jButtonSearch)
-                .addContainerGap(34, Short.MAX_VALUE))
+                .addContainerGap(31, Short.MAX_VALUE))
         );
 
         add(jPanelSearch);
+
+        org.openide.awt.Mnemonics.setLocalizedText(jLabelInformation, org.openide.util.NbBundle.getMessage(SearchFilterTopComponent.class, "SearchFilterTopComponent.jLabelInformation.text")); // NOI18N
+
+        javax.swing.GroupLayout jPanelNoFieldsSupportedLayout = new javax.swing.GroupLayout(jPanelNoFieldsSupported);
+        jPanelNoFieldsSupported.setLayout(jPanelNoFieldsSupportedLayout);
+        jPanelNoFieldsSupportedLayout.setHorizontalGroup(
+            jPanelNoFieldsSupportedLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+            .addGroup(jPanelNoFieldsSupportedLayout.createSequentialGroup()
+                .addContainerGap()
+                .addComponent(jLabelInformation, javax.swing.GroupLayout.DEFAULT_SIZE, 310, Short.MAX_VALUE)
+                .addContainerGap())
+        );
+        jPanelNoFieldsSupportedLayout.setVerticalGroup(
+            jPanelNoFieldsSupportedLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+            .addGroup(jPanelNoFieldsSupportedLayout.createSequentialGroup()
+                .addContainerGap()
+                .addComponent(jLabelInformation)
+                .addContainerGap(18, Short.MAX_VALUE))
+        );
+
+        add(jPanelNoFieldsSupported);
     }// </editor-fold>//GEN-END:initComponents
 
     private void jButtonSearchActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButtonSearchActionPerformed
@@ -520,6 +542,7 @@ final class SearchFilterTopComponent extends TopComponent implements LookupListe
     private javax.swing.JLabel jLabelCategories;
     private javax.swing.JLabel jLabelCurrency;
     private javax.swing.JLabel jLabelFrom;
+    private javax.swing.JLabel jLabelInformation;
     private javax.swing.JLabel jLabelKeywords;
     private javax.swing.JLabel jLabelPayees;
     private javax.swing.JLabel jLabelTo;
@@ -527,11 +550,12 @@ final class SearchFilterTopComponent extends TopComponent implements LookupListe
     private javax.swing.JList jListCategories;
     private javax.swing.JList jListPayees;
     private javax.swing.JPanel jPanelAccounts;
-    private javax.swing.JPanel jPanelAccountsCategories;
     private javax.swing.JPanel jPanelBy;
+    private javax.swing.JPanel jPanelCategories;
     private javax.swing.JPanel jPanelCurrency;
     private javax.swing.JPanel jPanelFrom;
     private javax.swing.JPanel jPanelKeywords;
+    private javax.swing.JPanel jPanelNoFieldsSupported;
     private javax.swing.JPanel jPanelPayees;
     private javax.swing.JPanel jPanelSearch;
     private javax.swing.JPanel jPanelTo;
@@ -581,17 +605,17 @@ final class SearchFilterTopComponent extends TopComponent implements LookupListe
 
     @Override
     public void componentOpened() {
-        Lookup.Template tpl;
-
-        tpl = new Lookup.Template<FromPanel>(FromPanel.class);
+        Lookup.Template<FieldsVisibility> tpl = new Lookup.Template<FieldsVisibility>(FieldsVisibility.class);
         result = Utilities.actionsGlobalContext().lookup(tpl);
         result.addLookupListener(this);
 
-        loadComboboxes();
+        resultChanged(null);
     }
 
     @Override
     public void componentClosed() {
+        result.removeLookupListener(this);
+        result = null;
     }
 
     /** replaces this in object stream */
@@ -606,25 +630,31 @@ final class SearchFilterTopComponent extends TopComponent implements LookupListe
     }
 
     public void resultChanged(LookupEvent ev) {
-        boolean fromVisible = false;
-        boolean toVisible = false;
-        
-        Lookup.Result r = (Lookup.Result) ev.getSource();
+        Collection instances = result.allInstances();
 
-        Collection instances = r.allInstances();
         if (!instances.isEmpty()) {
-            for (Object object : instances) {
-                if (object instanceof FromPanel) {
-                    fromVisible = true;
-                }
-                if (object instanceof ToPanel) {
-                    toVisible = true;
-                }
+            FieldsVisibility fieldsVisibility = (FieldsVisibility) instances.iterator().next();
+
+            jPanelFrom.setVisible(fieldsVisibility.isFromVisible());
+            jPanelTo.setVisible(fieldsVisibility.isToVisible());
+            jPanelBy.setVisible(fieldsVisibility.isByVisible());
+            jPanelCurrency.setVisible(fieldsVisibility.isCurrencyVisible());
+            jPanelAccounts.setVisible(fieldsVisibility.isAccountsVisible());
+            jPanelCategories.setVisible(fieldsVisibility.isCategoriesVisible());
+            jPanelPayees.setVisible(fieldsVisibility.isPayeesVisible());
+            jPanelKeywords.setVisible(fieldsVisibility.isKeywordsVisible());
+
+            if (fieldsVisibility.isFromVisible() || fieldsVisibility.isToVisible() ||
+                    fieldsVisibility.isByVisible() || fieldsVisibility.isCurrencyVisible() ||
+                    fieldsVisibility.isAccountsVisible() || fieldsVisibility.isCategoriesVisible() ||
+                    fieldsVisibility.isPayeesVisible() || fieldsVisibility.isKeywordsVisible()) {
+                jPanelSearch.setVisible(true);
+                jPanelNoFieldsSupported.setVisible(false);
+            } else {
+                jPanelSearch.setVisible(false);
+                jPanelNoFieldsSupported.setVisible(true);
             }
         }
-
-        jPanelFrom.setVisible(fromVisible);
-        jPanelTo.setVisible(toVisible);
     }
 
     final static class ResolvableHelper implements Serializable {

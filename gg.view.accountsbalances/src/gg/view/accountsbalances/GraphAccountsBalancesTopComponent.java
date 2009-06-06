@@ -12,6 +12,7 @@ import java.awt.BorderLayout;
 import java.awt.Color;
 import java.io.Serializable;
 import java.math.BigDecimal;
+import java.math.RoundingMode;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.logging.Logger;
@@ -214,8 +215,11 @@ final class GraphAccountsBalancesTopComponent extends TopComponent implements Lo
                             newSearchFilter.setAccounts(accounts);
                             newSearchFilter.setPeriod(searchFilter.getPeriod());
 
+                            BigDecimal value = Datamodel.getBalanceUntil(newSearchFilter).add(account.getInitialAmount());
+                            value = value.setScale(2, RoundingMode.HALF_EVEN);
+
                             dataset.addValue(
-                                    Datamodel.getBalanceUntil(newSearchFilter).add(account.getInitialAmount()),
+                                    value,
                                     account.toString(),
                                     newSearchFilter.getPeriod());
                         }

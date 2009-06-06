@@ -736,7 +736,7 @@ public class GrisbiFile050 implements Importer {
         long importDuration;            // Time to import the Grisbi file
 
         importCancelled = false;
-        final ProgressHandle p = ProgressHandleFactory.createHandle("Import Grisbi file", new Cancellable() {
+        ProgressHandle p = ProgressHandleFactory.createHandle("Import Grisbi file", new Cancellable() {
 
             @Override
             public boolean cancel() {

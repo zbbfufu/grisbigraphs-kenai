@@ -4,9 +4,7 @@
  */
 package gg.view.accountsbalances;
 
-import gg.application.components.BySupporter;
-import gg.application.components.FromPanel;
-import gg.application.components.ToPanel;
+import gg.application.components.FieldsVisibility;
 import gg.db.datamodel.Datamodel;
 import gg.db.datamodel.SearchFilter;
 import gg.db.entities.Account;
@@ -37,8 +35,7 @@ import org.openide.windows.TopComponentGroup;
 /**
  * Top component which displays something.
  */
-final class AccountsBalancesTopComponent extends TopComponent implements LookupListener,
-        BySupporter {
+final class AccountsBalancesTopComponent extends TopComponent implements LookupListener {
 
     private static AccountsBalancesTopComponent instance;
     /** path to the icon used by the component and its open action */
@@ -56,7 +53,14 @@ final class AccountsBalancesTopComponent extends TopComponent implements LookupL
         outlineAccountsBalances.setRootVisible(false);
         outlineAccountsBalances.setPopupUsedFromTheCorner(false);
 
-        associateLookup(Lookups.fixed(new FromPanel(), new ToPanel()));
+        FieldsVisibility fieldsVisibility = new FieldsVisibility();
+        fieldsVisibility.setFromVisible(true);
+        fieldsVisibility.setToVisible(true);
+        fieldsVisibility.setByVisible(true);
+        fieldsVisibility.setCurrencyVisible(true);
+        fieldsVisibility.setAccountsVisible(true);
+
+        associateLookup(Lookups.singleton(fieldsVisibility));
     }
 
     /** This method is called from within the constructor to
