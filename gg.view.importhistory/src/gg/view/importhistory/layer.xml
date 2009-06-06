@@ -1,0 +1,41 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE filesystem PUBLIC "-//NetBeans//DTD Filesystem 1.2//EN" "http://www.netbeans.org/dtds/filesystem-1_2.dtd">
+<filesystem>
+    <folder name="Actions">
+        <folder name="Window">
+            <file name="gg-view-importhistory-ImportHistoryViewAction.instance">
+                <attr name="SystemFileSystem.localizingBundle" stringvalue="gg.view.importhistory.Bundle"/>
+                <attr name="component" methodvalue="gg.view.importhistory.ImportHistoryViewTopComponent.findInstance"/>
+                <attr name="displayName" bundlevalue="gg.view.importhistory.Bundle#CTL_ImportHistoryViewAction"/>
+                <attr name="iconBase" stringvalue="gg/resources/icons/ImportHistoryView.png"/>
+                <attr name="instanceCreate" methodvalue="org.openide.windows.TopComponent.openAction"/>
+            </file>
+        </folder>
+    </folder>
+    <folder name="Menu">
+        <folder name="View">
+            <file name="ImportHistoryViewAction.shadow">
+                <attr name="originalFile" stringvalue="Actions/Window/gg-view-importhistory-ImportHistoryViewAction.instance"/>
+                <attr name="position" intvalue="280"/>
+            </file>
+        </folder>
+        <folder name="Window">
+            <file name="ImportHistoryViewAction.shadow">
+                <attr name="originalFile" stringvalue="Actions/Window/gg-view-importhistory-ImportHistoryViewAction.instance"/>
+                <attr name="position" intvalue="280"/>
+            </file>
+        </folder>
+    </folder>
+    <folder name="Windows2">
+        <folder name="Components">
+            <file name="ImportHistoryViewTopComponent.settings" url="ImportHistoryViewTopComponentSettings.xml"/>
+        </folder>
+        <folder name="Modes">
+            <folder name="editor">
+                <file name="ImportHistoryViewTopComponent.wstcref" url="ImportHistoryViewTopComponentWstcref.xml">
+                    <attr name="position" intvalue="300"/>
+                </file>
+            </folder>
+        </folder>
+    </folder>
+</filesystem>

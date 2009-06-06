@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<module codename="gg.view.importhistory">
+    <module_version install_time="1244231769847" last="true" origin="installer" specification_version="1.0">
+        <file crc="2607514567" name="config/Modules/gg-view-importhistory.xml"/>
+        <file crc="2060883189" name="modules/gg-view-importhistory.jar"/>
+    </module_version>
+</module>

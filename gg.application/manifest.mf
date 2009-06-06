@@ -1,0 +1,7 @@
+Manifest-Version: 1.0
+OpenIDE-Module: gg.application
+OpenIDE-Module-Install: gg/application/Installer.class
+OpenIDE-Module-Layer: gg/application/layer.xml
+OpenIDE-Module-Localizing-Bundle: gg/application/Bundle.properties
+OpenIDE-Module-Specification-Version: 1.0
+

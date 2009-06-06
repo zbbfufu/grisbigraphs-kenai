@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<module codename="org.hibernate">
+    <module_version install_time="1244231767485" last="true" origin="installer" specification_version="1.0">
+        <file crc="2750063084" name="config/Modules/org-hibernate.xml"/>
+        <file crc="3507015122" name="modules/ext/antlr-2.7.6.jar"/>
+        <file crc="1656749251" name="modules/ext/asm-attrs.jar"/>
+        <file crc="1662521808" name="modules/ext/asm.jar"/>
+        <file crc="2188745679" name="modules/ext/cglib-2.1.3.jar"/>
+        <file crc="3355607547" name="modules/ext/hibernate3.jar"/>
+        <file crc="656211523" name="modules/ext/joda-time-hibernate-1.1.jar"/>
+        <file crc="190545487" name="modules/ext/jta.jar"/>
+        <file crc="3899651928" name="modules/org-hibernate.jar"/>
+    </module_version>
+</module>

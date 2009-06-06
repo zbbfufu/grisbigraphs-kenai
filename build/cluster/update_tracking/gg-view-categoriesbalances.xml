@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<module codename="gg.view.categoriesbalances">
+    <module_version install_time="1244231753641" last="true" origin="installer" specification_version="1.0">
+        <file crc="1084032472" name="config/Modules/gg-view-categoriesbalances.xml"/>
+        <file crc="4016820653" name="modules/gg-view-categoriesbalances.jar"/>
+    </module_version>
+</module>

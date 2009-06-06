@@ -1,0 +1,34 @@
+<?xml version="1.0"?>
+<!--
+ * FileImport.hbm.xml
+ *
+ * Copyright (C) 2009 Francois Duchemin
+ *
+ * This file is part of GrisbiGraphs.
+ *
+ * GrisbiGraphs is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation; either version 2 of the License, or
+ * (at your option) any later version.
+ *
+ * GrisbiGraphs is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with GrisbiGraphs; if not, write to the Free Software
+ * Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
+ -->
+<!DOCTYPE hibernate-mapping PUBLIC "-//Hibernate/Hibernate Mapping DTD 3.0//EN" "http://hibernate.sourceforge.net/hibernate-mapping-3.0.dtd">
+<hibernate-mapping package="gg.db.entities">
+    <class name="FileImport" table="FILE_IMPORTS" lazy="true">
+        <id name="id" type="long" column="ID">
+            <generator class="increment"/>
+        </id>
+        <property name="importedOn" type="org.joda.time.contrib.hibernate.PersistentDateTime" not-null="true" column="IMPORTED_ON"/>
+        <property name="filePath" type="string" length="200" not-null="true" column="FILE_PATH"/>
+        <property name="importDuration" type="long" not-null="true" column="IMPORT_DURATION"/>
+        <property name="success" type="boolean" not-null="true" column="SUCCESS"/>
+    </class>
+</hibernate-mapping>

@@ -1,0 +1,6 @@
+Manifest-Version: 1.0
+OpenIDE-Module: gg.db.datamodel
+OpenIDE-Module-Install: gg/db/datamodel/Installer.class
+OpenIDE-Module-Localizing-Bundle: gg/db/datamodel/Bundle.properties
+OpenIDE-Module-Specification-Version: 1.0
+

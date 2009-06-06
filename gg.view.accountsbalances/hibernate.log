@@ -1,0 +1,447 @@
+10:25:24,917  INFO Environment:509 - Hibernate 3.2.3
+10:25:24,932  INFO Environment:542 - hibernate.properties not found
+10:25:24,932  INFO Environment:676 - Bytecode provider name : cglib
+10:25:24,932  INFO Environment:593 - using JDK 1.4 java.sql.Timestamp handling
+10:25:24,979  INFO Configuration:1426 - configuring from resource: /hibernate.cfg.xml
+10:25:24,979  INFO Configuration:1403 - Configuration resource: /hibernate.cfg.xml
+10:25:25,010  INFO Configuration:553 - Reading mappings from resource : gg/db/entities/FileImport.hbm.xml
+10:25:25,088  INFO HbmBinder:300 - Mapping class: gg.db.entities.FileImport -> FILE_IMPORTS
+10:25:25,104  INFO Configuration:553 - Reading mappings from resource : gg/db/entities/Currency.hbm.xml
+10:25:25,151  INFO HbmBinder:300 - Mapping class: gg.db.entities.Currency -> CURRENCIES
+10:25:25,151  INFO Configuration:553 - Reading mappings from resource : gg/db/entities/Payee.hbm.xml
+10:25:25,182  INFO HbmBinder:300 - Mapping class: gg.db.entities.Payee -> PAYEES
+10:25:25,182  INFO Configuration:553 - Reading mappings from resource : gg/db/entities/Account.hbm.xml
+10:25:25,229  INFO HbmBinder:300 - Mapping class: gg.db.entities.Account -> ACCOUNTS
+10:25:25,323  INFO Configuration:553 - Reading mappings from resource : gg/db/entities/Category.hbm.xml
+10:25:25,338  INFO HbmBinder:300 - Mapping class: gg.db.entities.Category -> CATEGORIES
+10:25:25,338  INFO Configuration:553 - Reading mappings from resource : gg/db/entities/Transaction.hbm.xml
+10:25:25,541  INFO HbmBinder:300 - Mapping class: gg.db.entities.Transaction -> TRANSACTIONS
+10:25:25,573  INFO Configuration:1541 - Configured SessionFactory: null
+10:25:25,573  INFO HbmBinder:2375 - Mapping collection: gg.db.entities.Currency.accounts -> ACCOUNTS
+10:25:25,573  INFO HbmBinder:2375 - Mapping collection: gg.db.entities.Account.transactions -> TRANSACTIONS
+10:25:25,573  INFO HbmBinder:2375 - Mapping collection: gg.db.entities.Category.subCategories -> CATEGORIES
+10:25:25,573  INFO HbmBinder:2375 - Mapping collection: gg.db.entities.Transaction.subTransactions -> TRANSACTIONS
+10:25:25,588  INFO DriverManagerConnectionProvider:41 - Using Hibernate built-in connection pool (not for production use!)
+10:25:25,588  INFO DriverManagerConnectionProvider:42 - Hibernate connection pool size: 1
+10:25:25,604  INFO DriverManagerConnectionProvider:45 - autocommit mode: false
+10:25:26,478  INFO DriverManagerConnectionProvider:80 - using driver: org.apache.derby.jdbc.EmbeddedDriver at URL: jdbc:derby:grisbigraphs-db;create=true
+10:25:26,478  INFO DriverManagerConnectionProvider:86 - connection properties: {user=grisbigraphs, password=****}
+10:25:31,679  INFO SettingsFactory:89 - RDBMS: Apache Derby, version: 10.4.2.0 - (689064)
+10:25:31,679  INFO SettingsFactory:90 - JDBC driver: Apache Derby Embedded JDBC Driver, version: 10.4.2.0 - (689064)
+10:25:31,695  INFO Dialect:152 - Using dialect: org.hibernate.dialect.DerbyDialect
+10:25:31,695  INFO TransactionFactoryFactory:31 - Using default transaction strategy (direct JDBC transactions)
+10:25:31,695  INFO TransactionManagerLookupFactory:33 - No TransactionManagerLookup configured (in JTA environment, use of read-write or transactional second-level cache is not recommended)
+10:25:31,695  INFO SettingsFactory:143 - Automatic flush during beforeCompletion(): disabled
+10:25:31,695  INFO SettingsFactory:147 - Automatic session close at end of transaction: disabled
+10:25:31,695  INFO SettingsFactory:162 - Scrollable result sets: enabled
+10:25:31,695  INFO SettingsFactory:170 - JDBC3 getGeneratedKeys(): disabled
+10:25:31,695  INFO SettingsFactory:178 - Connection release mode: auto
+10:25:31,695  INFO SettingsFactory:205 - Default batch fetch size: 1
+10:25:31,695  INFO SettingsFactory:209 - Generate SQL with comments: disabled
+10:25:31,695  INFO SettingsFactory:213 - Order SQL updates by primary key: disabled
+10:25:31,695  INFO SettingsFactory:382 - Query translator: org.hibernate.hql.ast.ASTQueryTranslatorFactory
+10:25:31,711  INFO ASTQueryTranslatorFactory:24 - Using ASTQueryTranslatorFactory
+10:25:31,711  INFO SettingsFactory:221 - Query language substitutions: {}
+10:25:31,711  INFO SettingsFactory:226 - JPA-QL strict compliance: disabled
+10:25:31,711  INFO SettingsFactory:231 - Second-level cache: enabled
+10:25:31,711  INFO SettingsFactory:235 - Query cache: disabled
+10:25:31,711  INFO SettingsFactory:369 - Cache provider: org.hibernate.cache.NoCacheProvider
+10:25:31,711  INFO SettingsFactory:250 - Optimize cache for minimal puts: disabled
+10:25:31,711  INFO SettingsFactory:259 - Structured second-level cache entries: disabled
+10:25:31,711  INFO SettingsFactory:279 - Echoing all SQL to stdout
+10:25:31,711  INFO SettingsFactory:286 - Statistics: disabled
+10:25:31,711  INFO SettingsFactory:290 - Deleted entity synthetic identifier rollback: disabled
+10:25:31,711  INFO SettingsFactory:305 - Default entity-mode: pojo
+10:25:31,711  INFO SettingsFactory:309 - Named query checking : enabled
+10:25:31,726  INFO SessionFactoryImpl:161 - building session factory
+10:25:31,992  INFO SessionFactoryObjectFactory:82 - Not binding factory to JNDI, no JNDI name configured
+10:25:31,992  INFO SchemaUpdate:115 - Running hbm2ddl schema update
+10:25:31,992  INFO SchemaUpdate:126 - fetching database metadata
+10:25:32,007  INFO SchemaUpdate:138 - updating schema
+10:25:32,273  INFO TableMetadata:39 - table found: .GRISBIGRAPHS.ACCOUNTS
+10:25:32,273  INFO TableMetadata:40 - columns: [id, balance, name, active, initial_amount, id_currency]
+10:25:32,273  INFO TableMetadata:42 - foreign keys: [fk_account_currency]
+10:25:32,273  INFO TableMetadata:43 - indexes: [sql090428170439120, sql090428170438000]
+10:25:32,288  INFO TableMetadata:39 - table found: .GRISBIGRAPHS.CATEGORIES
+10:25:32,288  INFO TableMetadata:40 - columns: [id, grisbi_sub_category_id, id_parent_category, name, grisbi_category_id, system_property]
+10:25:32,288  INFO TableMetadata:42 - foreign keys: [fk_category_category]
+10:25:32,288  INFO TableMetadata:43 - indexes: [sql090428170439230, sql090428170438141, sql090428170438140]
+10:25:32,304  INFO TableMetadata:39 - table found: .GRISBIGRAPHS.CURRENCIES
+10:25:32,304  INFO TableMetadata:40 - columns: [id, iso_code, name, active, code]
+10:25:32,304  INFO TableMetadata:42 - foreign keys: []
+10:25:32,304  INFO TableMetadata:43 - indexes: [sql090428170438390]
+10:25:32,320  INFO TableMetadata:39 - table found: .GRISBIGRAPHS.FILE_IMPORTS
+10:25:32,320  INFO TableMetadata:40 - columns: [imported_on, id, import_duration, file_path, success]
+10:25:32,320  INFO TableMetadata:42 - foreign keys: []
+10:25:32,320  INFO TableMetadata:43 - indexes: [sql090428170438540]
+10:25:32,320  INFO TableMetadata:39 - table found: .GRISBIGRAPHS.PAYEES
+10:25:32,320  INFO TableMetadata:40 - columns: [id, name, system_property]
+10:25:32,320  INFO TableMetadata:42 - foreign keys: []
+10:25:32,320  INFO TableMetadata:43 - indexes: [sql090428170438680]
+10:25:32,351  INFO TableMetadata:39 - table found: .GRISBIGRAPHS.TRANSACTIONS
+10:25:32,351  INFO TableMetadata:40 - columns: [id_category, amount, id, id_payee, id_account, id_parent_transaction, comment, date]
+10:25:32,351  INFO TableMetadata:42 - foreign keys: [fk_transaction_account, fk_transaction_transaction, fk_transaction_category, fk_transaction_payee]
+10:25:32,351  INFO TableMetadata:43 - indexes: [sql090428170439650, sql090428170439320, sql090428170438840, sql090428170439540, sql090428170439430]
+10:25:32,351  INFO SchemaUpdate:160 - schema update complete
+10:25:32,351  WARN JDBCExceptionReporter:54 - SQL Warning: 10000, SQLState: 01J01
+10:25:32,351  WARN JDBCExceptionReporter:55 - Database 'grisbigraphs-db' not created, connection made to existing database instead.
+10:25:48,219 ERROR PARSER:33 - line 1:120: unexpected token: EC
+10:25:53,842 ERROR PARSER:33 - line 1:120: unexpected token: EC
+10:26:19,394  INFO SessionFactoryImpl:769 - closing
+10:26:19,394  INFO DriverManagerConnectionProvider:147 - cleaning up connection pool: jdbc:derby:grisbigraphs-db;create=true
+10:37:49,107  INFO Environment:509 - Hibernate 3.2.3
+10:37:49,122  INFO Environment:542 - hibernate.properties not found
+10:37:49,122  INFO Environment:676 - Bytecode provider name : cglib
+10:37:49,122  INFO Environment:593 - using JDK 1.4 java.sql.Timestamp handling
+10:37:49,154  INFO Configuration:1426 - configuring from resource: /hibernate.cfg.xml
+10:37:49,154  INFO Configuration:1403 - Configuration resource: /hibernate.cfg.xml
+10:37:49,201  INFO Configuration:553 - Reading mappings from resource : gg/db/entities/FileImport.hbm.xml
+10:37:49,279  INFO HbmBinder:300 - Mapping class: gg.db.entities.FileImport -> FILE_IMPORTS
+10:37:49,279  INFO Configuration:553 - Reading mappings from resource : gg/db/entities/Currency.hbm.xml
+10:37:49,325  INFO HbmBinder:300 - Mapping class: gg.db.entities.Currency -> CURRENCIES
+10:37:49,325  INFO Configuration:553 - Reading mappings from resource : gg/db/entities/Payee.hbm.xml
+10:37:49,357  INFO HbmBinder:300 - Mapping class: gg.db.entities.Payee -> PAYEES
+10:37:49,357  INFO Configuration:553 - Reading mappings from resource : gg/db/entities/Account.hbm.xml
+10:37:49,404  INFO HbmBinder:300 - Mapping class: gg.db.entities.Account -> ACCOUNTS
+10:37:49,482  INFO Configuration:553 - Reading mappings from resource : gg/db/entities/Category.hbm.xml
+10:37:49,497  INFO HbmBinder:300 - Mapping class: gg.db.entities.Category -> CATEGORIES
+10:37:49,497  INFO Configuration:553 - Reading mappings from resource : gg/db/entities/Transaction.hbm.xml
+10:37:49,560  INFO HbmBinder:300 - Mapping class: gg.db.entities.Transaction -> TRANSACTIONS
+10:37:49,575  INFO Configuration:1541 - Configured SessionFactory: null
+10:37:49,700  INFO HbmBinder:2375 - Mapping collection: gg.db.entities.Currency.accounts -> ACCOUNTS
+10:37:49,700  INFO HbmBinder:2375 - Mapping collection: gg.db.entities.Account.transactions -> TRANSACTIONS
+10:37:49,700  INFO HbmBinder:2375 - Mapping collection: gg.db.entities.Category.subCategories -> CATEGORIES
+10:37:49,700  INFO HbmBinder:2375 - Mapping collection: gg.db.entities.Transaction.subTransactions -> TRANSACTIONS
+10:37:49,732  INFO DriverManagerConnectionProvider:41 - Using Hibernate built-in connection pool (not for production use!)
+10:37:49,732  INFO DriverManagerConnectionProvider:42 - Hibernate connection pool size: 1
+10:37:49,732  INFO DriverManagerConnectionProvider:45 - autocommit mode: false
+10:37:50,700  INFO DriverManagerConnectionProvider:80 - using driver: org.apache.derby.jdbc.EmbeddedDriver at URL: jdbc:derby:grisbigraphs-db;create=true
+10:37:50,700  INFO DriverManagerConnectionProvider:86 - connection properties: {user=grisbigraphs, password=****}
+10:37:51,137  INFO SettingsFactory:89 - RDBMS: Apache Derby, version: 10.4.2.0 - (689064)
+10:37:51,137  INFO SettingsFactory:90 - JDBC driver: Apache Derby Embedded JDBC Driver, version: 10.4.2.0 - (689064)
+10:37:51,137  INFO Dialect:152 - Using dialect: org.hibernate.dialect.DerbyDialect
+10:37:51,153  INFO TransactionFactoryFactory:31 - Using default transaction strategy (direct JDBC transactions)
+10:37:51,153  INFO TransactionManagerLookupFactory:33 - No TransactionManagerLookup configured (in JTA environment, use of read-write or transactional second-level cache is not recommended)
+10:37:51,153  INFO SettingsFactory:143 - Automatic flush during beforeCompletion(): disabled
+10:37:51,153  INFO SettingsFactory:147 - Automatic session close at end of transaction: disabled
+10:37:51,153  INFO SettingsFactory:162 - Scrollable result sets: enabled
+10:37:51,153  INFO SettingsFactory:170 - JDBC3 getGeneratedKeys(): disabled
+10:37:51,153  INFO SettingsFactory:178 - Connection release mode: auto
+10:37:51,153  INFO SettingsFactory:205 - Default batch fetch size: 1
+10:37:51,153  INFO SettingsFactory:209 - Generate SQL with comments: disabled
+10:37:51,153  INFO SettingsFactory:213 - Order SQL updates by primary key: disabled
+10:37:51,153  INFO SettingsFactory:382 - Query translator: org.hibernate.hql.ast.ASTQueryTranslatorFactory
+10:37:51,153  INFO ASTQueryTranslatorFactory:24 - Using ASTQueryTranslatorFactory
+10:37:51,153  INFO SettingsFactory:221 - Query language substitutions: {}
+10:37:51,153  INFO SettingsFactory:226 - JPA-QL strict compliance: disabled
+10:37:51,153  INFO SettingsFactory:231 - Second-level cache: enabled
+10:37:51,153  INFO SettingsFactory:235 - Query cache: disabled
+10:37:51,153  INFO SettingsFactory:369 - Cache provider: org.hibernate.cache.NoCacheProvider
+10:37:51,153  INFO SettingsFactory:250 - Optimize cache for minimal puts: disabled
+10:37:51,153  INFO SettingsFactory:259 - Structured second-level cache entries: disabled
+10:37:51,153  INFO SettingsFactory:279 - Echoing all SQL to stdout
+10:37:51,153  INFO SettingsFactory:286 - Statistics: disabled
+10:37:51,153  INFO SettingsFactory:290 - Deleted entity synthetic identifier rollback: disabled
+10:37:51,168  INFO SettingsFactory:305 - Default entity-mode: pojo
+10:37:51,168  INFO SettingsFactory:309 - Named query checking : enabled
+10:37:51,184  INFO SessionFactoryImpl:161 - building session factory
+10:37:51,434  INFO SessionFactoryObjectFactory:82 - Not binding factory to JNDI, no JNDI name configured
+10:37:51,434  INFO SchemaUpdate:115 - Running hbm2ddl schema update
+10:37:51,434  INFO SchemaUpdate:126 - fetching database metadata
+10:37:51,434  INFO SchemaUpdate:138 - updating schema
+10:37:51,731  INFO TableMetadata:39 - table found: .GRISBIGRAPHS.ACCOUNTS
+10:37:51,731  INFO TableMetadata:40 - columns: [id, balance, name, active, initial_amount, id_currency]
+10:37:51,731  INFO TableMetadata:42 - foreign keys: [fk_account_currency]
+10:37:51,731  INFO TableMetadata:43 - indexes: [sql090428170439120, sql090428170438000]
+10:37:51,746  INFO TableMetadata:39 - table found: .GRISBIGRAPHS.CATEGORIES
+10:37:51,746  INFO TableMetadata:40 - columns: [id, grisbi_sub_category_id, id_parent_category, name, grisbi_category_id, system_property]
+10:37:51,746  INFO TableMetadata:42 - foreign keys: [fk_category_category]
+10:37:51,746  INFO TableMetadata:43 - indexes: [sql090428170439230, sql090428170438141, sql090428170438140]
+10:37:51,762  INFO TableMetadata:39 - table found: .GRISBIGRAPHS.CURRENCIES
+10:37:51,762  INFO TableMetadata:40 - columns: [id, iso_code, name, active, code]
+10:37:51,762  INFO TableMetadata:42 - foreign keys: []
+10:37:51,762  INFO TableMetadata:43 - indexes: [sql090428170438390]
+10:37:51,762  INFO TableMetadata:39 - table found: .GRISBIGRAPHS.FILE_IMPORTS
+10:37:51,762  INFO TableMetadata:40 - columns: [imported_on, id, import_duration, file_path, success]
+10:37:51,762  INFO TableMetadata:42 - foreign keys: []
+10:37:51,762  INFO TableMetadata:43 - indexes: [sql090428170438540]
+10:37:51,778  INFO TableMetadata:39 - table found: .GRISBIGRAPHS.PAYEES
+10:37:51,778  INFO TableMetadata:40 - columns: [id, name, system_property]
+10:37:51,778  INFO TableMetadata:42 - foreign keys: []
+10:37:51,778  INFO TableMetadata:43 - indexes: [sql090428170438680]
+10:37:51,809  INFO TableMetadata:39 - table found: .GRISBIGRAPHS.TRANSACTIONS
+10:37:51,809  INFO TableMetadata:40 - columns: [id_category, amount, id, id_payee, id_account, id_parent_transaction, comment, date]
+10:37:51,809  INFO TableMetadata:42 - foreign keys: [fk_transaction_account, fk_transaction_transaction, fk_transaction_category, fk_transaction_payee]
+10:37:51,809  INFO TableMetadata:43 - indexes: [sql090428170439650, sql090428170439320, sql090428170438840, sql090428170439540, sql090428170439430]
+10:37:51,809  INFO SchemaUpdate:160 - schema update complete
+10:37:51,809  WARN JDBCExceptionReporter:54 - SQL Warning: 10000, SQLState: 01J01
+10:37:51,809  WARN JDBCExceptionReporter:55 - Database 'grisbigraphs-db' not created, connection made to existing database instead.
+10:37:55,604  INFO SessionFactoryImpl:769 - closing
+10:37:55,604  INFO DriverManagerConnectionProvider:147 - cleaning up connection pool: jdbc:derby:grisbigraphs-db;create=true
+15:45:03,085  INFO Environment:509 - Hibernate 3.2.3
+15:45:03,288  INFO Environment:542 - hibernate.properties not found
+15:45:03,288  INFO Environment:676 - Bytecode provider name : cglib
+15:45:03,288  INFO Environment:593 - using JDK 1.4 java.sql.Timestamp handling
+15:45:03,335  INFO Configuration:1426 - configuring from resource: /hibernate.cfg.xml
+15:45:03,335  INFO Configuration:1403 - Configuration resource: /hibernate.cfg.xml
+15:45:03,366  INFO Configuration:553 - Reading mappings from resource : gg/db/entities/FileImport.hbm.xml
+15:45:03,444  INFO HbmBinder:300 - Mapping class: gg.db.entities.FileImport -> FILE_IMPORTS
+15:45:03,444  INFO Configuration:553 - Reading mappings from resource : gg/db/entities/Currency.hbm.xml
+15:45:03,491  INFO HbmBinder:300 - Mapping class: gg.db.entities.Currency -> CURRENCIES
+15:45:03,491  INFO Configuration:553 - Reading mappings from resource : gg/db/entities/Payee.hbm.xml
+15:45:03,522  INFO HbmBinder:300 - Mapping class: gg.db.entities.Payee -> PAYEES
+15:45:03,522  INFO Configuration:553 - Reading mappings from resource : gg/db/entities/Account.hbm.xml
+15:45:03,569  INFO HbmBinder:300 - Mapping class: gg.db.entities.Account -> ACCOUNTS
+15:45:03,632  INFO Configuration:553 - Reading mappings from resource : gg/db/entities/Category.hbm.xml
+15:45:03,663  INFO HbmBinder:300 - Mapping class: gg.db.entities.Category -> CATEGORIES
+15:45:03,663  INFO Configuration:553 - Reading mappings from resource : gg/db/entities/Transaction.hbm.xml
+15:45:03,694  INFO HbmBinder:300 - Mapping class: gg.db.entities.Transaction -> TRANSACTIONS
+15:45:03,725  INFO Configuration:1541 - Configured SessionFactory: null
+15:45:03,725  INFO HbmBinder:2375 - Mapping collection: gg.db.entities.Currency.accounts -> ACCOUNTS
+15:45:03,725  INFO HbmBinder:2375 - Mapping collection: gg.db.entities.Account.transactions -> TRANSACTIONS
+15:45:03,725  INFO HbmBinder:2375 - Mapping collection: gg.db.entities.Category.subCategories -> CATEGORIES
+15:45:03,725  INFO HbmBinder:2375 - Mapping collection: gg.db.entities.Transaction.subTransactions -> TRANSACTIONS
+15:45:03,928  INFO DriverManagerConnectionProvider:41 - Using Hibernate built-in connection pool (not for production use!)
+15:45:03,928  INFO DriverManagerConnectionProvider:42 - Hibernate connection pool size: 1
+15:45:03,928  INFO DriverManagerConnectionProvider:45 - autocommit mode: false
+15:45:04,897  INFO DriverManagerConnectionProvider:80 - using driver: org.apache.derby.jdbc.EmbeddedDriver at URL: jdbc:derby:grisbigraphs-db;create=true
+15:45:04,897  INFO DriverManagerConnectionProvider:86 - connection properties: {user=grisbigraphs, password=****}
+15:45:05,319  INFO SettingsFactory:89 - RDBMS: Apache Derby, version: 10.4.2.0 - (689064)
+15:45:05,319  INFO SettingsFactory:90 - JDBC driver: Apache Derby Embedded JDBC Driver, version: 10.4.2.0 - (689064)
+15:45:05,335  INFO Dialect:152 - Using dialect: org.hibernate.dialect.DerbyDialect
+15:45:05,335  INFO TransactionFactoryFactory:31 - Using default transaction strategy (direct JDBC transactions)
+15:45:05,335  INFO TransactionManagerLookupFactory:33 - No TransactionManagerLookup configured (in JTA environment, use of read-write or transactional second-level cache is not recommended)
+15:45:05,335  INFO SettingsFactory:143 - Automatic flush during beforeCompletion(): disabled
+15:45:05,335  INFO SettingsFactory:147 - Automatic session close at end of transaction: disabled
+15:45:05,335  INFO SettingsFactory:162 - Scrollable result sets: enabled
+15:45:05,335  INFO SettingsFactory:170 - JDBC3 getGeneratedKeys(): disabled
+15:45:05,335  INFO SettingsFactory:178 - Connection release mode: auto
+15:45:05,350  INFO SettingsFactory:205 - Default batch fetch size: 1
+15:45:05,350  INFO SettingsFactory:209 - Generate SQL with comments: disabled
+15:45:05,350  INFO SettingsFactory:213 - Order SQL updates by primary key: disabled
+15:45:05,350  INFO SettingsFactory:382 - Query translator: org.hibernate.hql.ast.ASTQueryTranslatorFactory
+15:45:05,350  INFO ASTQueryTranslatorFactory:24 - Using ASTQueryTranslatorFactory
+15:45:05,350  INFO SettingsFactory:221 - Query language substitutions: {}
+15:45:05,350  INFO SettingsFactory:226 - JPA-QL strict compliance: disabled
+15:45:05,350  INFO SettingsFactory:231 - Second-level cache: enabled
+15:45:05,350  INFO SettingsFactory:235 - Query cache: disabled
+15:45:05,350  INFO SettingsFactory:369 - Cache provider: org.hibernate.cache.NoCacheProvider
+15:45:05,350  INFO SettingsFactory:250 - Optimize cache for minimal puts: disabled
+15:45:05,350  INFO SettingsFactory:259 - Structured second-level cache entries: disabled
+15:45:05,350  INFO SettingsFactory:279 - Echoing all SQL to stdout
+15:45:05,350  INFO SettingsFactory:286 - Statistics: disabled
+15:45:05,350  INFO SettingsFactory:290 - Deleted entity synthetic identifier rollback: disabled
+15:45:05,350  INFO SettingsFactory:305 - Default entity-mode: pojo
+15:45:05,350  INFO SettingsFactory:309 - Named query checking : enabled
+15:45:05,366  INFO SessionFactoryImpl:161 - building session factory
+15:45:05,600  INFO SessionFactoryObjectFactory:82 - Not binding factory to JNDI, no JNDI name configured
+15:45:05,600  INFO SchemaUpdate:115 - Running hbm2ddl schema update
+15:45:05,600  INFO SchemaUpdate:126 - fetching database metadata
+15:45:05,600  INFO SchemaUpdate:138 - updating schema
+15:45:05,881  INFO TableMetadata:39 - table found: .GRISBIGRAPHS.ACCOUNTS
+15:45:05,881  INFO TableMetadata:40 - columns: [id, balance, name, active, initial_amount, id_currency]
+15:45:05,881  INFO TableMetadata:42 - foreign keys: [fk_account_currency]
+15:45:05,881  INFO TableMetadata:43 - indexes: [sql090428170439120, sql090428170438000]
+15:45:05,897  INFO TableMetadata:39 - table found: .GRISBIGRAPHS.CATEGORIES
+15:45:05,897  INFO TableMetadata:40 - columns: [id, grisbi_sub_category_id, id_parent_category, name, grisbi_category_id, system_property]
+15:45:05,897  INFO TableMetadata:42 - foreign keys: [fk_category_category]
+15:45:05,897  INFO TableMetadata:43 - indexes: [sql090428170439230, sql090428170438141, sql090428170438140]
+15:45:05,913  INFO TableMetadata:39 - table found: .GRISBIGRAPHS.CURRENCIES
+15:45:05,913  INFO TableMetadata:40 - columns: [id, iso_code, name, active, code]
+15:45:05,913  INFO TableMetadata:42 - foreign keys: []
+15:45:05,913  INFO TableMetadata:43 - indexes: [sql090428170438390]
+15:45:05,928  INFO TableMetadata:39 - table found: .GRISBIGRAPHS.FILE_IMPORTS
+15:45:05,928  INFO TableMetadata:40 - columns: [imported_on, id, import_duration, file_path, success]
+15:45:05,928  INFO TableMetadata:42 - foreign keys: []
+15:45:05,928  INFO TableMetadata:43 - indexes: [sql090428170438540]
+15:45:05,928  INFO TableMetadata:39 - table found: .GRISBIGRAPHS.PAYEES
+15:45:05,928  INFO TableMetadata:40 - columns: [id, name, system_property]
+15:45:05,928  INFO TableMetadata:42 - foreign keys: []
+15:45:05,928  INFO TableMetadata:43 - indexes: [sql090428170438680]
+15:45:05,960  INFO TableMetadata:39 - table found: .GRISBIGRAPHS.TRANSACTIONS
+15:45:05,960  INFO TableMetadata:40 - columns: [id_category, amount, id, id_payee, id_account, id_parent_transaction, comment, date]
+15:45:05,960  INFO TableMetadata:42 - foreign keys: [fk_transaction_account, fk_transaction_transaction, fk_transaction_category, fk_transaction_payee]
+15:45:05,960  INFO TableMetadata:43 - indexes: [sql090428170439650, sql090428170439320, sql090428170438840, sql090428170439540, sql090428170439430]
+15:45:05,960  INFO SchemaUpdate:160 - schema update complete
+15:45:05,960  WARN JDBCExceptionReporter:54 - SQL Warning: 10000, SQLState: 01J01
+15:45:05,960  WARN JDBCExceptionReporter:55 - Database 'grisbigraphs-db' not created, connection made to existing database instead.
+15:45:30,896  INFO SessionFactoryImpl:769 - closing
+15:45:30,896  INFO DriverManagerConnectionProvider:147 - cleaning up connection pool: jdbc:derby:grisbigraphs-db;create=true
+15:58:49,162  INFO Environment:509 - Hibernate 3.2.3
+15:58:49,412  INFO Environment:542 - hibernate.properties not found
+15:58:49,412  INFO Environment:676 - Bytecode provider name : cglib
+15:58:49,412  INFO Environment:593 - using JDK 1.4 java.sql.Timestamp handling
+15:58:49,443  INFO Configuration:1426 - configuring from resource: /hibernate.cfg.xml
+15:58:49,443  INFO Configuration:1403 - Configuration resource: /hibernate.cfg.xml
+15:58:49,506  INFO Configuration:553 - Reading mappings from resource : gg/db/entities/FileImport.hbm.xml
+15:58:49,568  INFO HbmBinder:300 - Mapping class: gg.db.entities.FileImport -> FILE_IMPORTS
+15:58:49,584  INFO Configuration:553 - Reading mappings from resource : gg/db/entities/Currency.hbm.xml
+15:58:49,615  INFO HbmBinder:300 - Mapping class: gg.db.entities.Currency -> CURRENCIES
+15:58:49,631  INFO Configuration:553 - Reading mappings from resource : gg/db/entities/Payee.hbm.xml
+15:58:49,647  INFO HbmBinder:300 - Mapping class: gg.db.entities.Payee -> PAYEES
+15:58:49,647  INFO Configuration:553 - Reading mappings from resource : gg/db/entities/Account.hbm.xml
+15:58:49,693  INFO HbmBinder:300 - Mapping class: gg.db.entities.Account -> ACCOUNTS
+15:58:49,756  INFO Configuration:553 - Reading mappings from resource : gg/db/entities/Category.hbm.xml
+15:58:49,787  INFO HbmBinder:300 - Mapping class: gg.db.entities.Category -> CATEGORIES
+15:58:49,787  INFO Configuration:553 - Reading mappings from resource : gg/db/entities/Transaction.hbm.xml
+15:58:49,959  INFO HbmBinder:300 - Mapping class: gg.db.entities.Transaction -> TRANSACTIONS
+15:58:50,021  INFO Configuration:1541 - Configured SessionFactory: null
+15:58:50,021  INFO HbmBinder:2375 - Mapping collection: gg.db.entities.Currency.accounts -> ACCOUNTS
+15:58:50,021  INFO HbmBinder:2375 - Mapping collection: gg.db.entities.Account.transactions -> TRANSACTIONS
+15:58:50,021  INFO HbmBinder:2375 - Mapping collection: gg.db.entities.Category.subCategories -> CATEGORIES
+15:58:50,021  INFO HbmBinder:2375 - Mapping collection: gg.db.entities.Transaction.subTransactions -> TRANSACTIONS
+15:58:50,037  INFO DriverManagerConnectionProvider:41 - Using Hibernate built-in connection pool (not for production use!)
+15:58:50,037  INFO DriverManagerConnectionProvider:42 - Hibernate connection pool size: 1
+15:58:50,037  INFO DriverManagerConnectionProvider:45 - autocommit mode: false
+15:58:51,068  INFO DriverManagerConnectionProvider:80 - using driver: org.apache.derby.jdbc.EmbeddedDriver at URL: jdbc:derby:grisbigraphs-db;create=true
+15:58:51,068  INFO DriverManagerConnectionProvider:86 - connection properties: {user=grisbigraphs, password=****}
+15:58:51,599  INFO SettingsFactory:89 - RDBMS: Apache Derby, version: 10.4.2.0 - (689064)
+15:58:51,599  INFO SettingsFactory:90 - JDBC driver: Apache Derby Embedded JDBC Driver, version: 10.4.2.0 - (689064)
+15:58:51,615  INFO Dialect:152 - Using dialect: org.hibernate.dialect.DerbyDialect
+15:58:51,615  INFO TransactionFactoryFactory:31 - Using default transaction strategy (direct JDBC transactions)
+15:58:51,615  INFO TransactionManagerLookupFactory:33 - No TransactionManagerLookup configured (in JTA environment, use of read-write or transactional second-level cache is not recommended)
+15:58:51,615  INFO SettingsFactory:143 - Automatic flush during beforeCompletion(): disabled
+15:58:51,615  INFO SettingsFactory:147 - Automatic session close at end of transaction: disabled
+15:58:51,615  INFO SettingsFactory:162 - Scrollable result sets: enabled
+15:58:51,615  INFO SettingsFactory:170 - JDBC3 getGeneratedKeys(): disabled
+15:58:51,615  INFO SettingsFactory:178 - Connection release mode: auto
+15:58:51,615  INFO SettingsFactory:205 - Default batch fetch size: 1
+15:58:51,615  INFO SettingsFactory:209 - Generate SQL with comments: disabled
+15:58:51,615  INFO SettingsFactory:213 - Order SQL updates by primary key: disabled
+15:58:51,615  INFO SettingsFactory:382 - Query translator: org.hibernate.hql.ast.ASTQueryTranslatorFactory
+15:58:51,615  INFO ASTQueryTranslatorFactory:24 - Using ASTQueryTranslatorFactory
+15:58:51,631  INFO SettingsFactory:221 - Query language substitutions: {}
+15:58:51,631  INFO SettingsFactory:226 - JPA-QL strict compliance: disabled
+15:58:51,631  INFO SettingsFactory:231 - Second-level cache: enabled
+15:58:51,631  INFO SettingsFactory:235 - Query cache: disabled
+15:58:51,631  INFO SettingsFactory:369 - Cache provider: org.hibernate.cache.NoCacheProvider
+15:58:51,631  INFO SettingsFactory:250 - Optimize cache for minimal puts: disabled
+15:58:51,631  INFO SettingsFactory:259 - Structured second-level cache entries: disabled
+15:58:51,631  INFO SettingsFactory:279 - Echoing all SQL to stdout
+15:58:51,631  INFO SettingsFactory:286 - Statistics: disabled
+15:58:51,631  INFO SettingsFactory:290 - Deleted entity synthetic identifier rollback: disabled
+15:58:51,631  INFO SettingsFactory:305 - Default entity-mode: pojo
+15:58:51,631  INFO SettingsFactory:309 - Named query checking : enabled
+15:58:51,646  INFO SessionFactoryImpl:161 - building session factory
+15:58:51,896  INFO SessionFactoryObjectFactory:82 - Not binding factory to JNDI, no JNDI name configured
+15:58:51,896  INFO SchemaUpdate:115 - Running hbm2ddl schema update
+15:58:51,896  INFO SchemaUpdate:126 - fetching database metadata
+15:58:51,896  INFO SchemaUpdate:138 - updating schema
+15:58:52,193  INFO TableMetadata:39 - table found: .GRISBIGRAPHS.ACCOUNTS
+15:58:52,193  INFO TableMetadata:40 - columns: [id, balance, name, active, initial_amount, id_currency]
+15:58:52,193  INFO TableMetadata:42 - foreign keys: [fk_account_currency]
+15:58:52,193  INFO TableMetadata:43 - indexes: [sql090428170439120, sql090428170438000]
+15:58:52,224  INFO TableMetadata:39 - table found: .GRISBIGRAPHS.CATEGORIES
+15:58:52,224  INFO TableMetadata:40 - columns: [id, grisbi_sub_category_id, id_parent_category, name, grisbi_category_id, system_property]
+15:58:52,224  INFO TableMetadata:42 - foreign keys: [fk_category_category]
+15:58:52,224  INFO TableMetadata:43 - indexes: [sql090428170439230, sql090428170438141, sql090428170438140]
+15:58:52,224  INFO TableMetadata:39 - table found: .GRISBIGRAPHS.CURRENCIES
+15:58:52,224  INFO TableMetadata:40 - columns: [id, iso_code, name, active, code]
+15:58:52,224  INFO TableMetadata:42 - foreign keys: []
+15:58:52,224  INFO TableMetadata:43 - indexes: [sql090428170438390]
+15:58:52,240  INFO TableMetadata:39 - table found: .GRISBIGRAPHS.FILE_IMPORTS
+15:58:52,240  INFO TableMetadata:40 - columns: [imported_on, id, import_duration, file_path, success]
+15:58:52,240  INFO TableMetadata:42 - foreign keys: []
+15:58:52,240  INFO TableMetadata:43 - indexes: [sql090428170438540]
+15:58:52,255  INFO TableMetadata:39 - table found: .GRISBIGRAPHS.PAYEES
+15:58:52,255  INFO TableMetadata:40 - columns: [id, name, system_property]
+15:58:52,255  INFO TableMetadata:42 - foreign keys: []
+15:58:52,255  INFO TableMetadata:43 - indexes: [sql090428170438680]
+15:58:52,287  INFO TableMetadata:39 - table found: .GRISBIGRAPHS.TRANSACTIONS
+15:58:52,287  INFO TableMetadata:40 - columns: [id_category, amount, id, id_payee, id_account, id_parent_transaction, comment, date]
+15:58:52,287  INFO TableMetadata:42 - foreign keys: [fk_transaction_account, fk_transaction_transaction, fk_transaction_category, fk_transaction_payee]
+15:58:52,287  INFO TableMetadata:43 - indexes: [sql090428170439650, sql090428170439320, sql090428170438840, sql090428170439540, sql090428170439430]
+15:58:52,287  INFO SchemaUpdate:160 - schema update complete
+15:58:52,287  WARN JDBCExceptionReporter:54 - SQL Warning: 10000, SQLState: 01J01
+15:58:52,287  WARN JDBCExceptionReporter:55 - Database 'grisbigraphs-db' not created, connection made to existing database instead.
+15:59:37,954  INFO SessionFactoryImpl:769 - closing
+15:59:37,954  INFO DriverManagerConnectionProvider:147 - cleaning up connection pool: jdbc:derby:grisbigraphs-db;create=true
+17:18:42,460  INFO Environment:509 - Hibernate 3.2.3
+17:18:42,616  INFO Environment:542 - hibernate.properties not found
+17:18:42,616  INFO Environment:676 - Bytecode provider name : cglib
+17:18:42,632  INFO Environment:593 - using JDK 1.4 java.sql.Timestamp handling
+17:18:42,663  INFO Configuration:1426 - configuring from resource: /hibernate.cfg.xml
+17:18:42,663  INFO Configuration:1403 - Configuration resource: /hibernate.cfg.xml
+17:18:42,710  INFO Configuration:553 - Reading mappings from resource : gg/db/entities/FileImport.hbm.xml
+17:18:42,772  INFO HbmBinder:300 - Mapping class: gg.db.entities.FileImport -> FILE_IMPORTS
+17:18:42,804  INFO Configuration:553 - Reading mappings from resource : gg/db/entities/Currency.hbm.xml
+17:18:42,835  INFO HbmBinder:300 - Mapping class: gg.db.entities.Currency -> CURRENCIES
+17:18:42,835  INFO Configuration:553 - Reading mappings from resource : gg/db/entities/Payee.hbm.xml
+17:18:42,866  INFO HbmBinder:300 - Mapping class: gg.db.entities.Payee -> PAYEES
+17:18:42,866  INFO Configuration:553 - Reading mappings from resource : gg/db/entities/Account.hbm.xml
+17:18:42,913  INFO HbmBinder:300 - Mapping class: gg.db.entities.Account -> ACCOUNTS
+17:18:42,991  INFO Configuration:553 - Reading mappings from resource : gg/db/entities/Category.hbm.xml
+17:18:43,007  INFO HbmBinder:300 - Mapping class: gg.db.entities.Category -> CATEGORIES
+17:18:43,007  INFO Configuration:553 - Reading mappings from resource : gg/db/entities/Transaction.hbm.xml
+17:18:43,210  INFO HbmBinder:300 - Mapping class: gg.db.entities.Transaction -> TRANSACTIONS
+17:18:43,257  INFO Configuration:1541 - Configured SessionFactory: null
+17:18:43,257  INFO HbmBinder:2375 - Mapping collection: gg.db.entities.Currency.accounts -> ACCOUNTS
+17:18:43,257  INFO HbmBinder:2375 - Mapping collection: gg.db.entities.Account.transactions -> TRANSACTIONS
+17:18:43,257  INFO HbmBinder:2375 - Mapping collection: gg.db.entities.Category.subCategories -> CATEGORIES
+17:18:43,257  INFO HbmBinder:2375 - Mapping collection: gg.db.entities.Transaction.subTransactions -> TRANSACTIONS
+17:18:43,272  INFO DriverManagerConnectionProvider:41 - Using Hibernate built-in connection pool (not for production use!)
+17:18:43,272  INFO DriverManagerConnectionProvider:42 - Hibernate connection pool size: 1
+17:18:43,272  INFO DriverManagerConnectionProvider:45 - autocommit mode: false
+17:18:44,147  INFO DriverManagerConnectionProvider:80 - using driver: org.apache.derby.jdbc.EmbeddedDriver at URL: jdbc:derby:grisbigraphs-db;create=true
+17:18:44,163  INFO DriverManagerConnectionProvider:86 - connection properties: {user=grisbigraphs, password=****}
+17:18:44,600  INFO SettingsFactory:89 - RDBMS: Apache Derby, version: 10.4.2.0 - (689064)
+17:18:44,600  INFO SettingsFactory:90 - JDBC driver: Apache Derby Embedded JDBC Driver, version: 10.4.2.0 - (689064)
+17:18:44,616  INFO Dialect:152 - Using dialect: org.hibernate.dialect.DerbyDialect
+17:18:44,616  INFO TransactionFactoryFactory:31 - Using default transaction strategy (direct JDBC transactions)
+17:18:44,616  INFO TransactionManagerLookupFactory:33 - No TransactionManagerLookup configured (in JTA environment, use of read-write or transactional second-level cache is not recommended)
+17:18:44,616  INFO SettingsFactory:143 - Automatic flush during beforeCompletion(): disabled
+17:18:44,616  INFO SettingsFactory:147 - Automatic session close at end of transaction: disabled
+17:18:44,616  INFO SettingsFactory:162 - Scrollable result sets: enabled
+17:18:44,616  INFO SettingsFactory:170 - JDBC3 getGeneratedKeys(): disabled
+17:18:44,616  INFO SettingsFactory:178 - Connection release mode: auto
+17:18:44,632  INFO SettingsFactory:205 - Default batch fetch size: 1
+17:18:44,632  INFO SettingsFactory:209 - Generate SQL with comments: disabled
+17:18:44,632  INFO SettingsFactory:213 - Order SQL updates by primary key: disabled
+17:18:44,632  INFO SettingsFactory:382 - Query translator: org.hibernate.hql.ast.ASTQueryTranslatorFactory
+17:18:44,632  INFO ASTQueryTranslatorFactory:24 - Using ASTQueryTranslatorFactory
+17:18:44,632  INFO SettingsFactory:221 - Query language substitutions: {}
+17:18:44,632  INFO SettingsFactory:226 - JPA-QL strict compliance: disabled
+17:18:44,632  INFO SettingsFactory:231 - Second-level cache: enabled
+17:18:44,632  INFO SettingsFactory:235 - Query cache: disabled
+17:18:44,632  INFO SettingsFactory:369 - Cache provider: org.hibernate.cache.NoCacheProvider
+17:18:44,632  INFO SettingsFactory:250 - Optimize cache for minimal puts: disabled
+17:18:44,632  INFO SettingsFactory:259 - Structured second-level cache entries: disabled
+17:18:44,632  INFO SettingsFactory:279 - Echoing all SQL to stdout
+17:18:44,632  INFO SettingsFactory:286 - Statistics: disabled
+17:18:44,632  INFO SettingsFactory:290 - Deleted entity synthetic identifier rollback: disabled
+17:18:44,632  INFO SettingsFactory:305 - Default entity-mode: pojo
+17:18:44,632  INFO SettingsFactory:309 - Named query checking : enabled
+17:18:44,647  INFO SessionFactoryImpl:161 - building session factory
+17:18:44,882  INFO SessionFactoryObjectFactory:82 - Not binding factory to JNDI, no JNDI name configured
+17:18:44,897  INFO SchemaUpdate:115 - Running hbm2ddl schema update
+17:18:44,897  INFO SchemaUpdate:126 - fetching database metadata
+17:18:44,897  INFO SchemaUpdate:138 - updating schema
+17:18:45,178  INFO TableMetadata:39 - table found: .GRISBIGRAPHS.ACCOUNTS
+17:18:45,178  INFO TableMetadata:40 - columns: [id, balance, name, active, initial_amount, id_currency]
+17:18:45,178  INFO TableMetadata:42 - foreign keys: [fk_account_currency]
+17:18:45,178  INFO TableMetadata:43 - indexes: [sql090428170439120, sql090428170438000]
+17:18:45,194  INFO TableMetadata:39 - table found: .GRISBIGRAPHS.CATEGORIES
+17:18:45,194  INFO TableMetadata:40 - columns: [id, grisbi_sub_category_id, id_parent_category, name, grisbi_category_id, system_property]
+17:18:45,194  INFO TableMetadata:42 - foreign keys: [fk_category_category]
+17:18:45,194  INFO TableMetadata:43 - indexes: [sql090428170439230, sql090428170438141, sql090428170438140]
+17:18:45,194  INFO TableMetadata:39 - table found: .GRISBIGRAPHS.CURRENCIES
+17:18:45,194  INFO TableMetadata:40 - columns: [id, iso_code, name, active, code]
+17:18:45,194  INFO TableMetadata:42 - foreign keys: []
+17:18:45,194  INFO TableMetadata:43 - indexes: [sql090428170438390]
+17:18:45,210  INFO TableMetadata:39 - table found: .GRISBIGRAPHS.FILE_IMPORTS
+17:18:45,210  INFO TableMetadata:40 - columns: [imported_on, id, import_duration, file_path, success]
+17:18:45,210  INFO TableMetadata:42 - foreign keys: []
+17:18:45,210  INFO TableMetadata:43 - indexes: [sql090428170438540]
+17:18:45,225  INFO TableMetadata:39 - table found: .GRISBIGRAPHS.PAYEES
+17:18:45,225  INFO TableMetadata:40 - columns: [id, name, system_property]
+17:18:45,225  INFO TableMetadata:42 - foreign keys: []
+17:18:45,225  INFO TableMetadata:43 - indexes: [sql090428170438680]
+17:18:45,257  INFO TableMetadata:39 - table found: .GRISBIGRAPHS.TRANSACTIONS
+17:18:45,257  INFO TableMetadata:40 - columns: [id_category, amount, id, id_payee, id_account, id_parent_transaction, comment, date]
+17:18:45,257  INFO TableMetadata:42 - foreign keys: [fk_transaction_account, fk_transaction_transaction, fk_transaction_category, fk_transaction_payee]
+17:18:45,257  INFO TableMetadata:43 - indexes: [sql090428170439650, sql090428170439320, sql090428170438840, sql090428170439540, sql090428170439430]
+17:18:45,257  INFO SchemaUpdate:160 - schema update complete
+17:18:45,257  WARN JDBCExceptionReporter:54 - SQL Warning: 10000, SQLState: 01J01
+17:18:45,257  WARN JDBCExceptionReporter:55 - Database 'grisbigraphs-db' not created, connection made to existing database instead.
+17:21:01,968  INFO SessionFactoryImpl:769 - closing
+17:21:01,968  INFO DriverManagerConnectionProvider:147 - cleaning up connection pool: jdbc:derby:grisbigraphs-db;create=true

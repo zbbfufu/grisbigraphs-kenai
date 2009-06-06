@@ -1,0 +1,6 @@
+Manifest-Version: 1.0
+OpenIDE-Module: gg.searchfilter
+OpenIDE-Module-Layer: gg/searchfilter/layer.xml
+OpenIDE-Module-Localizing-Bundle: gg/searchfilter/Bundle.properties
+OpenIDE-Module-Specification-Version: 1.0
+

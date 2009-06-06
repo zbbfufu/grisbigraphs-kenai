@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<module codename="org.apache.commons.collections">
+    <module_version install_time="1244231754543" last="true" origin="installer" specification_version="1.0">
+        <file crc="1321622716" name="config/Modules/org-apache-commons-collections.xml"/>
+        <file crc="1661102391" name="modules/ext/commons-collections-2.1.1.jar"/>
+        <file crc="2333905013" name="modules/org-apache-commons-collections.jar"/>
+    </module_version>
+</module>

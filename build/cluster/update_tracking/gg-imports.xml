@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<module codename="gg.imports">
+    <module_version install_time="1244231771467" last="true" origin="installer" specification_version="1.0">
+        <file crc="3061232547" name="config/Modules/gg-imports.xml"/>
+        <file crc="633356389" name="modules/gg-imports.jar"/>
+    </module_version>
+</module>

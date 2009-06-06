@@ -1,0 +1,5 @@
+Manifest-Version: 1.0
+OpenIDE-Module: org.apache.db.derby
+OpenIDE-Module-Localizing-Bundle: org/apache/db/derby/Bundle.properties
+OpenIDE-Module-Specification-Version: 1.0
+

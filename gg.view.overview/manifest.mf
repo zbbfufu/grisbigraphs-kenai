@@ -1,0 +1,6 @@
+Manifest-Version: 1.0
+OpenIDE-Module: gg.view.overview
+OpenIDE-Module-Layer: gg/view/overview/layer.xml
+OpenIDE-Module-Localizing-Bundle: gg/view/overview/Bundle.properties
+OpenIDE-Module-Specification-Version: 1.0
+

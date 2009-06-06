@@ -1,0 +1,5 @@
+Manifest-Version: 1.0
+OpenIDE-Module: gg.wallet
+OpenIDE-Module-Localizing-Bundle: gg/wallet/Bundle.properties
+OpenIDE-Module-Specification-Version: 1.0
+
