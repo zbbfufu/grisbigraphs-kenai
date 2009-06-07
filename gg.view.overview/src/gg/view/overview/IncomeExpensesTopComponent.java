@@ -49,6 +49,8 @@ final class IncomeExpensesTopComponent extends TopComponent {
         setToolTipText(NbBundle.getMessage(IncomeExpensesTopComponent.class, "HINT_IncomeExpensesTopComponent"));
         setIcon(ImageUtilities.loadImage(ICON_PATH, true));
         putClientProperty(TopComponent.PROP_CLOSING_DISABLED, Boolean.TRUE);
+        putClientProperty(TopComponent.PROP_DRAGGING_DISABLED, Boolean.TRUE);
+        putClientProperty(TopComponent.PROP_UNDOCKING_DISABLED, Boolean.TRUE);
     }
 
     /** This method is called from within the constructor to

@@ -54,6 +54,8 @@ final class SearchFilterTopComponent extends TopComponent implements LookupListe
         setName(NbBundle.getMessage(SearchFilterTopComponent.class, "CTL_SearchFilterTopComponent"));
         setToolTipText(NbBundle.getMessage(SearchFilterTopComponent.class, "HINT_SearchFilterTopComponent"));
         setIcon(ImageUtilities.loadImage(ICON_PATH, true));
+        putClientProperty(TopComponent.PROP_DRAGGING_DISABLED, Boolean.TRUE);
+        putClientProperty(TopComponent.PROP_UNDOCKING_DISABLED, Boolean.TRUE);
 
         associateLookup(new AbstractLookup(content));
 

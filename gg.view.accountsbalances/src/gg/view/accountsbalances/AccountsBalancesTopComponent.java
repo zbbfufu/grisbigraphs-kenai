@@ -48,6 +48,8 @@ final class AccountsBalancesTopComponent extends TopComponent implements LookupL
         setName(NbBundle.getMessage(AccountsBalancesTopComponent.class, "CTL_AccountsBalancesTopComponent"));
         setToolTipText(NbBundle.getMessage(AccountsBalancesTopComponent.class, "HINT_AccountsBalancesTopComponent"));
         setIcon(ImageUtilities.loadImage(ICON_PATH, true));
+        putClientProperty(TopComponent.PROP_DRAGGING_DISABLED, Boolean.TRUE);
+        putClientProperty(TopComponent.PROP_UNDOCKING_DISABLED, Boolean.TRUE);
 
         // Treetable settings
         outlineAccountsBalances.setRootVisible(false);

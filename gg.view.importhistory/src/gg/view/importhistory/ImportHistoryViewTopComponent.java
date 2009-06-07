@@ -21,6 +21,7 @@
  */
 package gg.view.importhistory;
 
+import gg.application.components.FieldsVisibility;
 import gg.db.datamodel.Datamodel;
 import gg.db.entities.FileImport;
 import java.io.Serializable;
@@ -33,6 +34,7 @@ import javax.swing.table.DefaultTableModel;
 import org.joda.time.DateTime;
 import org.openide.util.ImageUtilities;
 import org.openide.util.NbBundle;
+import org.openide.util.lookup.Lookups;
 import org.openide.windows.TopComponent;
 import org.openide.windows.WindowManager;
 
@@ -55,6 +57,8 @@ final class ImportHistoryViewTopComponent extends TopComponent {
         setName(NbBundle.getMessage(ImportHistoryViewTopComponent.class, "CTL_ImportHistoryViewTopComponent"));
         setToolTipText(NbBundle.getMessage(ImportHistoryViewTopComponent.class, "HINT_ImportHistoryViewTopComponent"));
         setIcon(ImageUtilities.loadImage(ICON_PATH, true));
+        putClientProperty(TopComponent.PROP_DRAGGING_DISABLED, Boolean.TRUE);
+        putClientProperty(TopComponent.PROP_UNDOCKING_DISABLED, Boolean.TRUE);
 
         eTableImportHistory.setModel(new DefaultTableModel(
                 new Object[][]{},
@@ -107,6 +111,9 @@ final class ImportHistoryViewTopComponent extends TopComponent {
         DefaultTableCellRenderer leftRenderer = new DefaultTableCellRenderer();
         leftRenderer.setHorizontalAlignment(JLabel.LEFT);
         eTableImportHistory.getColumnModel().getColumn(COLUMN_DURATION).setCellRenderer(leftRenderer);
+
+        FieldsVisibility fieldsVisibility = new FieldsVisibility();
+        associateLookup(Lookups.singleton(fieldsVisibility));
     }
 
     /** This method is called from within the constructor to

@@ -59,13 +59,14 @@ final class OverviewTopComponent extends TopComponent {
         setName(NbBundle.getMessage(OverviewTopComponent.class, "CTL_OverviewTopComponent"));
         setToolTipText(NbBundle.getMessage(OverviewTopComponent.class, "HINT_OverviewTopComponent"));
         setIcon(ImageUtilities.loadImage(ICON_PATH, true));
+        putClientProperty(TopComponent.PROP_DRAGGING_DISABLED, Boolean.TRUE);
+        putClientProperty(TopComponent.PROP_UNDOCKING_DISABLED, Boolean.TRUE);
 
         outlineOverview.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
         outlineOverview.setColumnHidingAllowed(false);
         outlineOverview.setPopupUsedFromTheCorner(false);
 
         FieldsVisibility fieldsVisibility = new FieldsVisibility();
-
         associateLookup(Lookups.singleton(fieldsVisibility));
     }
 
