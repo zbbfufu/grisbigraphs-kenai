@@ -21,6 +21,7 @@
  */
 package gg.db.entities;
 
+import java.math.BigDecimal;
 import org.junit.Test;
 import static org.junit.Assert.*;
 
@@ -82,13 +83,13 @@ public class CurrencyTest {
     public void testCompareTo() {
         try {
             // Compare two currencies, which have different IDs
-            Currency c1 = new Currency(1L, "US Dollar", "$", "USD", true);
-            Currency c2 = new Currency(2L, "US Dollar", "$", "USD", true);
+            Currency c1 = new Currency(1L, "US Dollar", "$", "USD", new BigDecimal(0), new BigDecimal(0), true);
+            Currency c2 = new Currency(2L, "US Dollar", "$", "USD", new BigDecimal(0), new BigDecimal(0), true);
             assertFalse(c1.compareTo(c2) == 0);
 
             // Compare two currencies, which have the same IDs
-            Currency c3 = new Currency(1L, "US Dollar", "$", "USD", true);
-            Currency c4 = new Currency(1L, "Euro", "€", "EUR", true);
+            Currency c3 = new Currency(1L, "US Dollar", "$", "USD", new BigDecimal(0), new BigDecimal(0), true);
+            Currency c4 = new Currency(1L, "Euro", "€", "EUR", new BigDecimal(0), new BigDecimal(0), true);
             assertTrue(c3.compareTo(c4) == 0);
         } catch (IllegalArgumentException ex) {
             fail("No exception should be thrown here");

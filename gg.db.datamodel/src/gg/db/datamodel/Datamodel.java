@@ -90,6 +90,20 @@ public class Datamodel {
     }
 
     /**
+     * Gets the active currencies
+     * @return List of active currencies
+     */
+    @SuppressWarnings("unchecked")
+    public static List<Currency> getActiveCurrencies() {
+        Session s = Installer.currentSession();
+        Transaction t = s.beginTransaction();
+        List<Currency> list = (List<Currency>) s.createQuery("from Currency c where c.active=true order by name").list();
+        t.commit();
+
+        return list;
+    }
+
+    /**
      * Gets the available payees
      * @return List of payees
      */
@@ -133,6 +147,20 @@ public class Datamodel {
     }
 
     /**
+     * Gets the active accounts
+     * @return List of active accounts
+     */
+    @SuppressWarnings("unchecked")
+    public static List<Account> getActiveAccounts() {
+        Session s = Installer.currentSession();
+        Transaction t = s.beginTransaction();
+        List<Account> list = (List<Account>) s.createQuery("from Account a where a.active=true order by name").list();
+        t.commit();
+
+        return list;
+    }
+
+    /**
      * Gets the available accounts together with their IDs
      * @return List of accounts with their IDs
      */
@@ -157,6 +185,47 @@ public class Datamodel {
         Transaction t = s.beginTransaction();
         List<Category> list = (List<Category>) s.createQuery("from Category c " +
                 "order by c.name").list();
+        t.commit();
+
+        return list;
+    }
+
+    /**
+     * Gets the sub-categories of a category
+     * @param category Category for which the sub-categories are wanted
+     * @return Sub-categories of the category
+     */
+    @SuppressWarnings("unchecked")
+    public static List<Category> getSubCategories(Category category) {
+        Session s = Installer.currentSession();
+        Transaction t = s.beginTransaction();
+        Query query = s.createQuery("from Category c " +
+                "where c.parentCategory=:category").setEntity("category", category);
+        List<Category> list = (List<Category>) query.list();
+        t.commit();
+
+        return list;
+    }
+
+    @SuppressWarnings("unchecked")
+    public static List<Account> getAccounts(Currency currency) {
+        Session s = Installer.currentSession();
+        Transaction t = s.beginTransaction();
+        Query query = s.createQuery("from Account a " +
+                "where a.currency=:currency").setEntity("currency", currency);
+        List<Account> list = (List<Account>) query.list();
+        t.commit();
+
+        return list;
+    }
+
+    @SuppressWarnings("unchecked")
+    public static List<Account> getActiveAccounts(Currency currency) {
+        Session s = Installer.currentSession();
+        Transaction t = s.beginTransaction();
+        Query query = s.createQuery("from Account a " +
+                "where a.active=true and a.currency=:currency").setEntity("currency", currency);
+        List<Account> list = (List<Account>) query.list();
         t.commit();
 
         return list;
@@ -315,7 +384,9 @@ public class Datamodel {
     }
 
     private static Query getQuery(SearchFilter searchFilter, boolean searchFromStartDate,
-            boolean searchUntilEndDate, String select, String where) {
+            boolean searchUntilEndDate, String select, String where,
+            String groupBy,
+            boolean isIncludeSubCategories) {
         Category transferCategory = getCategory(Category.TRANSFER.getGrisbiCategoryId(), Category.TRANSFER.getGrisbiSubCategoryId());
         String queryString = "";
         String fromClause;
@@ -336,7 +407,7 @@ public class Datamodel {
         // WHERE clause
         whereClause.add("a.active=true");
         if (searchFilter.hasAccountsFilter()) {
-            whereClause.add("t.account in (:account)");
+            whereClause.add("t.account in (:accounts)");
         } else if (searchFilter.hasCurrencyFilter()) {
             whereClause.add("a.currency=:currency");
         }
@@ -352,10 +423,10 @@ public class Datamodel {
             whereClause.add("t.date<=:end");
         }
         if (searchFilter.hasCategoriesFilter()) {
-            whereClause.add("t.category in (:category)");
+            //whereClause.add("t.category in (:categories)");
         }
         if (searchFilter.hasPayeesFilter()) {
-            whereClause.add("t.payee in (:payee)");
+            whereClause.add("t.payee in (:payees)");
         }
         if (!searchFilter.isIncludeTransferTransactions()) {
             whereClause.add("t.category<>:categoryTransfer");
@@ -379,11 +450,15 @@ public class Datamodel {
                 queryString += " and ";
             }
         }
+
+        // Group by statement
+        queryString += groupBy;
+
         Query query = s.createQuery(queryString);
 
         // Add the entities to the query
         if (searchFilter.hasAccountsFilter()) {
-            query.setParameterList("account", searchFilter.getAccounts());
+            query.setParameterList("accounts", searchFilter.getAccounts());
         } else if (searchFilter.hasCurrencyFilter()) {
             query.setParameter("currency", searchFilter.getCurrency());
         }
@@ -394,10 +469,18 @@ public class Datamodel {
             query.setParameter("end", searchFilter.getPeriod().getEnd());
         }
         if (searchFilter.hasCategoriesFilter()) {
-            query.setParameterList("category", searchFilter.getCategories());
+            /*List<Category> categories = searchFilter.getCategories();
+            if (isIncludeSubCategories) {
+            List<Category> subCategories = new ArrayList<Category>();
+            for (Category category : categories) {
+            subCategories.addAll(category.getSubCategories());
+            }
+            categories.addAll(subCategories);
+            }*/
+            //query.setParameterList("categories", categories);
         }
         if (searchFilter.hasPayeesFilter()) {
-            query.setParameterList("payee", searchFilter.getPayees());
+            query.setParameterList("payees", searchFilter.getPayees());
         }
         if (!searchFilter.isIncludeTransferTransactions()) {
             query.setParameter("categoryTransfer", transferCategory);
@@ -415,16 +498,16 @@ public class Datamodel {
      * @return Income
      */
     public static BigDecimal getIncome(SearchFilter searchFilter) {
-        Query query = getQuery(searchFilter, true, true, "select sum(t.amount)", "t.amount>0");
-        Session s = Installer.currentSession();
-        Transaction t = s.beginTransaction();
+        Query query = getQuery(searchFilter, true, true, "select sum(t.amount)", "t.amount>0", "", false);
+        //Session s = Installer.currentSession();
+        //Transaction t = s.beginTransaction();
 
         // Execute the query
         BigDecimal income = (BigDecimal) query.uniqueResult();
         if (income == null) {
             income = new BigDecimal(0);
         }
-        t.commit();
+        //t.commit();
 
         return income;
     }
@@ -435,16 +518,16 @@ public class Datamodel {
      * @return Expenses
      */
     public static BigDecimal getExpenses(SearchFilter searchFilter) {
-        Query query = getQuery(searchFilter, true, true, "select sum(t.amount)", "t.amount<0");
-        Session s = Installer.currentSession();
-        Transaction t = s.beginTransaction();
+        Query query = getQuery(searchFilter, true, true, "select sum(t.amount)", "t.amount<0", "", false);
+        //Session s = Installer.currentSession();
+        //Transaction t = s.beginTransaction();
 
         // Execute the query
         BigDecimal expenses = (BigDecimal) query.uniqueResult();
         if (expenses == null) {
             expenses = new BigDecimal(0);
         }
-        t.commit();
+        //t.commit();
 
         return expenses;
     }
@@ -455,7 +538,7 @@ public class Datamodel {
      * @return Balance
      */
     public static BigDecimal getBalance(SearchFilter searchFilter) {
-        Query query = getQuery(searchFilter, true, true, "select sum(t.amount)", null);
+        Query query = getQuery(searchFilter, true, true, "select sum(t.amount)", null, "", false);
         Session s = Installer.currentSession();
         Transaction t = s.beginTransaction();
 
@@ -474,8 +557,40 @@ public class Datamodel {
      * @param searchFilter Search filter
      * @return Balance
      */
+    public static BigDecimal getBalanceWithSubCategories(SearchFilter searchFilter) {
+        Query query = getQuery(searchFilter, true, true, "select sum(t.amount)", null, "", true);
+        Session s = Installer.currentSession();
+        Transaction t = s.beginTransaction();
+
+        // Execute the query
+        BigDecimal balance = (BigDecimal) query.uniqueResult();
+        if (balance == null) {
+            balance = new BigDecimal(0);
+        }
+        t.commit();
+
+        return balance;
+    }
+
+    public static List getCategoriesBalances(SearchFilter searchFilter) {
+        Query query = getQuery(searchFilter, true, true, "select t.category.id, sum(t.amount)", null, " group by t.category.id", false);
+        Session s = Installer.currentSession();
+        Transaction t = s.beginTransaction();
+
+        // Execute the query
+        List list = query.list();
+        t.commit();
+
+        return list;
+    }
+
+    /**
+     * Gets the balance
+     * @param searchFilter Search filter
+     * @return Balance
+     */
     public static BigDecimal getBalanceUntil(SearchFilter searchFilter) {
-        Query query = getQuery(searchFilter, false, true, "select sum(t.amount)", null);
+        Query query = getQuery(searchFilter, false, true, "select sum(t.amount)", null, "", false);
         Session s = Installer.currentSession();
         Transaction t = s.beginTransaction();
 
@@ -496,7 +611,7 @@ public class Datamodel {
      */
     @SuppressWarnings("unchecked")
     public static List<gg.db.entities.Transaction> getTransactions(SearchFilter searchFilter) {
-        Query query = getQuery(searchFilter, true, true, null, null);
+        Query query = getQuery(searchFilter, true, true, null, null, "", false);
         Session s = Installer.currentSession();
         Transaction t = s.beginTransaction();
 

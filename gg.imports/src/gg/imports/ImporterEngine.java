@@ -26,6 +26,7 @@ import gg.db.entities.Account;
 import gg.db.entities.Currency;
 import gg.db.entities.FileImport;
 import gg.db.datamodel.DateFormatException;
+import gg.view.overview.OverviewTopComponent;
 import gg.wallet.Wallet;
 import java.awt.EventQueue;
 import java.io.File;
@@ -43,7 +44,6 @@ import org.openide.DialogDisplayer;
 import org.openide.NotifyDescriptor;
 import org.openide.awt.StatusDisplayer;
 import org.openide.windows.TopComponent;
-import org.openide.windows.TopComponentGroup;
 import org.openide.windows.WindowManager;
 
 /**
@@ -244,19 +244,22 @@ public class ImporterEngine implements Runnable {
                         }
                     }
 
-                    // Display overview
-                    TopComponent win = WindowManager.getDefault().findTopComponent("OverviewTopComponent");
-                    if (win != null) {
-                        win.open();
-                        win.requestActive();
+                    // Refresh "Search filter" topcomponent
+                    TopComponent searchFilterTc = WindowManager.getDefault().findTopComponent("SearchFilterTopComponent");
+                    if (searchFilterTc != null) {
+                        searchFilterTc.close();
+                        searchFilterTc.open();
                     }
 
-                    // Display "Income vs Expenses: current month"
-                    TopComponentGroup overviewGroup = WindowManager.getDefault().findTopComponentGroup("OverviewGroup");
-                    if (overviewGroup == null) {
-                        return;
+                    // Display overview
+                    OverviewTopComponent overviewTc = (OverviewTopComponent)
+                            WindowManager.getDefault().findTopComponent("OverviewTopComponent");
+                    if (overviewTc != null) {
+                        overviewTc.open();
+                        overviewTc.requestActive();
+
+                        overviewTc.displayData();
                     }
-                    overviewGroup.open();
                 }
             };
             EventQueue.invokeLater(worker);
@@ -289,62 +292,56 @@ public class ImporterEngine implements Runnable {
         BigDecimal accountWalletBalance;
 
         // Check active currencies
-        List<Currency> currencies = Datamodel.getCurrencies();
+        List<Currency> currencies = Datamodel.getActiveCurrencies();
         for (Currency currency : currencies) {
-            if (currency.getActive()) {
-                currencyBalance = currency.getBalance();
-                currencyTotalBalance = Datamodel.getCurrencyTotalBalance(currency);
+            currencyBalance = currency.getBalance();
+            currencyTotalBalance = Datamodel.getCurrencyTotalBalance(currency);
 
-                // Check Currency.getBalance() with Datamodel.getCurrencyTotalBalance()
-                if (currencyBalance.compareTo(currencyTotalBalance) != 0) {
+            // Check Currency.getBalance() with Datamodel.getCurrencyTotalBalance()
+            if (currencyBalance.compareTo(currencyTotalBalance) != 0) {
+                NotifyDescriptor d = new NotifyDescriptor.Message(
+                        "Consistency error for the currency '" + currency + "': currency.getBalance() (" + currencyBalance + ") is different from Datamodel.getCurrencyTotalBalance(currency) (" + currencyTotalBalance + ")",
+                        NotifyDescriptor.ERROR_MESSAGE);
+                DialogDisplayer.getDefault().notify(d);
+                return false;
+            }
+
+            // Check Currency.getBalance() with Wallet.getBalance()
+            BigDecimal initialCurrencyAmount = new BigDecimal(0); // Find out the initial amount of the currency
+            for (Account account : Datamodel.getActiveAccounts(currency)) {
+                initialCurrencyAmount = initialCurrencyAmount.add(account.getInitialAmount());
+            }
+            currencyWalletBalance = Wallet.getBalance(Datamodel.getCurrencyTransactions(currency)).add(initialCurrencyAmount);
+            if (currencyBalance.compareTo(currencyWalletBalance) != 0) {
+                NotifyDescriptor d = new NotifyDescriptor.Message(
+                        "Consistency error for the currency '" + currency + "': currency.getBalance() (" + currencyBalance + ") is different from Wallet.getBalance(Datamodel.getCurrencyTransactions(currency)).add(initialCurrencyAmount) (" + currencyWalletBalance + ")",
+                        NotifyDescriptor.ERROR_MESSAGE);
+                DialogDisplayer.getDefault().notify(d);
+                return false;
+            }
+
+            // Check active accounts
+            for (Account account : Datamodel.getActiveAccounts(currency)) {
+                accountBalance = account.getBalance();
+                accountTotalBalance = Datamodel.getAccountTotalBalance(account).add(account.getInitialAmount());
+                accountWalletBalance = Wallet.getBalance(Datamodel.getAccountTransactions(account)).add(account.getInitialAmount());
+
+                // Check Account.getBalance() with Datamodel.getAccountTotalBalance()
+                if (accountBalance.compareTo(accountTotalBalance) != 0) {
                     NotifyDescriptor d = new NotifyDescriptor.Message(
-                            "Consistency error for the currency '" + currency + "': currency.getBalance() (" + currencyBalance + ") is different from Datamodel.getCurrencyTotalBalance(currency) (" + currencyTotalBalance + ")",
+                            "Consistency error the the account '" + account + "': account.getBalance() (" + accountBalance + ") is different from Datamodel.getAccountTotalBalance(account).add(account.getInitialAmount()) (" + accountTotalBalance + ")",
                             NotifyDescriptor.ERROR_MESSAGE);
                     DialogDisplayer.getDefault().notify(d);
                     return false;
                 }
 
-                // Check Currency.getBalance() with Wallet.getBalance()
-                BigDecimal initialCurrencyAmount = new BigDecimal(0); // Find out the initial amount of the currency
-                for (Account account : currency.getAccounts()) {
-                    if (account.getActive()) {
-                        initialCurrencyAmount = initialCurrencyAmount.add(account.getInitialAmount());
-                    }
-                }
-                currencyWalletBalance = Wallet.getBalance(Datamodel.getCurrencyTransactions(currency)).add(initialCurrencyAmount);
-                if (currencyBalance.compareTo(currencyWalletBalance) != 0) {
+                // Check Account.getBalance() with Wallet.getBalance()
+                if (accountBalance.compareTo(accountWalletBalance) != 0) {
                     NotifyDescriptor d = new NotifyDescriptor.Message(
-                            "Consistency error for the currency '" + currency + "': currency.getBalance() (" + currencyBalance + ") is different from Wallet.getBalance(Datamodel.getCurrencyTransactions(currency)).add(initialCurrencyAmount) (" + currencyWalletBalance + ")",
+                            "Consistency error for the account '" + account + "': account.getBalance() (" + accountBalance + ") is different from Wallet.getBalance(Datamodel.getAccountTransactions(account)).add(account.getInitialAmount()) (" + accountWalletBalance + ")",
                             NotifyDescriptor.ERROR_MESSAGE);
                     DialogDisplayer.getDefault().notify(d);
                     return false;
-                }
-
-                // Check active accounts
-                for (Account account : currency.getAccounts()) {
-                    if (account.getActive()) {
-                        accountBalance = account.getBalance();
-                        accountTotalBalance = Datamodel.getAccountTotalBalance(account).add(account.getInitialAmount());
-                        accountWalletBalance = Wallet.getBalance(Datamodel.getAccountTransactions(account)).add(account.getInitialAmount());
-
-                        // Check Account.getBalance() with Datamodel.getAccountTotalBalance()
-                        if (accountBalance.compareTo(accountTotalBalance) != 0) {
-                            NotifyDescriptor d = new NotifyDescriptor.Message(
-                                    "Consistency error the the account '" + account + "': account.getBalance() (" + accountBalance + ") is different from Datamodel.getAccountTotalBalance(account).add(account.getInitialAmount()) (" + accountTotalBalance + ")",
-                                    NotifyDescriptor.ERROR_MESSAGE);
-                            DialogDisplayer.getDefault().notify(d);
-                            return false;
-                        }
-
-                        // Check Account.getBalance() with Wallet.getBalance()
-                        if (accountBalance.compareTo(accountWalletBalance) != 0) {
-                            NotifyDescriptor d = new NotifyDescriptor.Message(
-                                    "Consistency error for the account '" + account + "': account.getBalance() (" + accountBalance + ") is different from Wallet.getBalance(Datamodel.getAccountTransactions(account)).add(account.getInitialAmount()) (" + accountWalletBalance + ")",
-                                    NotifyDescriptor.ERROR_MESSAGE);
-                            DialogDisplayer.getDefault().notify(d);
-                            return false;
-                        }
-                    }
                 }
             }
         }

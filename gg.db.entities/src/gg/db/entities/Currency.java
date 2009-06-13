@@ -42,6 +42,10 @@ public class Currency implements MoneyContainer {
     private String code;
     /** ISO Code of the currency (i.e. "EUR", "USD") */
     private String isoCode;
+    /** Initial amount on the currency */
+    private BigDecimal initialAmount;
+    /** Current balance */
+    private BigDecimal balance;
     /** Is the currency active (does it contains active accounts) */
     private Boolean active;
     /** List of accounts that have the currency */
@@ -57,13 +61,17 @@ public class Currency implements MoneyContainer {
      * @param name Name of the currency ; i.e. "Euro", "US Dollar"
      * @param code Code of the currency  ; i.e. "$"
      * @param isoCode ISO Code of the currency ; i.e. "EUR", "USD"
+     * @param initialAmount Initial amount of the account
+     * @param balance Current balance of the currency
      * @param active Is the currency active (does it contain active accounts?)
      */
-    public Currency(Long id, String name, String code, String isoCode, Boolean active) {
+    public Currency(Long id, String name, String code, String isoCode, BigDecimal initialAmount, BigDecimal balance, Boolean active) {
         setId(id);
         setName(name);
         setCode(code);
         setIsoCode(isoCode);
+        setInitialAmount(initialAmount);
+        setBalance(balance);
         setActive(active);
     }
 
@@ -144,6 +152,45 @@ public class Currency implements MoneyContainer {
     }
 
     /**
+     * Gets the initial amount of the currency
+     * @return Initial amount of the currency
+     */
+    public BigDecimal getInitialAmount() {
+        return initialAmount;
+    }
+
+    /**
+     * Sets the initial amount of the currency
+     * @param initialAmount Initial amount of the currency
+     */
+    public void setInitialAmount(BigDecimal initialAmount) {
+        if (initialAmount == null) {
+            throw new IllegalArgumentException("The parameter 'initialAmount' is null");
+        }
+        this.initialAmount = initialAmount;
+    }
+
+    /**
+     * Gets the balance of the currency
+     * @return Balance of the currency
+     */
+    @Override
+    public BigDecimal getBalance() {
+        return balance;
+    }
+
+    /**
+     * Sets the balance of the currency
+     * @param balance Balance of the currency
+     */
+    public void setBalance(BigDecimal balance) {
+        if (balance == null) {
+            throw new IllegalArgumentException("The parameter 'balance' is null");
+        }
+        this.balance = balance;
+    }
+
+    /**
      * Is the currency active ?
      * @return true if the currency contains accounts that are active (not closed), false otherwise
      */
@@ -176,40 +223,6 @@ public class Currency implements MoneyContainer {
             throw new IllegalArgumentException("The parameter 'accounts' is null");
         }
         this.accounts = accounts;
-    }
-
-    /**
-     * Gets the balance of the currency<BR/>
-     * The balances of each account that belong to the currency are summed
-     * @return Balance of the currency
-     */
-    @Override
-    public BigDecimal getBalance() {
-        BigDecimal balance = new BigDecimal(0);
-
-        for (Account account : accounts) {
-            if (account.getActive()) {
-                balance = balance.add(account.getBalance());
-            }
-        }
-
-        return balance;
-    }
-
-    /**
-     * Gets the initial amount of the currency
-     * @return Initial amount of the currency
-     */
-    public BigDecimal getInitialAmount() {
-        BigDecimal initialAmount = new BigDecimal(0);
-
-        for (Account account : accounts) {
-            if (account.getActive()) {
-                initialAmount = initialAmount.add(account.getInitialAmount());
-            }
-        }
-
-        return initialAmount;
     }
 
     /**

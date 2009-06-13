@@ -55,7 +55,6 @@ public class Category {
     /** This constant permits to search for transactions, which have <B>no categories</B> */
     public static final Category NO_CATEGORY = new Category(-40L, -40L, "NO_CATEGORY", null, true);
 
-
     /** Creates a new instance of Category */
     public Category() {
     }
@@ -232,6 +231,34 @@ public class Category {
 
         return (category.getGrisbiCategoryId().compareTo(grisbiCategoryId) +
                 category.getGrisbiSubCategoryId().compareTo(grisbiSubCategoryId));
+    }
+
+    /**
+     * Compare categories
+     * @param category Category to compare (cannot be null)
+     * @return 0 if the two categories have the same IDs
+     */
+    @Override
+    public boolean equals(Object category) {
+        if (this == category) {
+            return true;
+        }
+
+        // Same objects
+        if (!(category instanceof Category)) {
+            return false;
+        }
+
+        return (((Category) category).getGrisbiCategoryId().compareTo(grisbiCategoryId) == 0 &&
+                ((Category) category).getGrisbiSubCategoryId().compareTo(grisbiSubCategoryId) == 0);
+    }
+
+    @Override
+    public int hashCode() {
+        int hash = 5;
+        hash = 29 * hash + (this.grisbiCategoryId != null ? this.grisbiCategoryId.hashCode() : 0);
+        hash = 29 * hash + (this.grisbiSubCategoryId != null ? this.grisbiSubCategoryId.hashCode() : 0);
+        return hash;
     }
 
     /**

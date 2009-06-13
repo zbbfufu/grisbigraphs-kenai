@@ -8,11 +8,11 @@ import gg.application.components.FieldsVisibility;
 import gg.db.datamodel.Datamodel;
 import gg.db.datamodel.SearchFilter;
 import gg.db.entities.Category;
+import gg.options.Options;
 import gg.utilities.Utilities;
 import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.logging.Logger;
@@ -47,6 +47,10 @@ public final class CategoriesBalancesTopComponent extends TopComponent implement
     private static final String PREFERRED_ID = "CategoriesBalancesTopComponent";
     private Lookup.Result<SearchFilter> result = null;
     private List<SearchFilter> displayedSearchFilters = new ArrayList<SearchFilter>();
+    /** List containing the top categories */
+    private List<Category> topCategories;
+    /** Map containing the sub-categories of a category */
+    private Map<Category, List<Category>> subCategoriesMap = new HashMap<Category, List<Category>>();
 
     public CategoriesBalancesTopComponent() {
         initComponents();
@@ -61,6 +65,7 @@ public final class CategoriesBalancesTopComponent extends TopComponent implement
         outlineCategoriesBalances.setRootVisible(false);
         outlineCategoriesBalances.setPopupUsedFromTheCorner(false);
 
+        // Set the supported fields
         FieldsVisibility fieldsVisibility = new FieldsVisibility();
         fieldsVisibility.setFromVisible(true);
         fieldsVisibility.setToVisible(true);
@@ -68,7 +73,6 @@ public final class CategoriesBalancesTopComponent extends TopComponent implement
         fieldsVisibility.setCurrencyVisible(true);
         fieldsVisibility.setAccountsVisible(true);
         fieldsVisibility.setCategoriesVisible(true);
-
         associateLookup(Lookups.singleton(fieldsVisibility));
     }
 
@@ -143,14 +147,14 @@ public final class CategoriesBalancesTopComponent extends TopComponent implement
         return TopComponent.PERSISTENCE_ALWAYS;
     }
 
-    void writeProperties(java.util.Properties p) {
+    public void writeProperties(java.util.Properties p) {
         // better to version settings since initial version as advocated at
         // http://wiki.apidesign.org/wiki/PropertyFiles
         p.setProperty("version", "1.0");
         // TODO store your settings
     }
 
-    Object readProperties(java.util.Properties p) {
+    public Object readProperties(java.util.Properties p) {
         CategoriesBalancesTopComponent singleton = CategoriesBalancesTopComponent.getDefault();
         singleton.readPropertiesImpl(p);
         return singleton;
@@ -207,16 +211,32 @@ public final class CategoriesBalancesTopComponent extends TopComponent implement
         }
     }
 
+    /**
+     * Should a category be added to the tree?<BR/>
+     * A category must be added to the tree in the following cases:
+     * <UL>
+     * <LI>The category has been selected in the search filter window</LI>
+     * <LI>The parent category of the category has been selected in the search filter window</LI>
+     * <LI>A sub-category of the category has been selected in the search filter window</LI>
+     * </UL>
+     * @param selectedCategories List of categories that have been selected by the user in the search filter window
+     * @param category Category to test (should this category be added to the tree?)
+     * @return true if the category must be added into the tree, false otherwise
+     */
     private boolean isCategoryToDisplay(List<Category> selectedCategories, Category category) {
         if (selectedCategories.contains(category)) {
+            // If <category> has been selected in the search filter window
             return true;
         }
 
         for (Category selectedCategory : selectedCategories) {
-            if (!selectedCategory.isTopCategory()) {
-                if (selectedCategory.getParentCategory().getId().compareTo(category.getId()) == 0) {
-                    return true;
-                }
+            if (selectedCategory.isTopCategory() && subCategoriesMap.get(selectedCategory).contains(category)) {
+                // If a sub-category of <category> has been selected in the search filter window
+                return true;
+            } else if (!selectedCategory.isTopCategory() &&
+                    selectedCategory.getParentCategory().getId().compareTo(category.getId()) == 0) {
+                // If the parent category of <category> has been selected in the search filter window
+                return true;
             }
         }
 
@@ -226,70 +246,144 @@ public final class CategoriesBalancesTopComponent extends TopComponent implement
     private void displayData(List<SearchFilter> searchFilters) {
         Utilities.changeCursorWaitStatus(true);
 
-        // Prepare treetable
-        DefaultMutableTreeNode rootNode = new DefaultMutableTreeNode(); // Root (Not displayed)
-        Map<Long, Map<SearchFilter, String>> balances =
-                new HashMap<Long, Map<SearchFilter, String>>(); // Map of category and corresponding balance
+        // Load categories and sub-categories from the DB
+        topCategories = Datamodel.getTopCategories(); // TODO: categories must be reloaded ONLY if a new file has been imported
+        subCategoriesMap.clear();
+        for (Category topCategory : topCategories) {
+            List<Category> subCategories = Datamodel.getSubCategories(topCategory);
+            subCategoriesMap.put(topCategory, subCategories);
+        }
 
+        // Map that contains the categories' balances by category ID and search filter
+        // ((Category ID) --> (SearchFilter --> Category balance))
+        Map<Long, Map<SearchFilter, BigDecimal>> categoriesBalancesMap =
+                new HashMap<Long, Map<SearchFilter, BigDecimal>>();
 
-        // Compute the categories' balances
+        // Compute the sub-categories' balances (categories have always a balance of 0)
         for (SearchFilter searchFilter : searchFilters) {
-            List categoriesBalances = Datamodel.getCategoriesBalances(searchFilter);
-            Iterator results = categoriesBalances.iterator();
+            // Get all categories' balances for the current search filter
+            List categoriesBalancesForCurrentSearchFilter = Datamodel.getCategoriesBalances(searchFilter);
 
-            while (results.hasNext()) {
-                Object[] row = (Object[]) results.next();
+            // For each category, add (SearchFilter --> Category balance)
+            for (Object rowCategoryBalanceObject : categoriesBalancesForCurrentSearchFilter) {
+                Object[] rowCategoryBalance = (Object[]) rowCategoryBalanceObject;
+                Long categoryId = (Long) rowCategoryBalance[0];
+                BigDecimal categoryBalance = (BigDecimal) rowCategoryBalance[1];
 
-                Long categoryId = (Long) row[0];
-                BigDecimal balance = (BigDecimal) row[1];
+                // Map that contains the current category's balance for the current search filter
+                // (SearchFilter --> Category balance)
+                Map<SearchFilter, BigDecimal> categoryBalanceForCurrentSearchFilterMap =
+                        new HashMap<SearchFilter, BigDecimal>();
+                // If categories' balances have already been added for other SearchFilters
+                if (categoriesBalancesMap.get(categoryId) != null) {
+                    categoryBalanceForCurrentSearchFilterMap.putAll(categoriesBalancesMap.get(categoryId));
+                }
+                // Add the balance of the current category
+                categoryBalanceForCurrentSearchFilterMap.put(searchFilter, categoryBalance);
 
-                Map<SearchFilter, String> balancesMap = new HashMap<SearchFilter, String>();
-                if (balances.get(categoryId) != null) {
-                    balancesMap.putAll(balances.get(categoryId));
+
+                // Add (SearchFilter, Category balance) to the current category
+                categoriesBalancesMap.put(categoryId, categoryBalanceForCurrentSearchFilterMap);
+            }
+
+            // Compute the categories' balances
+            for (Category topCategory : topCategories) {
+                // Initialize the category's balance
+                BigDecimal topCategoryBalance = new BigDecimal(0);
+
+                // Add the balance of each sub-category that will added to the tree
+                for (Category subCategory : subCategoriesMap.get(topCategory)) {
+                    // The sub-category <subCategory> will be added to the tree if:
+                    // - the user didn't select any category in the search filter or
+                    // - <subCategory> has been selected in the search filter,
+                    //   or the parent category of <subCategory> has been selected in the search filter
+                    if (!searchFilters.get(0).hasCategoriesFilter() ||
+                            isCategoryToDisplay(searchFilters.get(0).getCategories(), subCategory)) {
+                        Map<SearchFilter, BigDecimal> subCategoryBalanceForCurrentSearchFilterMap =
+                                categoriesBalancesMap.get(subCategory.getId());
+                        if (subCategoryBalanceForCurrentSearchFilterMap != null) {
+                            // Get the balance of the sub-category for the current search filter
+                            BigDecimal subCategoryBalance = subCategoryBalanceForCurrentSearchFilterMap.get(searchFilter);
+
+                            // Add it to the category's balance
+                            if (subCategoryBalance != null) {
+                                topCategoryBalance = topCategoryBalance.add(subCategoryBalance);
+                            }
+                        }
+                    }
                 }
 
-                balancesMap.put(searchFilter, Utilities.getSignedBalance(balance));
+                // Map that contains the category's balance for the current search filter
+                // (Search filter --> Category's balance)
+                Map<SearchFilter, BigDecimal> topCategoryBalancesMap =
+                        new HashMap<SearchFilter, BigDecimal>();
+                // If categories' balances have already been added for other SearchFilters
+                if (categoriesBalancesMap.get(topCategory.getId()) != null) {
+                    topCategoryBalancesMap.putAll(categoriesBalancesMap.get(topCategory.getId()));
+                }
+                // Add the balance of the category
+                topCategoryBalancesMap.put(searchFilter, topCategoryBalance);
 
-                balances.put(categoryId, balancesMap);
+                // Add (SearchFilter, Category balance> to the current category
+                categoriesBalancesMap.put(topCategory.getId(), topCategoryBalancesMap);
             }
         }
 
-        for (Category category : Datamodel.getTopCategories()) {
-            if ((!searchFilters.get(0).hasCategoriesFilter() ||
-                    (searchFilters.get(0).hasCategoriesFilter() &&
-                    isCategoryToDisplay(searchFilters.get(0).getCategories(), category)))) {
+        // Prepare the tree model
+        DefaultMutableTreeNode rootNode = new DefaultMutableTreeNode(); // Root (Not displayed)
 
-                // Add category to the tree
+        // Add the categories and the sub-categories into the tree
+        for (Category category : topCategories) {
+            // Create the category <category> if:
+            // - the user didn't select any category in the search filter or
+            // - <category> has been selected in the search filter or
+            // - a sub-category of <category> has been selected in the search filter
+            if (!searchFilters.get(0).hasCategoriesFilter() ||
+                    isCategoryToDisplay(searchFilters.get(0).getCategories(), category)) {
+
                 DefaultMutableTreeNode categoryNode = new DefaultMutableTreeNode(category);
 
-                // Compute the sub-categories' balances for each search filter
-                for (Category subCategory : Datamodel.getSubCategories(category)) {
-                    if (balances.get(subCategory.getId()) != null) {
-                        // Add sub-category to the tree
+                // Add the sub-categories into the tree
+                for (Category subCategory : subCategoriesMap.get(category)) {
+                    // Create the sub-category <subCategory> if:
+                    // - the user didn't select any category in the search filter or
+                    // - <subCategory> has been selected in the search filter,
+                    //   or the parent category of <subCategory> has been selected in the search filter
+                    // AND
+                    // - there are some balances' movements for <subCategory> or
+                    //   <subCategory> has been explicitly selected in the seatch filter (in which case 0 are written)
+                    if ((!searchFilters.get(0).hasCategoriesFilter() || isCategoryToDisplay(searchFilters.get(0).getCategories(), subCategory)) &&
+                            (categoriesBalancesMap.get(subCategory.getId()) != null || searchFilters.get(0).getCategories().contains(subCategory))) {
+                        // Add the sub-category node into the tree
                         DefaultMutableTreeNode subCategoryNode = new DefaultMutableTreeNode(subCategory);
                         categoryNode.add(subCategoryNode);
                     }
                 }
 
+                // Add the category node into the tree only if it contains sub-categories
                 if (categoryNode.getChildCount() > 0) {
                     rootNode.add(categoryNode);
                 }
             }
         }
 
+        // Create the tree model based on the root
         DefaultTreeModel treeModel = new DefaultTreeModel(rootNode);
 
+        // Create the outline model based on the tree model
         OutlineModel outlineModel = DefaultOutlineModel.createOutlineModel(
                 treeModel,
-                new CategoriesBalancesRowModel(searchFilters, balances),
+                new CategoriesBalancesRowModel(searchFilters, categoriesBalancesMap),
                 true,
                 "Category");
         outlineCategoriesBalances.setModel(outlineModel);
 
+        // Expand the tree
         for (int i = 0; i < rootNode.getChildCount(); i++) {
             outlineCategoriesBalances.expandPath(new TreePath(((DefaultMutableTreeNode) rootNode.getChildAt(i)).getPath()));
         }
 
+        // Save the currently displayed list of search filters
         this.displayedSearchFilters = searchFilters;
 
         Utilities.changeCursorWaitStatus(false);
@@ -298,9 +392,9 @@ public final class CategoriesBalancesTopComponent extends TopComponent implement
     private class CategoriesBalancesRowModel implements RowModel {
 
         private List<SearchFilter> searchFilters;
-        private Map<Long, Map<SearchFilter, String>> balances;
+        private Map<Long, Map<SearchFilter, BigDecimal>> balances;
 
-        public CategoriesBalancesRowModel(List<SearchFilter> searchFilters, Map<Long, Map<SearchFilter, String>> balances) {
+        public CategoriesBalancesRowModel(List<SearchFilter> searchFilters, Map<Long, Map<SearchFilter, BigDecimal>> balances) {
             if (searchFilters == null) {
                 throw new IllegalArgumentException("The parameter 'searchFilters' is null");
             }
@@ -334,11 +428,19 @@ public final class CategoriesBalancesTopComponent extends TopComponent implement
                 Category category = (Category) nodeInfo;
                 SearchFilter searchFilter = searchFilters.get(column);
 
-                Long categoryId = category.getId();
-                if (balances.get(categoryId) != null) {
-                    return balances.get(categoryId).get(searchFilter);
+                Map<SearchFilter, BigDecimal> categoryBalances = balances.get(category.getId());
+                if (categoryBalances != null) {
+                    BigDecimal categoryBalanceSearchFilter = categoryBalances.get(searchFilter);
+                    if (categoryBalanceSearchFilter != null) {
+                        return Utilities.getSignedBalance(categoryBalanceSearchFilter);
+                    }
                 }
-                return "";
+
+                if (Options.displayZero()) {
+                    return Utilities.getSignedBalance(BigDecimal.ZERO);
+                } else {
+                    return "";
+                }
             }
             return null;
         }

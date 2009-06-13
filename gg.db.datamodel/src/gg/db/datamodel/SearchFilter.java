@@ -41,7 +41,7 @@ import java.util.List;
  * </UL>
  * @author Francois Duchemin
  */
-public class SearchFilter {
+public class SearchFilter implements Comparable<SearchFilter>{
 
     /** Currency (null if there is no currency filter) */
     private Currency currency;
@@ -299,5 +299,15 @@ public class SearchFilter {
      */
     public boolean hasPayeesFilter() {
         return (payees.size() > 0);
+    }
+
+    @Override
+    public int compareTo(SearchFilter searchFilter) {
+        // Make sure that the parameter is not null
+        if (searchFilter == null) {
+            throw new IllegalArgumentException("The parameter 'searchFilter' is null");
+        }
+
+        return period.compareTo(searchFilter.getPeriod());
     }
 }

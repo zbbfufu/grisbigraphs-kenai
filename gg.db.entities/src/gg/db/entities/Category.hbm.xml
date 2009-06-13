@@ -33,11 +33,10 @@
         <many-to-one name="parentCategory"
             column="ID_PARENT_CATEGORY"
             not-null="false"
-            lazy="false"
             insert="true"
             update="true"
             foreign-key="FK_CATEGORY_CATEGORY"/>
-        <set name="subCategories" lazy="false" fetch="join" cascade="all">
+        <set name="subCategories" lazy="true" fetch="join" cascade="all">
             <key column="ID_PARENT_CATEGORY" not-null="false"/>
             <one-to-many class="gg.db.entities.Category"/>
         </set>

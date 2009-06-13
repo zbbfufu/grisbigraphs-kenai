@@ -237,6 +237,10 @@ public class GrisbiFile050 implements Importer {
                 Datamodel.saveCategory(subCategory);
             }
 
+            // For each category, save an empty sub-category
+            Category noSubCategory = new Category(categoryId, 10000L, "No sub-category", category, false);
+            Datamodel.saveCategory(noSubCategory);
+
             numberOfImportedCategories++;
         }
 
@@ -309,7 +313,7 @@ public class GrisbiFile050 implements Importer {
             // Create a new currency and save the currency in the database
             // By default the currencies are not active
             // When the accounts are imported, the currencies are eventualy activated
-            currency = new Currency(currencyId, currencyName, currencyCode, currencyIsoCode, false);
+            currency = new Currency(currencyId, currencyName, currencyCode, currencyIsoCode, new BigDecimal(0), new BigDecimal(0), false);
             Datamodel.saveCurrency(currency);
 
             numberOfImportedCurrencies++;
@@ -409,7 +413,6 @@ public class GrisbiFile050 implements Importer {
             // Activate the currency if needed
             if (accountActive && !accountCurrency.getActive()) {
                 accountCurrency.setActive(true);
-                Datamodel.saveCurrency(accountCurrency);
             }
 
             // Get the initial amount of the account
@@ -432,7 +435,14 @@ public class GrisbiFile050 implements Importer {
             account = new Account(accountId, accountName, accountCurrency, accountInitialAmount, accountBalance, accountActive);
             Datamodel.saveAccount(account);
 
+            accountCurrency.setBalance(accountCurrency.getBalance().add(accountBalance));
+            accountCurrency.setInitialAmount(accountCurrency.getInitialAmount().add(accountInitialAmount));
+
             numberOfImportedAccounts++;
+        }
+
+        for (Currency currency : currencies.values()) {
+            Datamodel.saveCurrency(currency);
         }
 
         endImportingAccountsTime = System.currentTimeMillis();
@@ -447,7 +457,7 @@ public class GrisbiFile050 implements Importer {
      * @throws NumberFormatException If a string is read when a number is expected
      * @throws DateFormatException If the date format of a transaction is invalid
      */
-    private void importTransactions() throws ParsingException, NumberFormatException, DateFormatException {
+    private void importTransactions(ProgressHandle p) throws ParsingException, NumberFormatException, DateFormatException {
         List listOfAccounts;                        // List of the accounts read from the Grisbi file
         Iterator accountsIterator;                  // Iterator to go through the accounts
         Node accountNode;                           // Node of the account for which transactions have to be imported
@@ -540,6 +550,9 @@ public class GrisbiFile050 implements Importer {
             assert (accountNameNode != null);
             accountName = accountNameNode.getStringValue();
             assert (accountName != null);
+
+            // Display on the progress bar the account from which transactions are imported
+            p.progress("Importing transactions from " + accountName);
 
             // Get the corresponding Account object
             account = accounts.get(accountId);
@@ -653,7 +666,7 @@ public class GrisbiFile050 implements Importer {
                 } else if (transactionGrisbiCategoryId != 0) {
                     // Else, if a category is defined, get the category
                     transactionGrisbiCategory.setCategoryId(transactionGrisbiCategoryId);
-                    transactionGrisbiCategory.setSubCategoryId(0);
+                    transactionGrisbiCategory.setSubCategoryId(10000L);
                     transactionCategory = categories.get(transactionGrisbiCategory);
                     assert (transactionCategory != null);
                 } else {
@@ -750,33 +763,33 @@ public class GrisbiFile050 implements Importer {
         startImportingFileTime = System.currentTimeMillis();
 
         // Empty the embedded database
-        p.progress("Empty database");
+        p.progress("Emptying database");
         Datamodel.emptyDatabase();
 
         // Import the information from the Grisbi file into the embedded database
         if (!isImportCancelled()) {
-            p.progress("Import payees");
+            p.progress("Importing payees");
             importPayees();
         }
 
         if (!isImportCancelled()) {
-            p.progress("Import categories");
+            p.progress("Importing categories");
             importCategories();
         }
 
         if (!isImportCancelled()) {
-            p.progress("Import currencies");
+            p.progress("Importing currencies");
             importCurrencies();
         }
 
         if (!isImportCancelled()) {
-            p.progress("Import accounts");
+            p.progress("Importing accounts");
             importAccounts();
         }
 
         if (!isImportCancelled()) {
-            p.progress("Import transactions");
-            importTransactions();
+            p.progress("Importing transactions");
+            importTransactions(p);
         }
 
         p.finish();

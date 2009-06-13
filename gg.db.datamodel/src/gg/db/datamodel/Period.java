@@ -307,7 +307,7 @@ public class Period implements Comparable<Period> {
             return 0;
         }
 
-        periodsIdentic =
+        /*periodsIdentic =
                 (start.compareTo(period.getStart()) == 0) &&
                 (end.compareTo(period.getEnd()) == 0) &&
                 (periodType.compareTo(period.getPeriodType()) == 0);
@@ -318,6 +318,8 @@ public class Period implements Comparable<Period> {
         } else {
             return -1;
         }
+         */
+        return start.compareTo(period.getStart());
     }
 
 
