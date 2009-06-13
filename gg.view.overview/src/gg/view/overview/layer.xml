@@ -49,7 +49,7 @@
         <folder name="Modes">
             <folder name="editor">
                 <file name="OverviewTopComponent.wstcref" url="OverviewTopComponentWstcref.xml">
-                    <attr name="position" intvalue="100"/>
+                    <attr name="position" intvalue="10"/>
                 </file>
             </folder>
             <folder name="output">

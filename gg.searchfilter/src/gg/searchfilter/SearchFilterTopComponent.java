@@ -14,12 +14,29 @@ import gg.db.entities.Account;
 import gg.db.entities.Category;
 import gg.db.entities.Currency;
 import gg.db.entities.Payee;
+import java.awt.BorderLayout;
+import java.awt.GridBagLayout;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
 import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 import java.util.logging.Logger;
 import javax.swing.DefaultListModel;
+import javax.swing.JButton;
+import javax.swing.JComboBox;
+import javax.swing.JLabel;
+import javax.swing.JList;
+import javax.swing.JPanel;
+import javax.swing.JScrollPane;
+import javax.swing.JTextField;
+import javax.swing.JTree;
+import javax.swing.tree.DefaultMutableTreeNode;
+import javax.swing.tree.DefaultTreeModel;
+import javax.swing.tree.TreePath;
+import javax.swing.tree.TreeSelectionModel;
+import org.jdesktop.swingx.JXDatePicker;
 import org.joda.time.LocalDate;
 import org.openide.DialogDisplayer;
 import org.openide.NotifyDescriptor;
@@ -45,29 +62,133 @@ final class SearchFilterTopComponent extends TopComponent implements LookupListe
     private static final String PREFERRED_ID = "SearchFilterTopComponent";
     private InstanceContent content = new InstanceContent();
     private DefaultListModel listModelAccounts = new DefaultListModel();
-    private DefaultListModel listModelCategories = new DefaultListModel();
+    private DefaultMutableTreeNode rootCategoryNode = new DefaultMutableTreeNode();
+    private DefaultTreeModel treeModelCategories = new DefaultTreeModel(rootCategoryNode);
     private DefaultListModel listModelPayees = new DefaultListModel();
-    private Lookup.Result result = null;
+    private static Lookup.Result result = null;
+    private JLabel jLabelFrom;
+    private JXDatePicker jXDatePickerFrom;
+    private JLabel jLabelTo;
+    private JXDatePicker jXDatePickerTo;
+    private JLabel jLabelBy;
+    private JComboBox jComboBoxBy;
+    private JLabel jLabelCurrency;
+    private JComboBox jComboBoxCurrency;
+    private JLabel jLabelAccounts;
+    private JScrollPane jScrollPaneAccounts;
+    private JList jListAccounts;
+    private JLabel jLabelCategories;
+    private JScrollPane jScrollPaneCategories;
+    private JTree jTreeCategories;
+    private JLabel jLabelPayees;
+    private JScrollPane jScrollPanePayees;
+    private JList jListPayees;
+    private JLabel jLabelKeywords;
+    private JTextField jTextFieldKeywords;
+    private JButton jButtonSearch;
+    private JLabel jLabelNoFieldsSupported;
 
     private SearchFilterTopComponent() {
         initComponents();
         setName(NbBundle.getMessage(SearchFilterTopComponent.class, "CTL_SearchFilterTopComponent"));
         setToolTipText(NbBundle.getMessage(SearchFilterTopComponent.class, "HINT_SearchFilterTopComponent"));
         setIcon(ImageUtilities.loadImage(ICON_PATH, true));
+        putClientProperty(TopComponent.PROP_CLOSING_DISABLED, Boolean.TRUE);
         putClientProperty(TopComponent.PROP_DRAGGING_DISABLED, Boolean.TRUE);
         putClientProperty(TopComponent.PROP_UNDOCKING_DISABLED, Boolean.TRUE);
 
         associateLookup(new AbstractLookup(content));
 
-        jListAccounts.setModel(listModelAccounts);
-        jListCategories.setModel(listModelCategories);
-        jListPayees.setModel(listModelPayees);
+        // Initiate the controls
+        jLabelFrom = new JLabel(NbBundle.getMessage(SearchFilterTopComponent.class, "SearchFilterTopComponent.jLabelFrom.text"));
+        jXDatePickerFrom = new JXDatePicker();
 
-        // Remove the link panel (today is...) from the date picker controls
-        jXDatePickerFrom.setLinkPanel(null);
-        jXDatePickerTo.setLinkPanel(null);
+        jLabelTo = new JLabel(NbBundle.getMessage(SearchFilterTopComponent.class, "SearchFilterTopComponent.jLabelTo.text"));
+        jXDatePickerTo = new JXDatePicker();
 
-        loadComboboxes();
+        jLabelBy = new JLabel(NbBundle.getMessage(SearchFilterTopComponent.class, "SearchFilterTopComponent.jLabelBy.text"));
+        jComboBoxBy = new JComboBox();
+        jComboBoxBy.setPreferredSize(jXDatePickerTo.getPreferredSize());
+
+        jLabelCurrency = new JLabel(NbBundle.getMessage(SearchFilterTopComponent.class, "SearchFilterTopComponent.jLabelCurrency.text"));
+        jComboBoxCurrency = new JComboBox();
+        jComboBoxCurrency.setPreferredSize(jXDatePickerTo.getPreferredSize());
+        jComboBoxCurrency.addActionListener(new ActionListener() {
+
+            public void actionPerformed(ActionEvent evt) {
+                jComboBoxCurrencyActionPerformed();
+            }
+        });
+
+        jLabelAccounts = new JLabel(NbBundle.getMessage(SearchFilterTopComponent.class, "SearchFilterTopComponent.jLabelAccounts.text"));
+        jListAccounts = new JList(listModelAccounts);
+        jScrollPaneAccounts = new JScrollPane(jListAccounts);
+
+        jLabelCategories = new JLabel(NbBundle.getMessage(SearchFilterTopComponent.class, "SearchFilterTopComponent.jLabelCategories.text"));
+        jTreeCategories = new JTree(treeModelCategories);
+        jScrollPaneCategories = new JScrollPane(jTreeCategories);
+        jTreeCategories.getSelectionModel().setSelectionMode(TreeSelectionModel.DISCONTIGUOUS_TREE_SELECTION);
+        jTreeCategories.setShowsRootHandles(true);
+
+        jLabelPayees = new JLabel(NbBundle.getMessage(SearchFilterTopComponent.class, "SearchFilterTopComponent.jLabelPayees.text"));
+        jListPayees = new JList(listModelPayees);
+        jScrollPanePayees = new JScrollPane(jListPayees);
+
+        jLabelKeywords = new JLabel(NbBundle.getMessage(SearchFilterTopComponent.class, "SearchFilterTopComponent.jLabelKeywords.text"));
+        jTextFieldKeywords = new JTextField();
+        jTextFieldKeywords.setPreferredSize(jXDatePickerTo.getPreferredSize());
+
+        JPanel jPanelSearch = new JPanel(new BorderLayout());
+        jButtonSearch = new JButton(NbBundle.getMessage(SearchFilterTopComponent.class, "SearchFilterTopComponent.jButtonSearch.text"));
+        jButtonSearch.addActionListener(new ActionListener() {
+
+            public void actionPerformed(ActionEvent evt) {
+                jButtonSearchActionPerformed();
+            }
+        });
+        jPanelSearch.add(jButtonSearch, BorderLayout.EAST);
+
+        jLabelNoFieldsSupported = new JLabel(
+                NbBundle.getMessage(SearchFilterTopComponent.class, "SearchFilterTopComponent.jLabelInformation.text"),
+                JLabel.CENTER);
+
+        // Set the jPanelSearchFilter panel's layout to GridBagLayout
+        // and create a FormUtility to add things to it
+        jPanelSearchFilter.setLayout(new GridBagLayout());
+        FormUtility jPanelSearchUtility = new FormUtility();
+
+        // Add fields on the form
+        jPanelSearchUtility.addFirstField(jLabelFrom, jPanelSearchFilter);
+        jPanelSearchUtility.addLastField(jXDatePickerFrom, jPanelSearchFilter);
+
+        jPanelSearchUtility.addFirstField(jLabelTo, jPanelSearchFilter);
+        jPanelSearchUtility.addLastField(jXDatePickerTo, jPanelSearchFilter);
+
+        jPanelSearchUtility.addFirstField(jLabelBy, jPanelSearchFilter);
+        jPanelSearchUtility.addLastField(jComboBoxBy, jPanelSearchFilter);
+
+        jPanelSearchUtility.addFirstField(jLabelCurrency, jPanelSearchFilter);
+        jPanelSearchUtility.addLastField(jComboBoxCurrency, jPanelSearchFilter);
+
+        jPanelSearchUtility.addFirstField(jLabelAccounts, jPanelSearchFilter);
+        jPanelSearchUtility.addLastField(jScrollPaneAccounts, jPanelSearchFilter);
+
+        jPanelSearchUtility.addFirstField(jLabelCategories, jPanelSearchFilter);
+        jPanelSearchUtility.addLastField(jScrollPaneCategories, jPanelSearchFilter);
+
+        jPanelSearchUtility.addFirstField(jLabelPayees, jPanelSearchFilter);
+        jPanelSearchUtility.addLastField(jScrollPanePayees, jPanelSearchFilter);
+
+        jPanelSearchUtility.addFirstField(jLabelKeywords, jPanelSearchFilter);
+        jPanelSearchUtility.addLastField(jTextFieldKeywords, jPanelSearchFilter);
+
+        jPanelSearchUtility.addLastField(jLabelNoFieldsSupported, jPanelSearchFilter);
+
+        jPanelSearchUtility.addLastField(jPanelSearch, jPanelSearchFilter);
+
+        // By default no field is visible
+        FieldsVisibility fieldsVisibility = new FieldsVisibility();
+        setVisibility(fieldsVisibility);
     }
 
     /** Loads the "type of graph" and the "type of period" comboboxes */
@@ -81,19 +202,25 @@ final class SearchFilterTopComponent extends TopComponent implements LookupListe
 
         // combobox "currency"
         jComboBoxCurrency.removeAllItems();
-        for (Currency currency : Datamodel.getCurrencies()) {
-            if (currency.getActive()) {
-                jComboBoxCurrency.addItem(currency);
-            }
+        for (Currency currency : Datamodel.getActiveCurrencies()) {
+            jComboBoxCurrency.addItem(currency);
         }
 
-        // listbox "categories"
-        listModelCategories.removeAllElements();
+        // tree "categories"
+        rootCategoryNode.removeAllChildren();
         for (Category category : Datamodel.getTopCategories()) {
             if (!category.getSystemProperty()) {
-                listModelCategories.addElement(category);
+                DefaultMutableTreeNode categoryNode = new DefaultMutableTreeNode(category);
+                rootCategoryNode.add(categoryNode);
+
+                for (Category subCategory : Datamodel.getSubCategories(category)) {
+                    DefaultMutableTreeNode subCategoryNode = new DefaultMutableTreeNode(subCategory);
+                    categoryNode.add(subCategoryNode);
+                }
             }
         }
+        expandAll(jTreeCategories);
+        jTreeCategories.setRootVisible(false);
 
         // listbox "payees"
         listModelPayees.removeAllElements();
@@ -104,313 +231,30 @@ final class SearchFilterTopComponent extends TopComponent implements LookupListe
         }
     }
 
-    /** This method is called from within the constructor to
-     * initialize the form.
-     * WARNING: Do NOT modify this code. The content of this method is
-     * always regenerated by the Form Editor.
-     */
-    // <editor-fold defaultstate="collapsed" desc="Generated Code">//GEN-BEGIN:initComponents
-    private void initComponents() {
+    public void expandAll(JTree tree) {
+        int row = 0;
+        while (row < tree.getRowCount()) {
+            tree.expandRow(row);
+            row++;
+        }
+    }
 
-        jPanelFrom = new javax.swing.JPanel();
-        jLabelFrom = new javax.swing.JLabel();
-        jXDatePickerFrom = new org.jdesktop.swingx.JXDatePicker();
-        jPanelTo = new javax.swing.JPanel();
-        jLabelTo = new javax.swing.JLabel();
-        jXDatePickerTo = new org.jdesktop.swingx.JXDatePicker();
-        jPanelBy = new javax.swing.JPanel();
-        jLabelBy = new javax.swing.JLabel();
-        jComboBoxBy = new javax.swing.JComboBox();
-        jPanelCurrency = new javax.swing.JPanel();
-        jLabelCurrency = new javax.swing.JLabel();
-        jComboBoxCurrency = new javax.swing.JComboBox();
-        jPanelAccounts = new javax.swing.JPanel();
-        jLabelAccounts = new javax.swing.JLabel();
-        jScrollPaneAccounts = new javax.swing.JScrollPane();
-        jListAccounts = new javax.swing.JList();
-        jPanelCategories = new javax.swing.JPanel();
-        jLabelCategories = new javax.swing.JLabel();
-        jScrollPaneCategories = new javax.swing.JScrollPane();
-        jListCategories = new javax.swing.JList();
-        jPanelPayees = new javax.swing.JPanel();
-        jLabelPayees = new javax.swing.JLabel();
-        jScrollPanePayees = new javax.swing.JScrollPane();
-        jListPayees = new javax.swing.JList();
-        jPanelKeywords = new javax.swing.JPanel();
-        jLabelKeywords = new javax.swing.JLabel();
-        jTextFieldKeywords = new javax.swing.JTextField();
-        jPanelSearch = new javax.swing.JPanel();
-        jButtonSearch = new javax.swing.JButton();
-        jPanelNoFieldsSupported = new javax.swing.JPanel();
-        jLabelInformation = new javax.swing.JLabel();
+    private void jComboBoxCurrencyActionPerformed() {
+        // Filter accounts on the selected currency
+        listModelAccounts.clear();
 
-        setLayout(new javax.swing.BoxLayout(this, javax.swing.BoxLayout.Y_AXIS));
+        Object selectedCurrencyObject = jComboBoxCurrency.getSelectedItem();
 
-        org.openide.awt.Mnemonics.setLocalizedText(jLabelFrom, org.openide.util.NbBundle.getMessage(SearchFilterTopComponent.class, "SearchFilterTopComponent.jLabelFrom.text")); // NOI18N
-
-        javax.swing.GroupLayout jPanelFromLayout = new javax.swing.GroupLayout(jPanelFrom);
-        jPanelFrom.setLayout(jPanelFromLayout);
-        jPanelFromLayout.setHorizontalGroup(
-            jPanelFromLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGroup(jPanelFromLayout.createSequentialGroup()
-                .addGap(72, 72, 72)
-                .addComponent(jLabelFrom)
-                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                .addComponent(jXDatePickerFrom, javax.swing.GroupLayout.DEFAULT_SIZE, 201, Short.MAX_VALUE)
-                .addContainerGap())
-        );
-        jPanelFromLayout.setVerticalGroup(
-            jPanelFromLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGroup(jPanelFromLayout.createSequentialGroup()
-                .addContainerGap()
-                .addGroup(jPanelFromLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
-                    .addComponent(jXDatePickerFrom, javax.swing.GroupLayout.PREFERRED_SIZE, 22, Short.MAX_VALUE)
-                    .addComponent(jLabelFrom)))
-        );
-
-        add(jPanelFrom);
-
-        org.openide.awt.Mnemonics.setLocalizedText(jLabelTo, org.openide.util.NbBundle.getMessage(SearchFilterTopComponent.class, "SearchFilterTopComponent.jLabelTo.text")); // NOI18N
-
-        javax.swing.GroupLayout jPanelToLayout = new javax.swing.GroupLayout(jPanelTo);
-        jPanelTo.setLayout(jPanelToLayout);
-        jPanelToLayout.setHorizontalGroup(
-            jPanelToLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGroup(jPanelToLayout.createSequentialGroup()
-                .addGap(90, 90, 90)
-                .addComponent(jLabelTo)
-                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                .addComponent(jXDatePickerTo, javax.swing.GroupLayout.DEFAULT_SIZE, 201, Short.MAX_VALUE)
-                .addContainerGap())
-        );
-        jPanelToLayout.setVerticalGroup(
-            jPanelToLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, jPanelToLayout.createSequentialGroup()
-                .addContainerGap()
-                .addGroup(jPanelToLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
-                    .addComponent(jXDatePickerTo, javax.swing.GroupLayout.PREFERRED_SIZE, 23, Short.MAX_VALUE)
-                    .addComponent(jLabelTo)))
-        );
-
-        add(jPanelTo);
-
-        org.openide.awt.Mnemonics.setLocalizedText(jLabelBy, org.openide.util.NbBundle.getMessage(SearchFilterTopComponent.class, "SearchFilterTopComponent.jLabelBy.text")); // NOI18N
-
-        jComboBoxBy.setMinimumSize(new java.awt.Dimension(23, 20));
-
-        javax.swing.GroupLayout jPanelByLayout = new javax.swing.GroupLayout(jPanelBy);
-        jPanelBy.setLayout(jPanelByLayout);
-        jPanelByLayout.setHorizontalGroup(
-            jPanelByLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGroup(jPanelByLayout.createSequentialGroup()
-                .addGap(90, 90, 90)
-                .addComponent(jLabelBy)
-                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                .addComponent(jComboBoxBy, 0, 200, Short.MAX_VALUE)
-                .addContainerGap())
-        );
-        jPanelByLayout.setVerticalGroup(
-            jPanelByLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGroup(jPanelByLayout.createSequentialGroup()
-                .addContainerGap()
-                .addGroup(jPanelByLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
-                    .addComponent(jLabelBy)
-                    .addComponent(jComboBoxBy, javax.swing.GroupLayout.DEFAULT_SIZE, 25, Short.MAX_VALUE)))
-        );
-
-        add(jPanelBy);
-
-        org.openide.awt.Mnemonics.setLocalizedText(jLabelCurrency, org.openide.util.NbBundle.getMessage(SearchFilterTopComponent.class, "SearchFilterTopComponent.jLabelCurrency.text")); // NOI18N
-
-        jComboBoxCurrency.addActionListener(new java.awt.event.ActionListener() {
-            public void actionPerformed(java.awt.event.ActionEvent evt) {
-                jComboBoxCurrencyActionPerformed(evt);
+        if (selectedCurrencyObject != null) { // Currency selected
+            Currency selectedCurrency = (Currency) selectedCurrencyObject;
+            // Display accounts that belong to the selected currency
+            for (Account account : Datamodel.getActiveAccounts(selectedCurrency)) {
+                listModelAccounts.addElement(account);
             }
-        });
+        }
+    }
 
-        javax.swing.GroupLayout jPanelCurrencyLayout = new javax.swing.GroupLayout(jPanelCurrency);
-        jPanelCurrency.setLayout(jPanelCurrencyLayout);
-        jPanelCurrencyLayout.setHorizontalGroup(
-            jPanelCurrencyLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGroup(jPanelCurrencyLayout.createSequentialGroup()
-                .addGap(49, 49, 49)
-                .addComponent(jLabelCurrency)
-                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                .addComponent(jComboBoxCurrency, 0, 200, Short.MAX_VALUE)
-                .addContainerGap())
-        );
-        jPanelCurrencyLayout.setVerticalGroup(
-            jPanelCurrencyLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGroup(jPanelCurrencyLayout.createSequentialGroup()
-                .addContainerGap()
-                .addGroup(jPanelCurrencyLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
-                    .addComponent(jComboBoxCurrency, javax.swing.GroupLayout.DEFAULT_SIZE, 25, Short.MAX_VALUE)
-                    .addComponent(jLabelCurrency)))
-        );
-
-        add(jPanelCurrency);
-
-        org.openide.awt.Mnemonics.setLocalizedText(jLabelAccounts, org.openide.util.NbBundle.getMessage(SearchFilterTopComponent.class, "SearchFilterTopComponent.jLabelAccounts.text")); // NOI18N
-
-        jScrollPaneAccounts.setViewportView(jListAccounts);
-
-        javax.swing.GroupLayout jPanelAccountsLayout = new javax.swing.GroupLayout(jPanelAccounts);
-        jPanelAccounts.setLayout(jPanelAccountsLayout);
-        jPanelAccountsLayout.setHorizontalGroup(
-            jPanelAccountsLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, jPanelAccountsLayout.createSequentialGroup()
-                .addGap(48, 48, 48)
-                .addComponent(jLabelAccounts, javax.swing.GroupLayout.PREFERRED_SIZE, 63, javax.swing.GroupLayout.PREFERRED_SIZE)
-                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                .addComponent(jScrollPaneAccounts, javax.swing.GroupLayout.DEFAULT_SIZE, 199, Short.MAX_VALUE)
-                .addContainerGap())
-        );
-        jPanelAccountsLayout.setVerticalGroup(
-            jPanelAccountsLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGroup(jPanelAccountsLayout.createSequentialGroup()
-                .addContainerGap()
-                .addGroup(jPanelAccountsLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                    .addComponent(jScrollPaneAccounts, javax.swing.GroupLayout.DEFAULT_SIZE, 78, Short.MAX_VALUE)
-                    .addGroup(jPanelAccountsLayout.createSequentialGroup()
-                        .addComponent(jLabelAccounts)
-                        .addContainerGap())))
-        );
-
-        jLabelAccounts.getAccessibleContext().setAccessibleName(org.openide.util.NbBundle.getMessage(SearchFilterTopComponent.class, "SearchFilterTopComponent.jLabelAccounts.AccessibleContext.accessibleName")); // NOI18N
-
-        add(jPanelAccounts);
-
-        org.openide.awt.Mnemonics.setLocalizedText(jLabelCategories, org.openide.util.NbBundle.getMessage(SearchFilterTopComponent.class, "SearchFilterTopComponent.jLabelCategories.text")); // NOI18N
-
-        jScrollPaneCategories.setViewportView(jListCategories);
-
-        javax.swing.GroupLayout jPanelCategoriesLayout = new javax.swing.GroupLayout(jPanelCategories);
-        jPanelCategories.setLayout(jPanelCategoriesLayout);
-        jPanelCategoriesLayout.setHorizontalGroup(
-            jPanelCategoriesLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGroup(jPanelCategoriesLayout.createSequentialGroup()
-                .addGap(37, 37, 37)
-                .addComponent(jLabelCategories)
-                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                .addComponent(jScrollPaneCategories, javax.swing.GroupLayout.DEFAULT_SIZE, 200, Short.MAX_VALUE)
-                .addContainerGap())
-        );
-        jPanelCategoriesLayout.setVerticalGroup(
-            jPanelCategoriesLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGroup(jPanelCategoriesLayout.createSequentialGroup()
-                .addContainerGap()
-                .addGroup(jPanelCategoriesLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                    .addComponent(jScrollPaneCategories, javax.swing.GroupLayout.DEFAULT_SIZE, 78, Short.MAX_VALUE)
-                    .addGroup(jPanelCategoriesLayout.createSequentialGroup()
-                        .addComponent(jLabelCategories)
-                        .addContainerGap())))
-        );
-
-        add(jPanelCategories);
-
-        org.openide.awt.Mnemonics.setLocalizedText(jLabelPayees, org.openide.util.NbBundle.getMessage(SearchFilterTopComponent.class, "SearchFilterTopComponent.jLabelPayees.text")); // NOI18N
-
-        jScrollPanePayees.setViewportView(jListPayees);
-
-        javax.swing.GroupLayout jPanelPayeesLayout = new javax.swing.GroupLayout(jPanelPayees);
-        jPanelPayees.setLayout(jPanelPayeesLayout);
-        jPanelPayeesLayout.setHorizontalGroup(
-            jPanelPayeesLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGroup(jPanelPayeesLayout.createSequentialGroup()
-                .addGap(60, 60, 60)
-                .addComponent(jLabelPayees)
-                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                .addComponent(jScrollPanePayees, javax.swing.GroupLayout.DEFAULT_SIZE, 200, Short.MAX_VALUE)
-                .addContainerGap())
-        );
-        jPanelPayeesLayout.setVerticalGroup(
-            jPanelPayeesLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGroup(jPanelPayeesLayout.createSequentialGroup()
-                .addContainerGap()
-                .addGroup(jPanelPayeesLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                    .addComponent(jScrollPanePayees, javax.swing.GroupLayout.DEFAULT_SIZE, 78, Short.MAX_VALUE)
-                    .addGroup(jPanelPayeesLayout.createSequentialGroup()
-                        .addComponent(jLabelPayees)
-                        .addContainerGap())))
-        );
-
-        add(jPanelPayees);
-
-        org.openide.awt.Mnemonics.setLocalizedText(jLabelKeywords, org.openide.util.NbBundle.getMessage(SearchFilterTopComponent.class, "SearchFilterTopComponent.jLabelKeywords.text")); // NOI18N
-
-        jTextFieldKeywords.setText(org.openide.util.NbBundle.getMessage(SearchFilterTopComponent.class, "SearchFilterTopComponent.jTextFieldKeywords.text")); // NOI18N
-
-        javax.swing.GroupLayout jPanelKeywordsLayout = new javax.swing.GroupLayout(jPanelKeywords);
-        jPanelKeywords.setLayout(jPanelKeywordsLayout);
-        jPanelKeywordsLayout.setHorizontalGroup(
-            jPanelKeywordsLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGroup(jPanelKeywordsLayout.createSequentialGroup()
-                .addGap(45, 45, 45)
-                .addComponent(jLabelKeywords)
-                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                .addComponent(jTextFieldKeywords, javax.swing.GroupLayout.DEFAULT_SIZE, 201, Short.MAX_VALUE)
-                .addContainerGap())
-        );
-        jPanelKeywordsLayout.setVerticalGroup(
-            jPanelKeywordsLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGroup(jPanelKeywordsLayout.createSequentialGroup()
-                .addContainerGap()
-                .addGroup(jPanelKeywordsLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
-                    .addComponent(jTextFieldKeywords, javax.swing.GroupLayout.PREFERRED_SIZE, 25, Short.MAX_VALUE)
-                    .addComponent(jLabelKeywords)))
-        );
-
-        add(jPanelKeywords);
-
-        org.openide.awt.Mnemonics.setLocalizedText(jButtonSearch, org.openide.util.NbBundle.getMessage(SearchFilterTopComponent.class, "SearchFilterTopComponent.jButtonSearch.text")); // NOI18N
-        jButtonSearch.addActionListener(new java.awt.event.ActionListener() {
-            public void actionPerformed(java.awt.event.ActionEvent evt) {
-                jButtonSearchActionPerformed(evt);
-            }
-        });
-
-        javax.swing.GroupLayout jPanelSearchLayout = new javax.swing.GroupLayout(jPanelSearch);
-        jPanelSearch.setLayout(jPanelSearchLayout);
-        jPanelSearchLayout.setHorizontalGroup(
-            jPanelSearchLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, jPanelSearchLayout.createSequentialGroup()
-                .addContainerGap(265, Short.MAX_VALUE)
-                .addComponent(jButtonSearch)
-                .addContainerGap())
-        );
-        jPanelSearchLayout.setVerticalGroup(
-            jPanelSearchLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGroup(jPanelSearchLayout.createSequentialGroup()
-                .addContainerGap()
-                .addComponent(jButtonSearch)
-                .addContainerGap(31, Short.MAX_VALUE))
-        );
-
-        add(jPanelSearch);
-
-        org.openide.awt.Mnemonics.setLocalizedText(jLabelInformation, org.openide.util.NbBundle.getMessage(SearchFilterTopComponent.class, "SearchFilterTopComponent.jLabelInformation.text")); // NOI18N
-
-        javax.swing.GroupLayout jPanelNoFieldsSupportedLayout = new javax.swing.GroupLayout(jPanelNoFieldsSupported);
-        jPanelNoFieldsSupported.setLayout(jPanelNoFieldsSupportedLayout);
-        jPanelNoFieldsSupportedLayout.setHorizontalGroup(
-            jPanelNoFieldsSupportedLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGroup(jPanelNoFieldsSupportedLayout.createSequentialGroup()
-                .addContainerGap()
-                .addComponent(jLabelInformation, javax.swing.GroupLayout.DEFAULT_SIZE, 310, Short.MAX_VALUE)
-                .addContainerGap())
-        );
-        jPanelNoFieldsSupportedLayout.setVerticalGroup(
-            jPanelNoFieldsSupportedLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGroup(jPanelNoFieldsSupportedLayout.createSequentialGroup()
-                .addContainerGap()
-                .addComponent(jLabelInformation)
-                .addContainerGap(18, Short.MAX_VALUE))
-        );
-
-        add(jPanelNoFieldsSupported);
-    }// </editor-fold>//GEN-END:initComponents
-
-    private void jButtonSearchActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButtonSearchActionPerformed
+    private void jButtonSearchActionPerformed() {
         Currency selectedCurrency = null;
         List<Account> selectedAccounts = new ArrayList<Account>();
         List<Category> selectedCategories = new ArrayList<Category>();
@@ -477,10 +321,14 @@ final class SearchFilterTopComponent extends TopComponent implements LookupListe
             }
 
             // Get selected categories
-            int[] selectedCategoriesIndices = jListCategories.getSelectedIndices();
-            for (int i = 0; i < selectedCategoriesIndices.length; i++) {
-                Object selectedCategoryObject = jListCategories.getModel().getElementAt(selectedCategoriesIndices[i]);
-                selectedCategories.add((Category) selectedCategoryObject);
+            TreePath[] paths = jTreeCategories.getSelectionPaths();
+            if (paths != null) { // category selected
+                for (TreePath path : paths) {
+                    DefaultMutableTreeNode node = (DefaultMutableTreeNode) path.getLastPathComponent();
+                    Object selectedCategoryObject = node.getUserObject();
+                    Category category = (Category) selectedCategoryObject;
+                    selectedCategories.add(category);
+                }
             }
 
             // Get selected payees
@@ -517,56 +365,45 @@ final class SearchFilterTopComponent extends TopComponent implements LookupListe
             // Put the list of SearchFilter in the lookup of the TC
             content.set(searchFilters, null);
         }
-    }//GEN-LAST:event_jButtonSearchActionPerformed
+    }
 
-    private void jComboBoxCurrencyActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jComboBoxCurrencyActionPerformed
-        // Filter accounts on the selected currency
-        listModelAccounts.clear();
+    /** This method is called from within the constructor to
+     * initialize the jPanelSearchFilter.
+     * WARNING: Do NOT modify this code. The content of this method is
+     * always regenerated by the Form Editor.
+     */
+    // <editor-fold defaultstate="collapsed" desc="Generated Code">//GEN-BEGIN:initComponents
+    private void initComponents() {
 
-        Object selectedCurrencyObject = jComboBoxCurrency.getSelectedItem();
+        jScrollPaneSearchFilter = new javax.swing.JScrollPane();
+        jPanelSearchFilterContainer = new javax.swing.JPanel();
+        jPanelSearchFilter = new javax.swing.JPanel();
 
-        if (selectedCurrencyObject != null) { // Currency selected
-            Currency selectedCurrency = (Currency) selectedCurrencyObject;
-            // Display accounts that belong to the selected currency
-            for (Account account : selectedCurrency.getAccounts()) {
-                if (account.getActive()) {
-                    listModelAccounts.addElement(account);
-                }
-            }
-        }
-    }//GEN-LAST:event_jComboBoxCurrencyActionPerformed
+        setLayout(new java.awt.BorderLayout());
+
+        jPanelSearchFilterContainer.setLayout(new java.awt.BorderLayout());
+
+        javax.swing.GroupLayout jPanelSearchFilterLayout = new javax.swing.GroupLayout(jPanelSearchFilter);
+        jPanelSearchFilter.setLayout(jPanelSearchFilterLayout);
+        jPanelSearchFilterLayout.setHorizontalGroup(
+            jPanelSearchFilterLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+            .addGap(0, 334, Short.MAX_VALUE)
+        );
+        jPanelSearchFilterLayout.setVerticalGroup(
+            jPanelSearchFilterLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+            .addGap(0, 579, Short.MAX_VALUE)
+        );
+
+        jPanelSearchFilterContainer.add(jPanelSearchFilter, java.awt.BorderLayout.NORTH);
+
+        jScrollPaneSearchFilter.setViewportView(jPanelSearchFilterContainer);
+
+        add(jScrollPaneSearchFilter, java.awt.BorderLayout.CENTER);
+    }// </editor-fold>//GEN-END:initComponents
     // Variables declaration - do not modify//GEN-BEGIN:variables
-    private javax.swing.JButton jButtonSearch;
-    private javax.swing.JComboBox jComboBoxBy;
-    private javax.swing.JComboBox jComboBoxCurrency;
-    private javax.swing.JLabel jLabelAccounts;
-    private javax.swing.JLabel jLabelBy;
-    private javax.swing.JLabel jLabelCategories;
-    private javax.swing.JLabel jLabelCurrency;
-    private javax.swing.JLabel jLabelFrom;
-    private javax.swing.JLabel jLabelInformation;
-    private javax.swing.JLabel jLabelKeywords;
-    private javax.swing.JLabel jLabelPayees;
-    private javax.swing.JLabel jLabelTo;
-    private javax.swing.JList jListAccounts;
-    private javax.swing.JList jListCategories;
-    private javax.swing.JList jListPayees;
-    private javax.swing.JPanel jPanelAccounts;
-    private javax.swing.JPanel jPanelBy;
-    private javax.swing.JPanel jPanelCategories;
-    private javax.swing.JPanel jPanelCurrency;
-    private javax.swing.JPanel jPanelFrom;
-    private javax.swing.JPanel jPanelKeywords;
-    private javax.swing.JPanel jPanelNoFieldsSupported;
-    private javax.swing.JPanel jPanelPayees;
-    private javax.swing.JPanel jPanelSearch;
-    private javax.swing.JPanel jPanelTo;
-    private javax.swing.JScrollPane jScrollPaneAccounts;
-    private javax.swing.JScrollPane jScrollPaneCategories;
-    private javax.swing.JScrollPane jScrollPanePayees;
-    private javax.swing.JTextField jTextFieldKeywords;
-    private org.jdesktop.swingx.JXDatePicker jXDatePickerFrom;
-    private org.jdesktop.swingx.JXDatePicker jXDatePickerTo;
+    private javax.swing.JPanel jPanelSearchFilter;
+    private javax.swing.JPanel jPanelSearchFilterContainer;
+    private javax.swing.JScrollPane jScrollPaneSearchFilter;
     // End of variables declaration//GEN-END:variables
 
     /**
@@ -607,11 +444,11 @@ final class SearchFilterTopComponent extends TopComponent implements LookupListe
 
     @Override
     public void componentOpened() {
-        Lookup.Template<FieldsVisibility> tpl = new Lookup.Template<FieldsVisibility>(FieldsVisibility.class);
-        result = Utilities.actionsGlobalContext().lookup(tpl);
+        result = Utilities.actionsGlobalContext().lookupResult(FieldsVisibility.class);
         result.addLookupListener(this);
+        result.allInstances();
 
-        resultChanged(null);
+        loadComboboxes();
     }
 
     @Override
@@ -636,26 +473,44 @@ final class SearchFilterTopComponent extends TopComponent implements LookupListe
 
         if (!instances.isEmpty()) {
             FieldsVisibility fieldsVisibility = (FieldsVisibility) instances.iterator().next();
+            setVisibility(fieldsVisibility);
+        }
+    }
 
-            jPanelFrom.setVisible(fieldsVisibility.isFromVisible());
-            jPanelTo.setVisible(fieldsVisibility.isToVisible());
-            jPanelBy.setVisible(fieldsVisibility.isByVisible());
-            jPanelCurrency.setVisible(fieldsVisibility.isCurrencyVisible());
-            jPanelAccounts.setVisible(fieldsVisibility.isAccountsVisible());
-            jPanelCategories.setVisible(fieldsVisibility.isCategoriesVisible());
-            jPanelPayees.setVisible(fieldsVisibility.isPayeesVisible());
-            jPanelKeywords.setVisible(fieldsVisibility.isKeywordsVisible());
+    public void setVisibility(FieldsVisibility fieldsVisibility) {
+        jLabelFrom.setVisible(fieldsVisibility.isFromVisible());
+        jXDatePickerFrom.setVisible(fieldsVisibility.isFromVisible());
 
-            if (fieldsVisibility.isFromVisible() || fieldsVisibility.isToVisible() ||
-                    fieldsVisibility.isByVisible() || fieldsVisibility.isCurrencyVisible() ||
-                    fieldsVisibility.isAccountsVisible() || fieldsVisibility.isCategoriesVisible() ||
-                    fieldsVisibility.isPayeesVisible() || fieldsVisibility.isKeywordsVisible()) {
-                jPanelSearch.setVisible(true);
-                jPanelNoFieldsSupported.setVisible(false);
-            } else {
-                jPanelSearch.setVisible(false);
-                jPanelNoFieldsSupported.setVisible(true);
-            }
+        jLabelTo.setVisible(fieldsVisibility.isToVisible());
+        jXDatePickerTo.setVisible(fieldsVisibility.isToVisible());
+
+        jLabelBy.setVisible(fieldsVisibility.isByVisible());
+        jComboBoxBy.setVisible(fieldsVisibility.isByVisible());
+
+        jLabelCurrency.setVisible(fieldsVisibility.isCurrencyVisible());
+        jComboBoxCurrency.setVisible(fieldsVisibility.isCurrencyVisible());
+
+        jLabelAccounts.setVisible(fieldsVisibility.isAccountsVisible());
+        jScrollPaneAccounts.setVisible(fieldsVisibility.isAccountsVisible());
+
+        jLabelCategories.setVisible(fieldsVisibility.isCategoriesVisible());
+        jScrollPaneCategories.setVisible(fieldsVisibility.isCategoriesVisible());
+
+        jLabelPayees.setVisible(fieldsVisibility.isPayeesVisible());
+        jScrollPanePayees.setVisible(fieldsVisibility.isPayeesVisible());
+
+        jLabelKeywords.setVisible(fieldsVisibility.isKeywordsVisible());
+        jTextFieldKeywords.setVisible(fieldsVisibility.isKeywordsVisible());
+
+        if (fieldsVisibility.isFromVisible() || fieldsVisibility.isToVisible() ||
+                fieldsVisibility.isByVisible() || fieldsVisibility.isCurrencyVisible() ||
+                fieldsVisibility.isAccountsVisible() || fieldsVisibility.isCategoriesVisible() ||
+                fieldsVisibility.isPayeesVisible() || fieldsVisibility.isKeywordsVisible()) {
+            jButtonSearch.setVisible(true);
+            jLabelNoFieldsSupported.setVisible(false);
+        } else {
+            jButtonSearch.setVisible(false);
+            jLabelNoFieldsSupported.setVisible(true);
         }
     }
 

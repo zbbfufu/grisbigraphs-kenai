@@ -26,6 +26,7 @@ import gg.db.datamodel.Datamodel;
 import gg.db.entities.Account;
 import gg.db.entities.Currency;
 import gg.db.entities.MoneyContainer;
+import gg.utilities.Utilities;
 import java.io.Serializable;
 import java.util.HashMap;
 import java.util.Map;
@@ -47,12 +48,13 @@ import org.openide.windows.TopComponentGroup;
 /**
  * Top component which displays the overview
  */
-final class OverviewTopComponent extends TopComponent {
+public final class OverviewTopComponent extends TopComponent {
 
     private static OverviewTopComponent instance;
     /** path to the icon used by the component and its open action */
     static final String ICON_PATH = "gg/resources/icons/Overview.png";
     private static final String PREFERRED_ID = "OverviewTopComponent";
+    private FieldsVisibility fieldsVisibility = new FieldsVisibility();
 
     private OverviewTopComponent() {
         initComponents();
@@ -62,12 +64,13 @@ final class OverviewTopComponent extends TopComponent {
         putClientProperty(TopComponent.PROP_DRAGGING_DISABLED, Boolean.TRUE);
         putClientProperty(TopComponent.PROP_UNDOCKING_DISABLED, Boolean.TRUE);
 
+        associateLookup(Lookups.singleton(fieldsVisibility));
+
         outlineOverview.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
         outlineOverview.setColumnHidingAllowed(false);
         outlineOverview.setPopupUsedFromTheCorner(false);
 
-        FieldsVisibility fieldsVisibility = new FieldsVisibility();
-        associateLookup(Lookups.singleton(fieldsVisibility));
+        displayData();
     }
 
     /** This method is called from within the constructor to
@@ -142,23 +145,46 @@ final class OverviewTopComponent extends TopComponent {
     }
 
     @Override
-    public void componentOpened() {
+    public void componentClosed() {
+        TopComponentGroup overviewGroup = WindowManager.getDefault().findTopComponentGroup("OverviewGroup");
+        if (overviewGroup != null) {
+            overviewGroup.close();
+        }
+    }
+
+    @Override
+    protected void componentActivated() {
+        super.componentActivated();
+        TopComponentGroup overviewGroup = WindowManager.getDefault().findTopComponentGroup("OverviewGroup");
+        if (overviewGroup != null) {
+            overviewGroup.open();
+        }
+    }
+
+    @Override
+    protected void componentHidden() {
+        super.componentDeactivated();
+        TopComponentGroup overviewGroup = WindowManager.getDefault().findTopComponentGroup("OverviewGroup");
+        if (overviewGroup != null) {
+            overviewGroup.close();
+        }
+    }
+
+    public void displayData() {
+        Utilities.changeCursorWaitStatus(true);
+        
         DefaultMutableTreeNode rootNode = new DefaultMutableTreeNode(); // Root (Not displayed)
         Map<MoneyContainer, String> balances = new HashMap<MoneyContainer, String>(); // Map of currency/account and corresponding balance
 
-        for (Currency currency : Datamodel.getCurrencies()) {
-            if (currency.getActive()) { // Display only active currencies in the overview
-                DefaultMutableTreeNode currencyNode = new DefaultMutableTreeNode(currency);
-                rootNode.add(currencyNode);
-                balances.put(currency, currency.getBalance().toString());
+        for (Currency currency : Datamodel.getActiveCurrencies()) {
+            DefaultMutableTreeNode currencyNode = new DefaultMutableTreeNode(currency);
+            rootNode.add(currencyNode);
+            balances.put(currency, currency.getBalance().toString());
 
-                for (Account account : currency.getAccounts()) {
-                    if (account.getActive()) { // Display only active accounts
-                        DefaultMutableTreeNode accountNode = new DefaultMutableTreeNode(account);
-                        currencyNode.add(accountNode);
-                        balances.put(account, account.getBalance().toString());
-                    }
-                }
+            for (Account account : Datamodel.getActiveAccounts(currency)) {
+                DefaultMutableTreeNode accountNode = new DefaultMutableTreeNode(account);
+                currencyNode.add(accountNode);
+                balances.put(account, account.getBalance().toString());
             }
         }
 
@@ -173,36 +199,12 @@ final class OverviewTopComponent extends TopComponent {
         for (int i = 0; i < rootNode.getChildCount(); i++) {
             outlineOverview.expandPath(new TreePath(((DefaultMutableTreeNode) rootNode.getChildAt(i)).getPath()));
         }
-    }
 
-    @Override
-    public void componentClosed() {
-        TopComponentGroup overviewGroup = WindowManager.getDefault().findTopComponentGroup("OverviewGroup");
-        if (overviewGroup == null) {
-            System.out.println("overviewgroup null!!");
-            return;
-        }
-        overviewGroup.close();
-    }
+        Utilities.changeCursorWaitStatus(false);
 
-    @Override
-    protected void componentActivated() {
-        super.componentActivated();
-        TopComponentGroup overviewGroup = WindowManager.getDefault().findTopComponentGroup("OverviewGroup");
-        if (overviewGroup == null) {
-            return;
-        }
-        overviewGroup.open();
-    }
-
-    @Override
-    protected void componentHidden() {
-        super.componentDeactivated();
-        TopComponentGroup overviewGroup = WindowManager.getDefault().findTopComponentGroup("OverviewGroup");
-        if (overviewGroup == null) {
-            return;
-        }
-        overviewGroup.close();
+        IncomeExpensesTopComponent overviewGraph =
+                (IncomeExpensesTopComponent) WindowManager.getDefault().findTopComponent("IncomeExpensesTopComponent");
+        overviewGraph.displayData();
     }
 
     /** replaces this in object stream */

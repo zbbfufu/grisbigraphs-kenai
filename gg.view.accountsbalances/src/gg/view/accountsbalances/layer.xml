@@ -29,7 +29,7 @@
         <folder name="Window">
             <file name="AccountsBalancesAction.shadow">
                 <attr name="originalFile" stringvalue="Actions/Window/gg-view-accountsbalances-AccountsBalancesAction.instance"/>
-                <attr name="position" intvalue="30"/>
+                <attr name="position" intvalue="20"/>
             </file>
         </folder>
     </folder>
@@ -49,7 +49,7 @@
         <folder name="Modes">
             <folder name="editor">
                 <file name="AccountsBalancesTopComponent.wstcref" url="AccountsBalancesTopComponentWstcref.xml">
-                    <attr name="position" intvalue="200"/>
+                    <attr name="position" intvalue="20"/>
                 </file>
             </folder>
             <folder name="output">

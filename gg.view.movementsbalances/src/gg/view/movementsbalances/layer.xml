@@ -1,0 +1,67 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE filesystem PUBLIC "-//NetBeans//DTD Filesystem 1.2//EN" "http://www.netbeans.org/dtds/filesystem-1_2.dtd">
+<filesystem>
+    <folder name="Actions">
+        <folder name="Window">
+            <file name="gg-view-movementsbalances-GraphMovementsBalancesAction.instance">
+                <attr name="SystemFileSystem.localizingBundle" stringvalue="gg.view.movementsbalances.Bundle"/>
+                <attr name="component" methodvalue="gg.view.movementsbalances.GraphMovementsBalancesTopComponent.findInstance"/>
+                <attr name="displayName" bundlevalue="gg.view.movementsbalances.Bundle#CTL_GraphMovementsBalancesAction"/>
+                <attr name="iconBase" stringvalue="gg/resources/icons/GraphMovementsBalances.png"/>
+                <attr name="instanceCreate" methodvalue="org.openide.windows.TopComponent.openAction"/>
+            </file>
+            <file name="gg-view-movementsbalances-MovementsBalancesAction.instance">
+                <attr name="SystemFileSystem.localizingBundle" stringvalue="gg.view.movementsbalances.Bundle"/>
+                <attr name="component" methodvalue="gg.view.movementsbalances.MovementsBalancesTopComponent.findInstance"/>
+                <attr name="displayName" bundlevalue="gg.view.movementsbalances.Bundle#CTL_MovementsBalancesAction"/>
+                <attr name="iconBase" stringvalue="gg/resources/icons/MovementsBalances.png"/>
+                <attr name="instanceCreate" methodvalue="org.openide.windows.TopComponent.openAction"/>
+            </file>
+        </folder>
+    </folder>
+    <folder name="Menu">
+        <folder name="View">
+            <file name="MovementsBalancesAction.shadow">
+                <attr name="originalFile" stringvalue="Actions/Window/gg-view-movementsbalances-MovementsBalancesAction.instance"/>
+                <attr name="position" intvalue="30"/>
+            </file>
+        </folder>
+        <folder name="Window">
+            <file name="MovementsBalancesAction.shadow">
+                <attr name="originalFile" stringvalue="Actions/Window/gg-view-movementsbalances-MovementsBalancesAction.instance"/>
+                <attr name="position" intvalue="30"/>
+            </file>
+        </folder>
+    </folder>
+    <folder name="Toolbars">
+        <folder name="View">
+            <file name="MovementsBalancesAction.shadow">
+                <attr name="originalFile" stringvalue="Actions/Window/gg-view-movementsbalances-MovementsBalancesAction.instance"/>
+                <attr name="position" intvalue="30"/>
+            </file>
+        </folder>
+    </folder>
+    <folder name="Windows2">
+        <folder name="Components">
+            <file name="GraphMovementsBalancesTopComponent.settings" url="GraphMovementsBalancesTopComponentSettings.xml"/>
+            <file name="MovementsBalancesTopComponent.settings" url="MovementsBalancesTopComponentSettings.xml"/>
+        </folder>
+        <folder name="Modes">
+            <folder name="editor">
+                <file name="MovementsBalancesTopComponent.wstcref" url="MovementsBalancesTopComponentWstcref.xml">
+                    <attr name="position" intvalue="30"/>
+                </file>
+            </folder>
+            <folder name="output">
+                <file name="GraphMovementsBalancesTopComponent.wstcref" url="GraphMovementsBalancesTopComponentWstcref.xml"/>
+            </folder>
+        </folder>
+        <folder name="Groups">
+            <file name="MovementsBalancesGroup.wsgrp" url="groups/MovementsBalancesGroupWsgrp.xml"/>
+            <folder name="MovementsBalancesGroup">
+                <file name="SearchFilterTopComponent.wstcgrp" url="groups/MovementsBalancesGroup/SearchFilterTopComponentWstcgrp.xml"/>
+                <file name="GraphMovementsBalancesTopComponent.wstcgrp" url="groups/MovementsBalancesGroup/GraphMovementsBalancesTopComponentWstcgrp.xml"/>
+            </folder>
+        </folder>
+    </folder>
+</filesystem>

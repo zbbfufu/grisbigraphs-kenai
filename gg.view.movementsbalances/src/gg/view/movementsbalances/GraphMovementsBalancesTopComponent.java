@@ -2,20 +2,20 @@
  * To change this template, choose Tools | Templates
  * and open the template in the editor.
  */
-package gg.view.accountsbalances;
+package gg.view.movementsbalances;
 
-import gg.db.datamodel.Datamodel;
 import gg.db.datamodel.SearchFilter;
 import gg.db.entities.Account;
-import gg.db.entities.Currency;
+import gg.db.entities.MoneyContainer;
 import gg.utilities.Utilities;
 import java.awt.BorderLayout;
 import java.awt.Color;
-import java.io.Serializable;
 import java.math.BigDecimal;
 import java.math.RoundingMode;
-import java.util.ArrayList;
-import java.util.List;
+import java.util.Collection;
+import java.util.Map;
+import java.util.SortedSet;
+import java.util.TreeSet;
 import java.util.logging.Logger;
 import org.jfree.chart.ChartFactory;
 import org.jfree.chart.ChartPanel;
@@ -28,30 +28,32 @@ import org.jfree.chart.plot.PlotOrientation;
 import org.jfree.chart.renderer.category.LineAndShapeRenderer;
 import org.jfree.data.category.DefaultCategoryDataset;
 import org.jfree.util.ShapeUtilities;
-import org.openide.util.ImageUtilities;
-import org.openide.util.Lookup;
-import org.openide.util.LookupEvent;
-import org.openide.util.LookupListener;
 import org.openide.util.NbBundle;
 import org.openide.windows.TopComponent;
 import org.openide.windows.WindowManager;
+import org.openide.util.ImageUtilities;
+import org.netbeans.api.settings.ConvertAsProperties;
+import org.openide.util.Lookup;
+import org.openide.util.LookupEvent;
+import org.openide.util.LookupListener;
 
 /**
  * Top component which displays something.
  */
-final class GraphAccountsBalancesTopComponent extends TopComponent implements LookupListener {
+@ConvertAsProperties(dtd = "-//gg.view.movementsbalances//GraphMovementsBalances//EN",
+autostore = false)
+public final class GraphMovementsBalancesTopComponent extends TopComponent implements LookupListener {
 
-    private static GraphAccountsBalancesTopComponent instance;
+    private static GraphMovementsBalancesTopComponent instance;
     /** path to the icon used by the component and its open action */
-    static final String ICON_PATH = "gg/resources/icons/GraphAccountsBalances.png";
-    private static final String PREFERRED_ID = "GraphAccountsBalancesTopComponent";
+    static final String ICON_PATH = "gg/resources/icons/GraphMovementsBalances.png";
     private Lookup.Result result = null;
-    private List<SearchFilter> displayedSearchFilters = new ArrayList<SearchFilter>();
+    private static final String PREFERRED_ID = "GraphMovementsBalancesTopComponent";
 
-    private GraphAccountsBalancesTopComponent() {
+    public GraphMovementsBalancesTopComponent() {
         initComponents();
-        setName(NbBundle.getMessage(GraphAccountsBalancesTopComponent.class, "CTL_GraphAccountsBalancesTopComponent"));
-        setToolTipText(NbBundle.getMessage(GraphAccountsBalancesTopComponent.class, "HINT_GraphAccountsBalancesTopComponent"));
+        setName(NbBundle.getMessage(GraphMovementsBalancesTopComponent.class, "CTL_GraphMovementsBalancesTopComponent"));
+        setToolTipText(NbBundle.getMessage(GraphMovementsBalancesTopComponent.class, "HINT_GraphMovementsBalancesTopComponent"));
         setIcon(ImageUtilities.loadImage(ICON_PATH, true));
         putClientProperty(TopComponent.PROP_CLOSING_DISABLED, Boolean.TRUE);
         putClientProperty(TopComponent.PROP_DRAGGING_DISABLED, Boolean.TRUE);
@@ -66,9 +68,9 @@ final class GraphAccountsBalancesTopComponent extends TopComponent implements Lo
     // <editor-fold defaultstate="collapsed" desc="Generated Code">//GEN-BEGIN:initComponents
     private void initComponents() {
 
-        jPanelAccountsBalances = new javax.swing.JPanel();
+        jPanelMovementsBalances = new javax.swing.JPanel();
 
-        jPanelAccountsBalances.setLayout(new java.awt.BorderLayout());
+        jPanelMovementsBalances.setLayout(new java.awt.BorderLayout());
 
         javax.swing.GroupLayout layout = new javax.swing.GroupLayout(this);
         this.setLayout(layout);
@@ -76,19 +78,19 @@ final class GraphAccountsBalancesTopComponent extends TopComponent implements Lo
             layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
             .addGroup(layout.createSequentialGroup()
                 .addContainerGap()
-                .addComponent(jPanelAccountsBalances, javax.swing.GroupLayout.DEFAULT_SIZE, 380, Short.MAX_VALUE)
+                .addComponent(jPanelMovementsBalances, javax.swing.GroupLayout.DEFAULT_SIZE, 380, Short.MAX_VALUE)
                 .addContainerGap())
         );
         layout.setVerticalGroup(
             layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
             .addGroup(layout.createSequentialGroup()
                 .addContainerGap()
-                .addComponent(jPanelAccountsBalances, javax.swing.GroupLayout.DEFAULT_SIZE, 278, Short.MAX_VALUE)
+                .addComponent(jPanelMovementsBalances, javax.swing.GroupLayout.DEFAULT_SIZE, 278, Short.MAX_VALUE)
                 .addContainerGap())
         );
     }// </editor-fold>//GEN-END:initComponents
     // Variables declaration - do not modify//GEN-BEGIN:variables
-    private javax.swing.JPanel jPanelAccountsBalances;
+    private javax.swing.JPanel jPanelMovementsBalances;
     // End of variables declaration//GEN-END:variables
 
     /**
@@ -96,27 +98,27 @@ final class GraphAccountsBalancesTopComponent extends TopComponent implements Lo
      * i.e. deserialization routines; otherwise you could get a non-deserialized instance.
      * To obtain the singleton instance, use {@link #findInstance}.
      */
-    public static synchronized GraphAccountsBalancesTopComponent getDefault() {
+    public static synchronized GraphMovementsBalancesTopComponent getDefault() {
         if (instance == null) {
-            instance = new GraphAccountsBalancesTopComponent();
+            instance = new GraphMovementsBalancesTopComponent();
         }
         return instance;
     }
 
     /**
-     * Obtain the GraphAccountsBalancesTopComponent instance. Never call {@link #getDefault} directly!
+     * Obtain the GraphMovementsBalancesTopComponent instance. Never call {@link #getDefault} directly!
      */
-    public static synchronized GraphAccountsBalancesTopComponent findInstance() {
+    public static synchronized GraphMovementsBalancesTopComponent findInstance() {
         TopComponent win = WindowManager.getDefault().findTopComponent(PREFERRED_ID);
         if (win == null) {
-            Logger.getLogger(GraphAccountsBalancesTopComponent.class.getName()).warning(
+            Logger.getLogger(GraphMovementsBalancesTopComponent.class.getName()).warning(
                     "Cannot find " + PREFERRED_ID + " component. It will not be located properly in the window system.");
             return getDefault();
         }
-        if (win instanceof GraphAccountsBalancesTopComponent) {
-            return (GraphAccountsBalancesTopComponent) win;
+        if (win instanceof GraphMovementsBalancesTopComponent) {
+            return (GraphMovementsBalancesTopComponent) win;
         }
-        Logger.getLogger(GraphAccountsBalancesTopComponent.class.getName()).warning(
+        Logger.getLogger(GraphMovementsBalancesTopComponent.class.getName()).warning(
                 "There seem to be multiple components with the '" + PREFERRED_ID +
                 "' ID. That is a potential source of errors and unexpected behavior.");
         return getDefault();
@@ -130,7 +132,8 @@ final class GraphAccountsBalancesTopComponent extends TopComponent implements Lo
     @Override
     public void componentOpened() {
         // Register lookup listener on the search filter top component
-        result = WindowManager.getDefault().findTopComponent("SearchFilterTopComponent").getLookup().lookupResult(SearchFilter.class);
+        result = WindowManager.getDefault().findTopComponent("MovementsBalancesTopComponent").
+                getLookup().lookupResult(Map.class);
         result.addLookupListener(this);
         result.allInstances();
         resultChanged(null);
@@ -142,30 +145,20 @@ final class GraphAccountsBalancesTopComponent extends TopComponent implements Lo
         result = null;
     }
 
-    /** replaces this in object stream */
-    @Override
-    public Object writeReplace() {
-        return new ResolvableHelper();
-    }
-
-    @Override
-    protected String preferredID() {
-        return PREFERRED_ID;
-    }
-
     @Override
     public void resultChanged(LookupEvent ev) {
-        @SuppressWarnings("unchecked")
-        List<SearchFilter> searchFilters = (List<SearchFilter>) result.allInstances();
-        if (!searchFilters.isEmpty() && !searchFilters.equals(displayedSearchFilters)) {
+        Collection instances = result.allInstances();
+        if (!instances.isEmpty()) {
+            @SuppressWarnings("unchecked")
+            Map<MoneyContainer, Map<SearchFilter, BigDecimal>> balances = (Map<MoneyContainer, Map<SearchFilter, BigDecimal>>) instances.iterator().next();
             Utilities.changeCursorWaitStatus(true);
-            displayData(searchFilters);
+            displayData(balances);
             Utilities.changeCursorWaitStatus(false);
         }
     }
 
-    private void displayData(List<SearchFilter> searchFilters) {
-        // Create the dataset (that will contain the accounts' balances)
+    private void displayData(Map<MoneyContainer, Map<SearchFilter, BigDecimal>> balances) {
+        // Create the dataset (that will contain the movements' balances)
         DefaultCategoryDataset dataset = new DefaultCategoryDataset();
 
         // Create an empty chart
@@ -181,7 +174,7 @@ final class GraphAccountsBalancesTopComponent extends TopComponent implements Lo
                 );
 
         // Chart color
-        chart.setBackgroundPaint(jPanelAccountsBalances.getBackground());
+        chart.setBackgroundPaint(jPanelMovementsBalances.getBackground());
         CategoryPlot plot = (CategoryPlot) chart.getPlot();
         plot.setBackgroundPaint(Color.WHITE);
 
@@ -196,30 +189,21 @@ final class GraphAccountsBalancesTopComponent extends TopComponent implements Lo
         domainAxis.setCategoryLabelPositions(CategoryLabelPositions.UP_45);
 
         // Add the series on the chart
-        for (Currency currency : Datamodel.getActiveCurrencies()) {
-            if (!searchFilters.get(0).hasCurrencyFilter() ||
-                    (searchFilters.get(0).hasCurrencyFilter() && searchFilters.get(0).getCurrency().compareTo(currency) == 0)) {
-                for (Account account : Datamodel.getActiveAccounts(currency)) {
-                    if (!searchFilters.get(0).hasAccountsFilter() ||
-                            (searchFilters.get(0).hasAccountsFilter() && searchFilters.get(0).getAccounts().contains(account))) {
+        for (MoneyContainer moneyContainer : balances.keySet()) {
+            if (moneyContainer instanceof Account) {
 
-                        for (SearchFilter searchFilter : searchFilters) {
-                            SearchFilter newSearchFilter = new SearchFilter();
-                            newSearchFilter.setCurrency(currency);
-                            List<Account> accounts = new ArrayList<Account>();
-                            accounts.add(account);
-                            newSearchFilter.setAccounts(accounts);
-                            newSearchFilter.setPeriod(searchFilter.getPeriod());
+                //Collection<SearchFilter> searchFilters = ;
+                SortedSet<SearchFilter> sortedSearchFilters = new TreeSet<SearchFilter>(
+                        balances.get(moneyContainer).keySet());
+                
+                for (SearchFilter searchFilter : sortedSearchFilters) {
+                    BigDecimal accountBalance = balances.get(moneyContainer).get(searchFilter);
+                    accountBalance = accountBalance.setScale(2, RoundingMode.HALF_EVEN);
 
-                            BigDecimal accountBalance = Datamodel.getBalanceUntil(newSearchFilter).add(account.getInitialAmount());
-                            accountBalance = accountBalance.setScale(2, RoundingMode.HALF_EVEN);
-
-                            dataset.addValue(
-                                    accountBalance,
-                                    account.toString(),
-                                    newSearchFilter.getPeriod());
-                        }
-                    }
+                    dataset.addValue(
+                            accountBalance,
+                            moneyContainer.toString(),
+                            searchFilter.getPeriod());
                 }
             }
         }
@@ -241,19 +225,31 @@ final class GraphAccountsBalancesTopComponent extends TopComponent implements Lo
         ChartPanel chartPanel = new ChartPanel(chart);
 
         // Display the chart
-        jPanelAccountsBalances.removeAll();
-        jPanelAccountsBalances.add(chartPanel, BorderLayout.CENTER);
-        jPanelAccountsBalances.updateUI();
-
-        this.displayedSearchFilters = searchFilters;
+        jPanelMovementsBalances.removeAll();
+        jPanelMovementsBalances.add(chartPanel, BorderLayout.CENTER);
+        jPanelMovementsBalances.updateUI();
     }
 
-    final static class ResolvableHelper implements Serializable {
+    void writeProperties(java.util.Properties p) {
+        // better to version settings since initial version as advocated at
+        // http://wiki.apidesign.org/wiki/PropertyFiles
+        p.setProperty("version", "1.0");
+        // TODO store your settings
+    }
 
-        private static final long serialVersionUID = 1L;
+    Object readProperties(java.util.Properties p) {
+        GraphMovementsBalancesTopComponent singleton = GraphMovementsBalancesTopComponent.getDefault();
+        singleton.readPropertiesImpl(p);
+        return singleton;
+    }
 
-        public Object readResolve() {
-            return GraphAccountsBalancesTopComponent.getDefault();
-        }
+    private void readPropertiesImpl(java.util.Properties p) {
+        String version = p.getProperty("version");
+        // TODO read your settings according to their version
+    }
+
+    @Override
+    protected String preferredID() {
+        return PREFERRED_ID;
     }
 }

@@ -22,6 +22,8 @@
 package gg.application;
 
 import org.openide.modules.ModuleInstall;
+import org.openide.windows.TopComponent;
+import org.openide.windows.WindowManager;
 
 /**
  * Installs the application's module
@@ -32,5 +34,22 @@ public class Installer extends ModuleInstall {
     public void restored() {
         // Set the version of the program
         System.setProperty("netbeans.buildnumber", Constants.VERSION);
+    }
+
+    @Override
+    public boolean closing() {
+        // Activate the first editor tc so that the Searchfilter tc is not active when the app is closed (otherwise its listener is not registered correctly)
+        boolean tcFound = false;
+        TopComponent[] tc = TopComponent.getRegistry().getOpened().toArray(new TopComponent[0]);
+        int i = tc.length - 1;
+        while (i >= 0 && !tcFound) {
+            if (WindowManager.getDefault().isOpenedEditorTopComponent(tc[i])) {
+                tc[i].requestActive();
+                tcFound = true;
+            }
+            i--;
+        }
+
+        return super.closing();
     }
 }

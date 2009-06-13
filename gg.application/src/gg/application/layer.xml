@@ -3,6 +3,7 @@
 <filesystem>
     <attr name="Menu\View\org-netbeans-core-actions-LogAction.shadow\position" intvalue="800"/>
     <attr name="Menu\View\org-netbeans-core-windows-actions-ToolbarsListAction.instance\position" intvalue="900"/>
+    <attr name="Menu\Window\org-netbeans-core-windows-actions-GlobalPropertiesAction.shadow\position" intvalue="2450"/>
     <folder name="Menu">
         <file name="Edit_hidden"/>
         <folder name="File">
@@ -38,7 +39,6 @@
             <file name="MaximizeWindowAction.shadow_hidden"/>
             <file name="Output_hidden"/>
             <file name="ProgressListAction.shadow_hidden"/>
-            <file name="Separator3.instance_hidden"/>
             <file name="Separator4.instance_hidden"/>
             <file name="SwitchToRecentDocumentAction.shadow_hidden"/>
             <file name="org-netbeans-core-actions-GlobalPropertiesAction.shadow_hidden"/>

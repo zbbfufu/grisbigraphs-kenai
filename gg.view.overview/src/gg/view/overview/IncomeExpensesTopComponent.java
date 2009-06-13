@@ -10,11 +10,13 @@ import gg.db.datamodel.Period;
 import gg.db.datamodel.PeriodType;
 import gg.db.datamodel.Periods;
 import gg.db.datamodel.SearchFilter;
+import gg.utilities.Utilities;
 import java.awt.BorderLayout;
 import java.awt.Color;
 import java.awt.GradientPaint;
 import java.io.Serializable;
 import java.math.BigDecimal;
+import java.math.RoundingMode;
 import java.util.List;
 import java.util.logging.Logger;
 import org.jfree.chart.ChartFactory;
@@ -36,7 +38,7 @@ import org.openide.windows.WindowManager;
 /**
  * Top component which displays something.
  */
-final class IncomeExpensesTopComponent extends TopComponent {
+public final class IncomeExpensesTopComponent extends TopComponent {
 
     private static IncomeExpensesTopComponent instance;
     /** path to the icon used by the component and its open action */
@@ -122,8 +124,9 @@ final class IncomeExpensesTopComponent extends TopComponent {
         return TopComponent.PERSISTENCE_ALWAYS;
     }
 
-    @Override
-    public void componentOpened() {
+    public void displayData() {
+        Utilities.changeCursorWaitStatus(true);
+
         // Create a dataset (the dataset will contain the values)
         DefaultCategoryDataset dataset = new DefaultCategoryDataset();
 
@@ -169,17 +172,18 @@ final class IncomeExpensesTopComponent extends TopComponent {
                 Periods.getAdjustedEndDate(today, PeriodType.MONTH),
                 PeriodType.MONTH);
 
-        List<Currency> currencies = Datamodel.getCurrencies();
+        List<Currency> currencies = Datamodel.getActiveCurrencies();
         for (Currency currency : currencies) {
-            if (currency.getActive()) {
-                SearchFilter searchFilter = new SearchFilter(currency, null, currentMonth, null, null, null, false);
+            SearchFilter searchFilter = new SearchFilter(currency, null, currentMonth, null, null, null, false);
 
-                BigDecimal currencyIncome = Datamodel.getIncome(searchFilter);
-                BigDecimal currencyExpenses = Datamodel.getExpenses(searchFilter).abs();
+            BigDecimal currencyIncome = Datamodel.getIncome(searchFilter);
+            currencyIncome = currencyIncome.setScale(2, RoundingMode.HALF_EVEN);
 
-                dataset.addValue(currencyIncome, currency.getName(), "Income (" + currency + ")");
-                dataset.addValue(currencyExpenses, currency.getName(), "Expenses (" + currency + ")");
-            }
+            BigDecimal currencyExpenses = Datamodel.getExpenses(searchFilter).abs();
+            currencyExpenses = currencyExpenses.setScale(2, RoundingMode.HALF_EVEN);
+
+            dataset.addValue(currencyIncome, currency.getName(), "Income (" + currency + ")");
+            dataset.addValue(currencyExpenses, currency.getName(), "Expenses (" + currency + ")");
         }
 
         // Create the chart panel that contains the chart
@@ -188,10 +192,8 @@ final class IncomeExpensesTopComponent extends TopComponent {
         // Display the chart
         jPanelIncomeExpenses.removeAll();
         jPanelIncomeExpenses.add(chartPanel, BorderLayout.CENTER);
-    }
 
-    @Override
-    public void componentClosed() {
+        Utilities.changeCursorWaitStatus(false);
     }
 
     /** replaces this in object stream */

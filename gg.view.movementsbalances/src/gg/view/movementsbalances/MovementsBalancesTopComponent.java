@@ -2,7 +2,7 @@
  * To change this template, choose Tools | Templates
  * and open the template in the editor.
  */
-package gg.view.accountsbalances;
+package gg.view.movementsbalances;
 
 import gg.application.components.FieldsVisibility;
 import gg.db.datamodel.Datamodel;
@@ -11,64 +11,69 @@ import gg.db.entities.Account;
 import gg.db.entities.Currency;
 import gg.db.entities.MoneyContainer;
 import gg.utilities.Utilities;
-import java.io.Serializable;
 import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.logging.Logger;
-import javax.swing.ListSelectionModel;
 import javax.swing.tree.DefaultMutableTreeNode;
 import javax.swing.tree.DefaultTreeModel;
 import javax.swing.tree.TreePath;
+import org.openide.util.NbBundle;
+import org.openide.windows.TopComponent;
+import org.openide.windows.WindowManager;
+import org.openide.util.ImageUtilities;
+import org.netbeans.api.settings.ConvertAsProperties;
 import org.netbeans.swing.outline.DefaultOutlineModel;
 import org.netbeans.swing.outline.OutlineModel;
 import org.netbeans.swing.outline.RowModel;
-import org.openide.util.ImageUtilities;
 import org.openide.util.Lookup;
 import org.openide.util.LookupEvent;
 import org.openide.util.LookupListener;
-import org.openide.util.NbBundle;
-import org.openide.util.lookup.Lookups;
-import org.openide.windows.TopComponent;
-import org.openide.windows.WindowManager;
+import org.openide.util.lookup.AbstractLookup;
+import org.openide.util.lookup.InstanceContent;
 import org.openide.windows.TopComponentGroup;
 
 /**
  * Top component which displays something.
  */
-public final class AccountsBalancesTopComponent extends TopComponent implements LookupListener {
+@ConvertAsProperties(dtd = "-//gg.view.movementsbalances//MovementsBalances//EN",
+autostore = false)
+public final class MovementsBalancesTopComponent extends TopComponent implements LookupListener {
 
-    private static AccountsBalancesTopComponent instance;
+    private static MovementsBalancesTopComponent instance;
     /** path to the icon used by the component and its open action */
-    static final String ICON_PATH = "gg/resources/icons/AccountsBalances.png";
-    private static final String PREFERRED_ID = "AccountsBalancesTopComponent";
-    private Lookup.Result<SearchFilter> result = null;
+    static final String ICON_PATH = "gg/resources/icons/MovementsBalances.png";
+    private static final String PREFERRED_ID = "MovementsBalancesTopComponent";
+    private InstanceContent content = new InstanceContent();
+    private Lookup.Result result = null;
     private List<SearchFilter> displayedSearchFilters = new ArrayList<SearchFilter>();
+    private FieldsVisibility fieldsVisibility = new FieldsVisibility();
 
-    private AccountsBalancesTopComponent() {
+    public MovementsBalancesTopComponent() {
         initComponents();
-        setName(NbBundle.getMessage(AccountsBalancesTopComponent.class, "CTL_AccountsBalancesTopComponent"));
-        setToolTipText(NbBundle.getMessage(AccountsBalancesTopComponent.class, "HINT_AccountsBalancesTopComponent"));
+        setName(NbBundle.getMessage(MovementsBalancesTopComponent.class, "CTL_MovementsBalancesTopComponent"));
+        setToolTipText(NbBundle.getMessage(MovementsBalancesTopComponent.class, "HINT_MovementsBalancesTopComponent"));
         setIcon(ImageUtilities.loadImage(ICON_PATH, true));
         putClientProperty(TopComponent.PROP_DRAGGING_DISABLED, Boolean.TRUE);
         putClientProperty(TopComponent.PROP_UNDOCKING_DISABLED, Boolean.TRUE);
 
-        // Treetable settings
-        outlineAccountsBalances.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
-        outlineAccountsBalances.setRootVisible(false);
-        outlineAccountsBalances.setPopupUsedFromTheCorner(false);
+        associateLookup(new AbstractLookup(content));
 
-        FieldsVisibility fieldsVisibility = new FieldsVisibility();
+        // Treetable settings
+        outlineMovementsBalances.setRootVisible(false);
+        outlineMovementsBalances.setPopupUsedFromTheCorner(false);
+
         fieldsVisibility.setFromVisible(true);
         fieldsVisibility.setToVisible(true);
         fieldsVisibility.setByVisible(true);
         fieldsVisibility.setCurrencyVisible(true);
         fieldsVisibility.setAccountsVisible(true);
 
-        associateLookup(Lookups.singleton(fieldsVisibility));
+        content.set(Collections.singleton(fieldsVisibility), null);
     }
 
     /** This method is called from within the constructor to
@@ -79,10 +84,10 @@ public final class AccountsBalancesTopComponent extends TopComponent implements 
     // <editor-fold defaultstate="collapsed" desc="Generated Code">//GEN-BEGIN:initComponents
     private void initComponents() {
 
-        jScrollPaneAccountsBalances = new javax.swing.JScrollPane();
-        outlineAccountsBalances = new org.netbeans.swing.outline.Outline();
+        jScrollPaneMovementsBalances = new javax.swing.JScrollPane();
+        outlineMovementsBalances = new org.netbeans.swing.outline.Outline();
 
-        jScrollPaneAccountsBalances.setViewportView(outlineAccountsBalances);
+        jScrollPaneMovementsBalances.setViewportView(outlineMovementsBalances);
 
         javax.swing.GroupLayout layout = new javax.swing.GroupLayout(this);
         this.setLayout(layout);
@@ -90,20 +95,20 @@ public final class AccountsBalancesTopComponent extends TopComponent implements 
             layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
             .addGroup(layout.createSequentialGroup()
                 .addContainerGap()
-                .addComponent(jScrollPaneAccountsBalances, javax.swing.GroupLayout.DEFAULT_SIZE, 375, Short.MAX_VALUE)
+                .addComponent(jScrollPaneMovementsBalances, javax.swing.GroupLayout.DEFAULT_SIZE, 380, Short.MAX_VALUE)
                 .addContainerGap())
         );
         layout.setVerticalGroup(
             layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
             .addGroup(layout.createSequentialGroup()
                 .addContainerGap()
-                .addComponent(jScrollPaneAccountsBalances, javax.swing.GroupLayout.DEFAULT_SIZE, 275, Short.MAX_VALUE)
+                .addComponent(jScrollPaneMovementsBalances, javax.swing.GroupLayout.DEFAULT_SIZE, 278, Short.MAX_VALUE)
                 .addContainerGap())
         );
     }// </editor-fold>//GEN-END:initComponents
     // Variables declaration - do not modify//GEN-BEGIN:variables
-    private javax.swing.JScrollPane jScrollPaneAccountsBalances;
-    private org.netbeans.swing.outline.Outline outlineAccountsBalances;
+    private javax.swing.JScrollPane jScrollPaneMovementsBalances;
+    private org.netbeans.swing.outline.Outline outlineMovementsBalances;
     // End of variables declaration//GEN-END:variables
 
     /**
@@ -111,27 +116,27 @@ public final class AccountsBalancesTopComponent extends TopComponent implements 
      * i.e. deserialization routines; otherwise you could get a non-deserialized instance.
      * To obtain the singleton instance, use {@link #findInstance}.
      */
-    public static synchronized AccountsBalancesTopComponent getDefault() {
+    public static synchronized MovementsBalancesTopComponent getDefault() {
         if (instance == null) {
-            instance = new AccountsBalancesTopComponent();
+            instance = new MovementsBalancesTopComponent();
         }
         return instance;
     }
 
     /**
-     * Obtain the AccountsBalancesTopComponent instance. Never call {@link #getDefault} directly!
+     * Obtain the MovementsBalancesTopComponent instance. Never call {@link #getDefault} directly!
      */
-    public static synchronized AccountsBalancesTopComponent findInstance() {
+    public static synchronized MovementsBalancesTopComponent findInstance() {
         TopComponent win = WindowManager.getDefault().findTopComponent(PREFERRED_ID);
         if (win == null) {
-            Logger.getLogger(AccountsBalancesTopComponent.class.getName()).warning(
+            Logger.getLogger(MovementsBalancesTopComponent.class.getName()).warning(
                     "Cannot find " + PREFERRED_ID + " component. It will not be located properly in the window system.");
             return getDefault();
         }
-        if (win instanceof AccountsBalancesTopComponent) {
-            return (AccountsBalancesTopComponent) win;
+        if (win instanceof MovementsBalancesTopComponent) {
+            return (MovementsBalancesTopComponent) win;
         }
-        Logger.getLogger(AccountsBalancesTopComponent.class.getName()).warning(
+        Logger.getLogger(MovementsBalancesTopComponent.class.getName()).warning(
                 "There seem to be multiple components with the '" + PREFERRED_ID +
                 "' ID. That is a potential source of errors and unexpected behavior.");
         return getDefault();
@@ -140,17 +145,6 @@ public final class AccountsBalancesTopComponent extends TopComponent implements 
     @Override
     public int getPersistenceType() {
         return TopComponent.PERSISTENCE_ALWAYS;
-    }
-
-    /** replaces this in object stream */
-    @Override
-    public Object writeReplace() {
-        return new ResolvableHelper();
-    }
-
-    @Override
-    protected String preferredID() {
-        return PREFERRED_ID;
     }
 
     @Override
@@ -163,11 +157,11 @@ public final class AccountsBalancesTopComponent extends TopComponent implements 
         result.allInstances();
         resultChanged(null);
 
-        TopComponentGroup accountsBalancesGroup = WindowManager.getDefault().findTopComponentGroup("AccountsBalancesGroup");
-        if (accountsBalancesGroup == null) {
+        TopComponentGroup movementsBalancesGroup = WindowManager.getDefault().findTopComponentGroup("MovementsBalancesGroup");
+        if (movementsBalancesGroup == null) {
             return;
         }
-        accountsBalancesGroup.open();
+        movementsBalancesGroup.open();
     }
 
     @Override
@@ -178,11 +172,11 @@ public final class AccountsBalancesTopComponent extends TopComponent implements 
         result.removeLookupListener(this);
         result = null;
 
-        TopComponentGroup accountsBalancesGroup = WindowManager.getDefault().findTopComponentGroup("AccountsBalancesGroup");
-        if (accountsBalancesGroup == null) {
+        TopComponentGroup movementsBalancesGroup = WindowManager.getDefault().findTopComponentGroup("MovementsBalancesGroup");
+        if (movementsBalancesGroup == null) {
             return;
         }
-        accountsBalancesGroup.close();
+        movementsBalancesGroup.close();
     }
 
     @Override
@@ -190,17 +184,17 @@ public final class AccountsBalancesTopComponent extends TopComponent implements 
         @SuppressWarnings("unchecked")
         List<SearchFilter> searchFilters = (List<SearchFilter>) result.allInstances();
         if (!searchFilters.isEmpty() && !searchFilters.equals(displayedSearchFilters)) {
-            Utilities.changeCursorWaitStatus(true);
             displayData(searchFilters);
-            Utilities.changeCursorWaitStatus(false);
         }
     }
 
     private void displayData(List<SearchFilter> searchFilters) {
+        Utilities.changeCursorWaitStatus(true);
+
         // Prepare treetable
         DefaultMutableTreeNode rootNode = new DefaultMutableTreeNode(); // Root (Not displayed)
-        Map<MoneyContainer, Map<SearchFilter, String>> balances =
-                new HashMap<MoneyContainer, Map<SearchFilter, String>>(); // Map of currency/account and corresponding balance
+        Map<MoneyContainer, Map<SearchFilter, BigDecimal>> balances =
+                new HashMap<MoneyContainer, Map<SearchFilter, BigDecimal>>(); // Map of currency/account and corresponding movement's balance
 
         for (Currency currency : Datamodel.getActiveCurrencies()) {
             if (!searchFilters.get(0).hasCurrencyFilter() ||
@@ -209,7 +203,13 @@ public final class AccountsBalancesTopComponent extends TopComponent implements 
                 DefaultMutableTreeNode currencyNode = new DefaultMutableTreeNode(currency);
                 rootNode.add(currencyNode);
 
-                // Compute the accounts' balances for each search filter
+                // Currency movements' for each search filter
+                Map<SearchFilter, BigDecimal> currencyBalances = new HashMap<SearchFilter, BigDecimal>();
+                for (SearchFilter searchFilter : searchFilters) {
+                    currencyBalances.put(searchFilter, new BigDecimal(0));
+                }
+
+                // Compute the accounts' movements for each search filter
                 for (Account account : Datamodel.getActiveAccounts(currency)) {
                     if (!searchFilters.get(0).hasAccountsFilter() ||
                             (searchFilters.get(0).hasAccountsFilter() && searchFilters.get(0).getAccounts().contains(account))) {
@@ -218,7 +218,7 @@ public final class AccountsBalancesTopComponent extends TopComponent implements 
                         currencyNode.add(accountNode);
 
                         // Compute the accounts' balances for each search filter
-                        Map<SearchFilter, String> accountBalances = new HashMap<SearchFilter, String>();
+                        Map<SearchFilter, BigDecimal> accountBalances = new HashMap<SearchFilter, BigDecimal>();
                         for (SearchFilter searchFilter : searchFilters) {
                             SearchFilter newSearchFilter = new SearchFilter();
                             newSearchFilter.setCurrency(currency);
@@ -227,13 +227,17 @@ public final class AccountsBalancesTopComponent extends TopComponent implements 
                             newSearchFilter.setAccounts(accounts);
                             newSearchFilter.setPeriod(searchFilter.getPeriod());
 
-                            BigDecimal accountBalance = Datamodel.getBalanceUntil(newSearchFilter).add(account.getInitialAmount());
-                            accountBalance = accountBalance.setScale(2, RoundingMode.HALF_EVEN);
-                            accountBalances.put(searchFilter, accountBalance.toString());
+                            BigDecimal accountBalance = Datamodel.getBalance(newSearchFilter);
+                            accountBalances.put(searchFilter, accountBalance);
+
+                            currencyBalances.put(searchFilter,
+                                    currencyBalances.get(searchFilter).add(accountBalance));
                         }
                         balances.put(account, accountBalances);
                     }
                 }
+
+                balances.put(currency, currencyBalances);
             }
         }
 
@@ -241,24 +245,54 @@ public final class AccountsBalancesTopComponent extends TopComponent implements 
 
         OutlineModel outlineModel = DefaultOutlineModel.createOutlineModel(
                 treeModel,
-                new AccountsBalancesRowModel(searchFilters, balances),
+                new MovementsBalancesRowModel(searchFilters, balances, searchFilters.get(0).hasAccountsFilter()),
                 true,
                 "Account");
-        outlineAccountsBalances.setModel(outlineModel);
+        outlineMovementsBalances.setModel(outlineModel);
 
         for (int i = 0; i < rootNode.getChildCount(); i++) {
-            outlineAccountsBalances.expandPath(new TreePath(((DefaultMutableTreeNode) rootNode.getChildAt(i)).getPath()));
+            outlineMovementsBalances.expandPath(new TreePath(((DefaultMutableTreeNode) rootNode.getChildAt(i)).getPath()));
         }
 
         this.displayedSearchFilters = searchFilters;
+
+        // Put the balances in the lookup of the TC
+        content.set(Collections.singleton(balances), null);
+        content.add(fieldsVisibility);
+
+        Utilities.changeCursorWaitStatus(false);
     }
 
-    private class AccountsBalancesRowModel implements RowModel {
+    void writeProperties(java.util.Properties p) {
+        // better to version settings since initial version as advocated at
+        // http://wiki.apidesign.org/wiki/PropertyFiles
+        p.setProperty("version", "1.0");
+        // TODO store your settings
+    }
+
+    Object readProperties(java.util.Properties p) {
+        MovementsBalancesTopComponent singleton = MovementsBalancesTopComponent.getDefault();
+        singleton.readPropertiesImpl(p);
+        return singleton;
+    }
+
+    private void readPropertiesImpl(java.util.Properties p) {
+        String version = p.getProperty("version");
+        // TODO read your settings according to their version
+    }
+
+    @Override
+    protected String preferredID() {
+        return PREFERRED_ID;
+    }
+
+    private class MovementsBalancesRowModel implements RowModel {
 
         private List<SearchFilter> searchFilters;
-        private Map<MoneyContainer, Map<SearchFilter, String>> balances;
+        private Map<MoneyContainer, Map<SearchFilter, BigDecimal>> balances;
+        private boolean accountFilter;
 
-        public AccountsBalancesRowModel(List<SearchFilter> searchFilters, Map<MoneyContainer, Map<SearchFilter, String>> balances) {
+        public MovementsBalancesRowModel(List<SearchFilter> searchFilters, Map<MoneyContainer, Map<SearchFilter, BigDecimal>> balances, boolean accountFilter) {
             if (searchFilters == null) {
                 throw new IllegalArgumentException("The parameter 'searchFilters' is null");
             }
@@ -267,6 +301,7 @@ public final class AccountsBalancesTopComponent extends TopComponent implements 
             }
             this.searchFilters = searchFilters;
             this.balances = balances;
+            this.accountFilter = accountFilter;
         }
 
         @Override
@@ -288,14 +323,20 @@ public final class AccountsBalancesTopComponent extends TopComponent implements 
         public Object getValueFor(Object node, int column) {
             Object nodeInfo = ((DefaultMutableTreeNode) node).getUserObject();
 
-            if (nodeInfo instanceof Currency) {
+            if (accountFilter && nodeInfo instanceof Currency) {
                 return "";
             }
 
             if (nodeInfo != null) {
                 MoneyContainer moneyContainer = (MoneyContainer) nodeInfo;
                 SearchFilter searchFilter = searchFilters.get(column);
-                return balances.get(moneyContainer).get(searchFilter);
+                BigDecimal movementValue = balances.get(moneyContainer).get(searchFilter).setScale(2, RoundingMode.HALF_EVEN);
+
+                if (movementValue.compareTo(BigDecimal.ZERO) == 0) {
+                    return "";
+                } else {
+                    return Utilities.getSignedBalance(movementValue);
+                }
             }
             return null;
         }
@@ -307,15 +348,6 @@ public final class AccountsBalancesTopComponent extends TopComponent implements 
 
         @Override
         public void setValueFor(Object node, int column, Object value) {
-        }
-    }
-
-    final static class ResolvableHelper implements Serializable {
-
-        private static final long serialVersionUID = 1L;
-
-        public Object readResolve() {
-            return AccountsBalancesTopComponent.getDefault();
         }
     }
 }
