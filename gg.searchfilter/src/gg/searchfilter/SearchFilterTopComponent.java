@@ -18,6 +18,8 @@ import java.awt.BorderLayout;
 import java.awt.GridBagLayout;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.awt.event.MouseAdapter;
+import java.awt.event.MouseEvent;
 import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.Collection;
@@ -123,12 +125,32 @@ final class SearchFilterTopComponent extends TopComponent implements LookupListe
         jLabelAccounts = new JLabel(NbBundle.getMessage(SearchFilterTopComponent.class, "SearchFilterTopComponent.jLabelAccounts.text"));
         jListAccounts = new JList(listModelAccounts);
         jScrollPaneAccounts = new JScrollPane(jListAccounts);
+        jListAccounts.addMouseListener(new MouseAdapter() {
+
+            @Override
+            public void mouseClicked(MouseEvent evt) {
+                // Right click --> display the popup menu
+                if (evt.getButton() == MouseEvent.BUTTON3) {
+                    jPopupMenuAccounts.show(jListAccounts, evt.getX(), evt.getY());
+                }
+            }
+        });
 
         jLabelCategories = new JLabel(NbBundle.getMessage(SearchFilterTopComponent.class, "SearchFilterTopComponent.jLabelCategories.text"));
         jTreeCategories = new JTree(treeModelCategories);
         jScrollPaneCategories = new JScrollPane(jTreeCategories);
         jTreeCategories.getSelectionModel().setSelectionMode(TreeSelectionModel.DISCONTIGUOUS_TREE_SELECTION);
         jTreeCategories.setShowsRootHandles(true);
+        jTreeCategories.addMouseListener(new MouseAdapter() {
+
+            @Override
+            public void mouseClicked(MouseEvent evt) {
+                // Right click --> display the popup menu
+                if (evt.getButton() == MouseEvent.BUTTON3) {
+                    jPopupMenuCategories.show(jTreeCategories, evt.getX(), evt.getY());
+                }
+            }
+        });
 
         jLabelPayees = new JLabel(NbBundle.getMessage(SearchFilterTopComponent.class, "SearchFilterTopComponent.jLabelPayees.text"));
         jListPayees = new JList(listModelPayees);
@@ -375,9 +397,47 @@ final class SearchFilterTopComponent extends TopComponent implements LookupListe
     // <editor-fold defaultstate="collapsed" desc="Generated Code">//GEN-BEGIN:initComponents
     private void initComponents() {
 
+        jPopupMenuCategories = new javax.swing.JPopupMenu();
+        jMenuItemSelectAllCategories = new javax.swing.JMenuItem();
+        jMenuItemDeselectAllCategories = new javax.swing.JMenuItem();
+        jPopupMenuAccounts = new javax.swing.JPopupMenu();
+        jMenuItemSelectAllAccounts = new javax.swing.JMenuItem();
+        jMenuItemDeselectAllAccounts = new javax.swing.JMenuItem();
         jScrollPaneSearchFilter = new javax.swing.JScrollPane();
         jPanelSearchFilterContainer = new javax.swing.JPanel();
         jPanelSearchFilter = new javax.swing.JPanel();
+
+        org.openide.awt.Mnemonics.setLocalizedText(jMenuItemSelectAllCategories, org.openide.util.NbBundle.getMessage(SearchFilterTopComponent.class, "SearchFilterTopComponent.jMenuItemSelectAllCategories.text")); // NOI18N
+        jMenuItemSelectAllCategories.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                jMenuItemSelectAllCategoriesActionPerformed(evt);
+            }
+        });
+        jPopupMenuCategories.add(jMenuItemSelectAllCategories);
+
+        org.openide.awt.Mnemonics.setLocalizedText(jMenuItemDeselectAllCategories, org.openide.util.NbBundle.getMessage(SearchFilterTopComponent.class, "SearchFilterTopComponent.jMenuItemDeselectAllCategories.text")); // NOI18N
+        jMenuItemDeselectAllCategories.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                jMenuItemDeselectAllCategoriesActionPerformed(evt);
+            }
+        });
+        jPopupMenuCategories.add(jMenuItemDeselectAllCategories);
+
+        org.openide.awt.Mnemonics.setLocalizedText(jMenuItemSelectAllAccounts, org.openide.util.NbBundle.getMessage(SearchFilterTopComponent.class, "SearchFilterTopComponent.jMenuItemSelectAllAccounts.text")); // NOI18N
+        jMenuItemSelectAllAccounts.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                jMenuItemSelectAllAccountsActionPerformed(evt);
+            }
+        });
+        jPopupMenuAccounts.add(jMenuItemSelectAllAccounts);
+
+        org.openide.awt.Mnemonics.setLocalizedText(jMenuItemDeselectAllAccounts, org.openide.util.NbBundle.getMessage(SearchFilterTopComponent.class, "SearchFilterTopComponent.jMenuItemDeselectAllAccounts.text")); // NOI18N
+        jMenuItemDeselectAllAccounts.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                jMenuItemDeselectAllAccountsActionPerformed(evt);
+            }
+        });
+        jPopupMenuAccounts.add(jMenuItemDeselectAllAccounts);
 
         setLayout(new java.awt.BorderLayout());
 
@@ -400,9 +460,32 @@ final class SearchFilterTopComponent extends TopComponent implements LookupListe
 
         add(jScrollPaneSearchFilter, java.awt.BorderLayout.CENTER);
     }// </editor-fold>//GEN-END:initComponents
+
+    private void jMenuItemSelectAllCategoriesActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jMenuItemSelectAllCategoriesActionPerformed
+        jTreeCategories.setSelectionInterval(0, jTreeCategories.getRowCount());
+    }//GEN-LAST:event_jMenuItemSelectAllCategoriesActionPerformed
+
+    private void jMenuItemDeselectAllCategoriesActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jMenuItemDeselectAllCategoriesActionPerformed
+        jTreeCategories.clearSelection();
+    }//GEN-LAST:event_jMenuItemDeselectAllCategoriesActionPerformed
+
+    private void jMenuItemSelectAllAccountsActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jMenuItemSelectAllAccountsActionPerformed
+        jListAccounts.setSelectionInterval(0, jListAccounts.getModel().getSize() - 1);
+    }//GEN-LAST:event_jMenuItemSelectAllAccountsActionPerformed
+
+    private void jMenuItemDeselectAllAccountsActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jMenuItemDeselectAllAccountsActionPerformed
+        jListAccounts.clearSelection();
+    }//GEN-LAST:event_jMenuItemDeselectAllAccountsActionPerformed
+
     // Variables declaration - do not modify//GEN-BEGIN:variables
+    private javax.swing.JMenuItem jMenuItemDeselectAllAccounts;
+    private javax.swing.JMenuItem jMenuItemDeselectAllCategories;
+    private javax.swing.JMenuItem jMenuItemSelectAllAccounts;
+    private javax.swing.JMenuItem jMenuItemSelectAllCategories;
     private javax.swing.JPanel jPanelSearchFilter;
     private javax.swing.JPanel jPanelSearchFilterContainer;
+    private javax.swing.JPopupMenu jPopupMenuAccounts;
+    private javax.swing.JPopupMenu jPopupMenuCategories;
     private javax.swing.JScrollPane jScrollPaneSearchFilter;
     // End of variables declaration//GEN-END:variables
 

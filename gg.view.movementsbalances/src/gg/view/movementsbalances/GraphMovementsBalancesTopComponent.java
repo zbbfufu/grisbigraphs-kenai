@@ -131,7 +131,7 @@ public final class GraphMovementsBalancesTopComponent extends TopComponent imple
 
     @Override
     public void componentOpened() {
-        // Register lookup listener on the search filter top component
+        // Register lookup listener on the movements' balances table top component
         result = WindowManager.getDefault().findTopComponent("MovementsBalancesTopComponent").
                 getLookup().lookupResult(Map.class);
         result.addLookupListener(this);
@@ -150,14 +150,15 @@ public final class GraphMovementsBalancesTopComponent extends TopComponent imple
         Collection instances = result.allInstances();
         if (!instances.isEmpty()) {
             @SuppressWarnings("unchecked")
-            Map<MoneyContainer, Map<SearchFilter, BigDecimal>> balances = (Map<MoneyContainer, Map<SearchFilter, BigDecimal>>) instances.iterator().next();
-            Utilities.changeCursorWaitStatus(true);
+            Map<MoneyContainer, Map<SearchFilter, BigDecimal>> balances =
+                    (Map<MoneyContainer, Map<SearchFilter, BigDecimal>>) instances.iterator().next();
             displayData(balances);
-            Utilities.changeCursorWaitStatus(false);
         }
     }
 
     private void displayData(Map<MoneyContainer, Map<SearchFilter, BigDecimal>> balances) {
+        Utilities.changeCursorWaitStatus(true);
+
         // Create the dataset (that will contain the movements' balances)
         DefaultCategoryDataset dataset = new DefaultCategoryDataset();
 
@@ -192,7 +193,6 @@ public final class GraphMovementsBalancesTopComponent extends TopComponent imple
         for (MoneyContainer moneyContainer : balances.keySet()) {
             if (moneyContainer instanceof Account) {
 
-                //Collection<SearchFilter> searchFilters = ;
                 SortedSet<SearchFilter> sortedSearchFilters = new TreeSet<SearchFilter>(
                         balances.get(moneyContainer).keySet());
                 
@@ -228,6 +228,8 @@ public final class GraphMovementsBalancesTopComponent extends TopComponent imple
         jPanelMovementsBalances.removeAll();
         jPanelMovementsBalances.add(chartPanel, BorderLayout.CENTER);
         jPanelMovementsBalances.updateUI();
+
+        Utilities.changeCursorWaitStatus(false);
     }
 
     void writeProperties(java.util.Properties p) {

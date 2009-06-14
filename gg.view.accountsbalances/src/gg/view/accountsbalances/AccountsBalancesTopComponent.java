@@ -10,11 +10,12 @@ import gg.db.datamodel.SearchFilter;
 import gg.db.entities.Account;
 import gg.db.entities.Currency;
 import gg.db.entities.MoneyContainer;
+import gg.options.Options;
 import gg.utilities.Utilities;
 import java.io.Serializable;
 import java.math.BigDecimal;
-import java.math.RoundingMode;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -31,7 +32,8 @@ import org.openide.util.Lookup;
 import org.openide.util.LookupEvent;
 import org.openide.util.LookupListener;
 import org.openide.util.NbBundle;
-import org.openide.util.lookup.Lookups;
+import org.openide.util.lookup.AbstractLookup;
+import org.openide.util.lookup.InstanceContent;
 import org.openide.windows.TopComponent;
 import org.openide.windows.WindowManager;
 import org.openide.windows.TopComponentGroup;
@@ -45,8 +47,10 @@ public final class AccountsBalancesTopComponent extends TopComponent implements 
     /** path to the icon used by the component and its open action */
     static final String ICON_PATH = "gg/resources/icons/AccountsBalances.png";
     private static final String PREFERRED_ID = "AccountsBalancesTopComponent";
+    private InstanceContent content = new InstanceContent();
     private Lookup.Result<SearchFilter> result = null;
     private List<SearchFilter> displayedSearchFilters = new ArrayList<SearchFilter>();
+    private FieldsVisibility fieldsVisibility = new FieldsVisibility();
 
     private AccountsBalancesTopComponent() {
         initComponents();
@@ -56,19 +60,20 @@ public final class AccountsBalancesTopComponent extends TopComponent implements 
         putClientProperty(TopComponent.PROP_DRAGGING_DISABLED, Boolean.TRUE);
         putClientProperty(TopComponent.PROP_UNDOCKING_DISABLED, Boolean.TRUE);
 
+        associateLookup(new AbstractLookup(content));
+        
         // Treetable settings
         outlineAccountsBalances.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
         outlineAccountsBalances.setRootVisible(false);
         outlineAccountsBalances.setPopupUsedFromTheCorner(false);
 
-        FieldsVisibility fieldsVisibility = new FieldsVisibility();
+        // Set the supported fields from the search filter
         fieldsVisibility.setFromVisible(true);
         fieldsVisibility.setToVisible(true);
         fieldsVisibility.setByVisible(true);
         fieldsVisibility.setCurrencyVisible(true);
         fieldsVisibility.setAccountsVisible(true);
-
-        associateLookup(Lookups.singleton(fieldsVisibility));
+        content.set(Collections.singleton(fieldsVisibility), null);
     }
 
     /** This method is called from within the constructor to
@@ -190,75 +195,158 @@ public final class AccountsBalancesTopComponent extends TopComponent implements 
         @SuppressWarnings("unchecked")
         List<SearchFilter> searchFilters = (List<SearchFilter>) result.allInstances();
         if (!searchFilters.isEmpty() && !searchFilters.equals(displayedSearchFilters)) {
-            Utilities.changeCursorWaitStatus(true);
             displayData(searchFilters);
-            Utilities.changeCursorWaitStatus(false);
         }
     }
 
     private void displayData(List<SearchFilter> searchFilters) {
+        Utilities.changeCursorWaitStatus(true);
+        long start = System.currentTimeMillis();
+
+        // (Account ID --> Account)
+        Map<Long, Account> accountsMap = Datamodel.getAccountsWithId();
+        // (Currency --> List of accounts)
+        Map<Currency, List<Account>> currencyAccountsMap = new HashMap<Currency, List<Account>>();
+        List<Currency> currencies = Datamodel.getActiveCurrencies();
+        for (Currency currency : currencies) {
+            List<Account> currencyAccounts = Datamodel.getActiveAccounts(currency);
+            currencyAccountsMap.put(currency, currencyAccounts);
+        }
+
+        // Map that contains the accounts' balances by currency/account and search filter
+        // ((Currency/Account) --> (SearchFilter --> Currency/Account balance))
+        Map<MoneyContainer, Map<SearchFilter, BigDecimal>> moneyContainerBalancesMap =
+                new HashMap<MoneyContainer, Map<SearchFilter, BigDecimal>>();
+
+        // Compute the accounts' balances for each search filter
+        for (SearchFilter searchFilter : searchFilters) {
+            // Get all accounts' balances for the current search filter
+            List accountsBalancesForCurrentSearchFilter = Datamodel.getAccountsBalancesUntil(searchFilter);
+
+            // For each account, add (SearchFilter --> Account balance)
+            for (Object rowAccountBalanceObject : accountsBalancesForCurrentSearchFilter) {
+                Object[] rowAccountBalance = (Object[]) rowAccountBalanceObject;
+                Long accountId = (Long) rowAccountBalance[0];
+                Account account = accountsMap.get(accountId);
+                assert (account != null);
+                BigDecimal accountBalance = (BigDecimal) rowAccountBalance[1];
+                assert(accountBalance != null);
+                accountBalance = accountBalance.add(account.getInitialAmount());
+
+                // Map that contains the account's balance for the current search filter
+                // (SearchFilter --> Account balance)
+                Map<SearchFilter, BigDecimal> accountBalanceForCurrentSearchFilterMap =
+                        new HashMap<SearchFilter, BigDecimal>();
+                // If accounts' balances have already been added for other SearchFilters
+                if (moneyContainerBalancesMap.get(account) != null) {
+                    accountBalanceForCurrentSearchFilterMap.putAll(moneyContainerBalancesMap.get(account));
+                }
+                // Add the balance of the current account
+                accountBalanceForCurrentSearchFilterMap.put(searchFilter, accountBalance);
+
+
+                // Add (SearchFilter, Account balance) to the current account
+                moneyContainerBalancesMap.put(account, accountBalanceForCurrentSearchFilterMap);
+            }
+
+            for (Currency currency : currencies) {
+                BigDecimal currencyBalance = new BigDecimal(0);
+
+                for (Account account : currencyAccountsMap.get(currency)) {
+                    if (!searchFilters.get(0).hasAccountsFilter() ||
+                            searchFilters.get(0).getAccounts().contains(account)) {
+                        Map<SearchFilter, BigDecimal> accountBalanceForCurrentSearchFilterMap =
+                                moneyContainerBalancesMap.get(account);
+                        if (accountBalanceForCurrentSearchFilterMap != null) {
+                            // Get the balance of the accountfor the current search filter
+                            BigDecimal accountBalance = accountBalanceForCurrentSearchFilterMap.get(searchFilter);
+
+                            // Add it to the currency's balance
+                            if (accountBalance != null) {
+                                currencyBalance = currencyBalance.add(accountBalance);
+                            }
+                        }
+                    }
+                }
+
+                // Map that contains the currency's balance for the current search filter
+                // (Search filter --> Currency's balance)
+                Map<SearchFilter, BigDecimal> currencyBalancesMap =
+                        new HashMap<SearchFilter, BigDecimal>();
+                // If currency' balances have already been added for other SearchFilters
+                if (moneyContainerBalancesMap.get(currency) != null) {
+                    currencyBalancesMap.putAll(moneyContainerBalancesMap.get(currency));
+                }
+                // Add the balance of the currency
+                currencyBalancesMap.put(searchFilter, currencyBalance);
+
+                // Add (SearchFilter, Currency balance> to the current currency
+                moneyContainerBalancesMap.put(currency, currencyBalancesMap);
+            }
+        }
+
         // Prepare treetable
         DefaultMutableTreeNode rootNode = new DefaultMutableTreeNode(); // Root (Not displayed)
-        Map<MoneyContainer, Map<SearchFilter, String>> balances =
-                new HashMap<MoneyContainer, Map<SearchFilter, String>>(); // Map of currency/account and corresponding balance
 
-        for (Currency currency : Datamodel.getActiveCurrencies()) {
+        // Add the currencies and the accounts into the tree
+        for (Currency currency : currencies) {
+            // Add the currency <currency> if
+            // - the user didn't select any currency in the search filter or
+            // - <currency> has been selected in the search filter
             if (!searchFilters.get(0).hasCurrencyFilter() ||
-                    (searchFilters.get(0).hasCurrencyFilter() && searchFilters.get(0).getCurrency().compareTo(currency) == 0)) {
+                    searchFilters.get(0).getCurrency().compareTo(currency) == 0) {
                 // Add currency to the tree
                 DefaultMutableTreeNode currencyNode = new DefaultMutableTreeNode(currency);
                 rootNode.add(currencyNode);
 
-                // Compute the accounts' balances for each search filter
-                for (Account account : Datamodel.getActiveAccounts(currency)) {
+                // Add the accounts of <currency> into the tree
+                for (Account account : currencyAccountsMap.get(currency)) {
+                    // Add the account <account> if:
+                    // - the user didn't select any account in the search filter or
+                    // - <account> has been selected in the search filter
                     if (!searchFilters.get(0).hasAccountsFilter() ||
-                            (searchFilters.get(0).hasAccountsFilter() && searchFilters.get(0).getAccounts().contains(account))) {
+                            searchFilters.get(0).getAccounts().contains(account)) {
                         // Add account to the tree
                         DefaultMutableTreeNode accountNode = new DefaultMutableTreeNode(account);
                         currencyNode.add(accountNode);
-
-                        // Compute the accounts' balances for each search filter
-                        Map<SearchFilter, String> accountBalances = new HashMap<SearchFilter, String>();
-                        for (SearchFilter searchFilter : searchFilters) {
-                            SearchFilter newSearchFilter = new SearchFilter();
-                            newSearchFilter.setCurrency(currency);
-                            List<Account> accounts = new ArrayList<Account>();
-                            accounts.add(account);
-                            newSearchFilter.setAccounts(accounts);
-                            newSearchFilter.setPeriod(searchFilter.getPeriod());
-
-                            BigDecimal accountBalance = Datamodel.getBalanceUntil(newSearchFilter).add(account.getInitialAmount());
-                            accountBalance = accountBalance.setScale(2, RoundingMode.HALF_EVEN);
-                            accountBalances.put(searchFilter, accountBalance.toString());
-                        }
-                        balances.put(account, accountBalances);
                     }
                 }
             }
         }
 
+        // Create the tree model based on the root
         DefaultTreeModel treeModel = new DefaultTreeModel(rootNode);
 
+        // Create the outline model based on the tree model
         OutlineModel outlineModel = DefaultOutlineModel.createOutlineModel(
                 treeModel,
-                new AccountsBalancesRowModel(searchFilters, balances),
+                new AccountsBalancesRowModel(searchFilters, moneyContainerBalancesMap),
                 true,
                 "Account");
         outlineAccountsBalances.setModel(outlineModel);
 
+        // Expand the tree
         for (int i = 0; i < rootNode.getChildCount(); i++) {
             outlineAccountsBalances.expandPath(new TreePath(((DefaultMutableTreeNode) rootNode.getChildAt(i)).getPath()));
         }
 
+        // Save the currently displayed list of search filters
         this.displayedSearchFilters = searchFilters;
+
+        content.set(Collections.singleton(moneyContainerBalancesMap), null);
+        content.add(fieldsVisibility);
+
+        long end = System.currentTimeMillis();
+        System.out.println("duration=" + (end - start));
+        Utilities.changeCursorWaitStatus(false);
     }
 
     private class AccountsBalancesRowModel implements RowModel {
 
         private List<SearchFilter> searchFilters;
-        private Map<MoneyContainer, Map<SearchFilter, String>> balances;
+        private Map<MoneyContainer, Map<SearchFilter, BigDecimal>> balances;
 
-        public AccountsBalancesRowModel(List<SearchFilter> searchFilters, Map<MoneyContainer, Map<SearchFilter, String>> balances) {
+        public AccountsBalancesRowModel(List<SearchFilter> searchFilters, Map<MoneyContainer, Map<SearchFilter, BigDecimal>> balances) {
             if (searchFilters == null) {
                 throw new IllegalArgumentException("The parameter 'searchFilters' is null");
             }
@@ -288,14 +376,22 @@ public final class AccountsBalancesTopComponent extends TopComponent implements 
         public Object getValueFor(Object node, int column) {
             Object nodeInfo = ((DefaultMutableTreeNode) node).getUserObject();
 
-            if (nodeInfo instanceof Currency) {
-                return "";
-            }
-
             if (nodeInfo != null) {
                 MoneyContainer moneyContainer = (MoneyContainer) nodeInfo;
                 SearchFilter searchFilter = searchFilters.get(column);
-                return balances.get(moneyContainer).get(searchFilter);
+                Map<SearchFilter, BigDecimal> moneyContainerBalances = balances.get(moneyContainer);
+                if (moneyContainerBalances != null) {
+                    BigDecimal moneyContainerBalanceSearchFilter = moneyContainerBalances.get(searchFilter);
+                    if (moneyContainerBalanceSearchFilter != null) {
+                        return moneyContainerBalanceSearchFilter.toString();
+                    }
+                }
+                if (Options.displayZero()) {
+                    return Utilities.getSignedBalance(BigDecimal.ZERO);
+                } else {
+                    return "";
+                }
+
             }
             return null;
         }

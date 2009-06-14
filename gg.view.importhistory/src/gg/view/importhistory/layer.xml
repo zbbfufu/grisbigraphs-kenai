@@ -33,7 +33,7 @@
         <folder name="Modes">
             <folder name="editor">
                 <file name="ImportHistoryViewTopComponent.wstcref" url="ImportHistoryViewTopComponentWstcref.xml">
-                    <attr name="position" intvalue="300"/>
+                    <attr name="position" intvalue="280"/>
                 </file>
             </folder>
         </folder>

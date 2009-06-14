@@ -616,7 +616,7 @@ public class GrisbiFile050 implements Importer {
                     transactionCurrency = currencies.get(transactionCurrencyId);
                     assert (transactionCurrency != null);
 
-                    if (transactionCurrency.compareTo(account.getCurrency()) != 0) {
+                    if (transactionCurrency.getId().compareTo(account.getCurrency().getId()) != 0) {
                         transactionRdcValue = transactionNode.valueOf("@Rdc");
                         assert (transactionRdcValue != null);
                         transactionRdc = Long.parseLong(transactionRdcValue);

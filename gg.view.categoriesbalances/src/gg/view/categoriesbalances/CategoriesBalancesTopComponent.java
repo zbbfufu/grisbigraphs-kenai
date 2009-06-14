@@ -65,7 +65,7 @@ public final class CategoriesBalancesTopComponent extends TopComponent implement
         outlineCategoriesBalances.setRootVisible(false);
         outlineCategoriesBalances.setPopupUsedFromTheCorner(false);
 
-        // Set the supported fields
+        // Set the supported fields from the search filter
         FieldsVisibility fieldsVisibility = new FieldsVisibility();
         fieldsVisibility.setFromVisible(true);
         fieldsVisibility.setToVisible(true);
@@ -270,7 +270,7 @@ public final class CategoriesBalancesTopComponent extends TopComponent implement
                 Long categoryId = (Long) rowCategoryBalance[0];
                 BigDecimal categoryBalance = (BigDecimal) rowCategoryBalance[1];
 
-                // Map that contains the current category's balance for the current search filter
+                // Map that contains the category's balance for the current search filter
                 // (SearchFilter --> Category balance)
                 Map<SearchFilter, BigDecimal> categoryBalanceForCurrentSearchFilterMap =
                         new HashMap<SearchFilter, BigDecimal>();

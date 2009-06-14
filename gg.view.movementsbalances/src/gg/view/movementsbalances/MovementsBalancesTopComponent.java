@@ -10,9 +10,9 @@ import gg.db.datamodel.SearchFilter;
 import gg.db.entities.Account;
 import gg.db.entities.Currency;
 import gg.db.entities.MoneyContainer;
+import gg.options.Options;
 import gg.utilities.Utilities;
 import java.math.BigDecimal;
-import java.math.RoundingMode;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
@@ -67,6 +67,7 @@ public final class MovementsBalancesTopComponent extends TopComponent implements
         outlineMovementsBalances.setRootVisible(false);
         outlineMovementsBalances.setPopupUsedFromTheCorner(false);
 
+        // Set the supported fields from the search filter
         fieldsVisibility.setFromVisible(true);
         fieldsVisibility.setToVisible(true);
         fieldsVisibility.setByVisible(true);
@@ -190,6 +191,7 @@ public final class MovementsBalancesTopComponent extends TopComponent implements
 
     private void displayData(List<SearchFilter> searchFilters) {
         Utilities.changeCursorWaitStatus(true);
+        long start = System.currentTimeMillis();
 
         // Prepare treetable
         DefaultMutableTreeNode rootNode = new DefaultMutableTreeNode(); // Root (Not displayed)
@@ -245,7 +247,7 @@ public final class MovementsBalancesTopComponent extends TopComponent implements
 
         OutlineModel outlineModel = DefaultOutlineModel.createOutlineModel(
                 treeModel,
-                new MovementsBalancesRowModel(searchFilters, balances, searchFilters.get(0).hasAccountsFilter()),
+                new MovementsBalancesRowModel(searchFilters, balances),
                 true,
                 "Account");
         outlineMovementsBalances.setModel(outlineModel);
@@ -260,6 +262,8 @@ public final class MovementsBalancesTopComponent extends TopComponent implements
         content.set(Collections.singleton(balances), null);
         content.add(fieldsVisibility);
 
+        long end = System.currentTimeMillis();
+        System.out.println("duration=" + (end - start));
         Utilities.changeCursorWaitStatus(false);
     }
 
@@ -290,9 +294,8 @@ public final class MovementsBalancesTopComponent extends TopComponent implements
 
         private List<SearchFilter> searchFilters;
         private Map<MoneyContainer, Map<SearchFilter, BigDecimal>> balances;
-        private boolean accountFilter;
 
-        public MovementsBalancesRowModel(List<SearchFilter> searchFilters, Map<MoneyContainer, Map<SearchFilter, BigDecimal>> balances, boolean accountFilter) {
+        public MovementsBalancesRowModel(List<SearchFilter> searchFilters, Map<MoneyContainer, Map<SearchFilter, BigDecimal>> balances) {
             if (searchFilters == null) {
                 throw new IllegalArgumentException("The parameter 'searchFilters' is null");
             }
@@ -301,7 +304,6 @@ public final class MovementsBalancesTopComponent extends TopComponent implements
             }
             this.searchFilters = searchFilters;
             this.balances = balances;
-            this.accountFilter = accountFilter;
         }
 
         @Override
@@ -323,19 +325,15 @@ public final class MovementsBalancesTopComponent extends TopComponent implements
         public Object getValueFor(Object node, int column) {
             Object nodeInfo = ((DefaultMutableTreeNode) node).getUserObject();
 
-            if (accountFilter && nodeInfo instanceof Currency) {
-                return "";
-            }
-
             if (nodeInfo != null) {
                 MoneyContainer moneyContainer = (MoneyContainer) nodeInfo;
                 SearchFilter searchFilter = searchFilters.get(column);
-                BigDecimal movementValue = balances.get(moneyContainer).get(searchFilter).setScale(2, RoundingMode.HALF_EVEN);
+                BigDecimal movementValue = balances.get(moneyContainer).get(searchFilter);
 
-                if (movementValue.compareTo(BigDecimal.ZERO) == 0) {
-                    return "";
-                } else {
+                if (movementValue.compareTo(BigDecimal.ZERO) != 0 || Options.displayZero()) {
                     return Utilities.getSignedBalance(movementValue);
+                } else {
+                    return "";
                 }
             }
             return null;

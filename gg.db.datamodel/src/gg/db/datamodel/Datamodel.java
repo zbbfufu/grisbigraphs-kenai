@@ -584,6 +584,18 @@ public class Datamodel {
         return list;
     }
 
+    public static List getAccountsBalancesUntil(SearchFilter searchFilter) {
+        Query query = getQuery(searchFilter, false, true, "select t.account.id, sum(t.amount)", null, " group by t.account.id", false);
+        Session s = Installer.currentSession();
+        Transaction t = s.beginTransaction();
+
+        // Execute the query
+        List list = query.list();
+        t.commit();
+
+        return list;
+    }
+
     /**
      * Gets the balance
      * @param searchFilter Search filter

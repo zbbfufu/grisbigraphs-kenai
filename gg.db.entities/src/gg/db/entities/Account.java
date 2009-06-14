@@ -244,7 +244,7 @@ public class Account implements MoneyContainer {
                 name.compareToIgnoreCase(((Account) account).getName()) == 0 &&
                 initialAmount.compareTo(((Account) account).getInitialAmount()) == 0 &&
                 balance.compareTo(((Account) account).getBalance()) == 0 &&
-                currency.compareTo(((Account) account).getCurrency()) == 0 &&
+                currency.getId().compareTo(((Account) account).getCurrency().getId()) == 0 &&
                 active.compareTo(((Account) account).getActive()) == 0);
     }
 

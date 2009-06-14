@@ -4,18 +4,18 @@
  */
 package gg.view.accountsbalances;
 
-import gg.db.datamodel.Datamodel;
 import gg.db.datamodel.SearchFilter;
 import gg.db.entities.Account;
-import gg.db.entities.Currency;
+import gg.db.entities.MoneyContainer;
 import gg.utilities.Utilities;
 import java.awt.BorderLayout;
 import java.awt.Color;
 import java.io.Serializable;
 import java.math.BigDecimal;
-import java.math.RoundingMode;
-import java.util.ArrayList;
-import java.util.List;
+import java.util.Collection;
+import java.util.Map;
+import java.util.SortedSet;
+import java.util.TreeSet;
 import java.util.logging.Logger;
 import org.jfree.chart.ChartFactory;
 import org.jfree.chart.ChartPanel;
@@ -46,7 +46,6 @@ final class GraphAccountsBalancesTopComponent extends TopComponent implements Lo
     static final String ICON_PATH = "gg/resources/icons/GraphAccountsBalances.png";
     private static final String PREFERRED_ID = "GraphAccountsBalancesTopComponent";
     private Lookup.Result result = null;
-    private List<SearchFilter> displayedSearchFilters = new ArrayList<SearchFilter>();
 
     private GraphAccountsBalancesTopComponent() {
         initComponents();
@@ -129,8 +128,9 @@ final class GraphAccountsBalancesTopComponent extends TopComponent implements Lo
 
     @Override
     public void componentOpened() {
-        // Register lookup listener on the search filter top component
-        result = WindowManager.getDefault().findTopComponent("SearchFilterTopComponent").getLookup().lookupResult(SearchFilter.class);
+        // Register lookup listener on the accounts' balance table top component
+        result = WindowManager.getDefault().findTopComponent("AccountsBalancesTopComponent").
+                getLookup().lookupResult(Map.class);
         result.addLookupListener(this);
         result.allInstances();
         resultChanged(null);
@@ -155,16 +155,18 @@ final class GraphAccountsBalancesTopComponent extends TopComponent implements Lo
 
     @Override
     public void resultChanged(LookupEvent ev) {
-        @SuppressWarnings("unchecked")
-        List<SearchFilter> searchFilters = (List<SearchFilter>) result.allInstances();
-        if (!searchFilters.isEmpty() && !searchFilters.equals(displayedSearchFilters)) {
-            Utilities.changeCursorWaitStatus(true);
-            displayData(searchFilters);
-            Utilities.changeCursorWaitStatus(false);
+        Collection instances = result.allInstances();
+        if (!instances.isEmpty()) {
+            @SuppressWarnings("unchecked")
+            Map<MoneyContainer, Map<SearchFilter, BigDecimal>> balances =
+                    (Map<MoneyContainer, Map<SearchFilter, BigDecimal>>) instances.iterator().next();
+            displayData(balances);
         }
     }
 
-    private void displayData(List<SearchFilter> searchFilters) {
+    private void displayData(Map<MoneyContainer, Map<SearchFilter, BigDecimal>> balances) {
+        Utilities.changeCursorWaitStatus(true);
+
         // Create the dataset (that will contain the accounts' balances)
         DefaultCategoryDataset dataset = new DefaultCategoryDataset();
 
@@ -196,45 +198,42 @@ final class GraphAccountsBalancesTopComponent extends TopComponent implements Lo
         domainAxis.setCategoryLabelPositions(CategoryLabelPositions.UP_45);
 
         // Add the series on the chart
-        for (Currency currency : Datamodel.getActiveCurrencies()) {
-            if (!searchFilters.get(0).hasCurrencyFilter() ||
-                    (searchFilters.get(0).hasCurrencyFilter() && searchFilters.get(0).getCurrency().compareTo(currency) == 0)) {
-                for (Account account : Datamodel.getActiveAccounts(currency)) {
-                    if (!searchFilters.get(0).hasAccountsFilter() ||
-                            (searchFilters.get(0).hasAccountsFilter() && searchFilters.get(0).getAccounts().contains(account))) {
+        for (MoneyContainer moneyContainer : balances.keySet()) {
 
-                        for (SearchFilter searchFilter : searchFilters) {
-                            SearchFilter newSearchFilter = new SearchFilter();
-                            newSearchFilter.setCurrency(currency);
-                            List<Account> accounts = new ArrayList<Account>();
-                            accounts.add(account);
-                            newSearchFilter.setAccounts(accounts);
-                            newSearchFilter.setPeriod(searchFilter.getPeriod());
+            if (moneyContainer instanceof Account) {
+                Account account = (Account) moneyContainer;
+                SortedSet<SearchFilter> sortedSearchFilters = new TreeSet<SearchFilter>(
+                        balances.get(account).keySet());
 
-                            BigDecimal accountBalance = Datamodel.getBalanceUntil(newSearchFilter).add(account.getInitialAmount());
-                            accountBalance = accountBalance.setScale(2, RoundingMode.HALF_EVEN);
+                for (SearchFilter searchFilter : sortedSearchFilters) {
 
-                            dataset.addValue(
-                                    accountBalance,
-                                    account.toString(),
-                                    newSearchFilter.getPeriod());
-                        }
+                    if (!searchFilter.hasAccountsFilter() ||
+                            searchFilter.getAccounts().contains(account)) {
+
+                        dataset.addValue(
+                                balances.get(moneyContainer).get(searchFilter),
+                                account.toString(),
+                                searchFilter.getPeriod());
                     }
                 }
             }
         }
-
+        
         // Series' shapes
         LineAndShapeRenderer renderer = (LineAndShapeRenderer) plot.getRenderer();
-        for (int i = 0; i < dataset.getRowCount(); i++) {
+        for (int i = 0;
+                i < dataset.getRowCount();
+                i++) {
             renderer.setSeriesShapesVisible(i, true);
             renderer.setSeriesShape(i, ShapeUtilities.createDiamond(2F));
         }
-
         // Set the scale of the chart
         NumberAxis rangeAxis = (NumberAxis) plot.getRangeAxis();
+
         rangeAxis.setAutoRange(true);
+
         rangeAxis.setAutoRangeIncludesZero(false);
+
         rangeAxis.setStandardTickUnits(NumberAxis.createIntegerTickUnits());
 
         // Create the chart panel that contains the chart
@@ -245,7 +244,8 @@ final class GraphAccountsBalancesTopComponent extends TopComponent implements Lo
         jPanelAccountsBalances.add(chartPanel, BorderLayout.CENTER);
         jPanelAccountsBalances.updateUI();
 
-        this.displayedSearchFilters = searchFilters;
+        Utilities.changeCursorWaitStatus(
+                false);
     }
 
     final static class ResolvableHelper implements Serializable {

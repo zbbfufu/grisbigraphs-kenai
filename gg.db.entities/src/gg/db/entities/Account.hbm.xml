@@ -28,7 +28,7 @@
             <generator class="assigned"/>
         </id>
         <property name="name" type="string" length="255" not-null="true" column="NAME"/>
-        <many-to-one name="currency" column="ID_CURRENCY" not-null="true" lazy="false" insert="true" update="true" foreign-key="FK_ACCOUNT_CURRENCY"/>
+        <many-to-one name="currency" column="ID_CURRENCY" not-null="true" insert="true" update="true" foreign-key="FK_ACCOUNT_CURRENCY"/>
         <property name="initialAmount" type="big_decimal" length="3" not-null="true" column="INITIAL_AMOUNT"/>
         <property name="balance" type="big_decimal" length="3" not-null="true" column="BALANCE"/>
         <property name="active" type="boolean" not-null="true" column="ACTIVE"/>
