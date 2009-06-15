@@ -12,14 +12,6 @@
             </file>
         </folder>
     </folder>
-    <folder name="Menu">
-        <folder name="Window">
-            <file name="SearchFilterAction.shadow">
-                <attr name="originalFile" stringvalue="Actions/Window/gg-searchfilter-SearchFilterAction.instance"/>
-                <attr name="position" intvalue="270"/>
-            </file>
-        </folder>
-    </folder>
     <folder name="Windows2">
         <folder name="Components">
             <file name="SearchFilterTopComponent.settings" url="SearchFilterTopComponentSettings.xml"/>

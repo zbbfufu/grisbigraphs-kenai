@@ -129,10 +129,13 @@ final class GraphAccountsBalancesTopComponent extends TopComponent implements Lo
     @Override
     public void componentOpened() {
         // Register lookup listener on the accounts' balance table top component
-        result = WindowManager.getDefault().findTopComponent("AccountsBalancesTopComponent").
-                getLookup().lookupResult(Map.class);
-        result.addLookupListener(this);
-        result.allInstances();
+        if (result == null) {
+            result = WindowManager.getDefault().findTopComponent("AccountsBalancesTopComponent").
+                    getLookup().lookupResult(Map.class);
+            result.addLookupListener(this);
+            result.allInstances();
+        }
+
         resultChanged(null);
     }
 
@@ -218,7 +221,7 @@ final class GraphAccountsBalancesTopComponent extends TopComponent implements Lo
                 }
             }
         }
-        
+
         // Series' shapes
         LineAndShapeRenderer renderer = (LineAndShapeRenderer) plot.getRenderer();
         for (int i = 0;
@@ -229,11 +232,8 @@ final class GraphAccountsBalancesTopComponent extends TopComponent implements Lo
         }
         // Set the scale of the chart
         NumberAxis rangeAxis = (NumberAxis) plot.getRangeAxis();
-
         rangeAxis.setAutoRange(true);
-
         rangeAxis.setAutoRangeIncludesZero(false);
-
         rangeAxis.setStandardTickUnits(NumberAxis.createIntegerTickUnits());
 
         // Create the chart panel that contains the chart
@@ -244,8 +244,7 @@ final class GraphAccountsBalancesTopComponent extends TopComponent implements Lo
         jPanelAccountsBalances.add(chartPanel, BorderLayout.CENTER);
         jPanelAccountsBalances.updateUI();
 
-        Utilities.changeCursorWaitStatus(
-                false);
+        Utilities.changeCursorWaitStatus(false);
     }
 
     final static class ResolvableHelper implements Serializable {

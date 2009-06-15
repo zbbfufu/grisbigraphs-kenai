@@ -21,86 +21,146 @@
  */
 package gg.wallet;
 
-import gg.db.entities.Transaction;
-import java.math.BigDecimal;
+import gg.db.datamodel.Datamodel;
+import gg.db.entities.Account;
+import gg.db.entities.Category;
+import gg.db.entities.Currency;
+import gg.db.entities.FileImport;
+import gg.db.entities.GrisbiCategory;
+import gg.db.entities.Payee;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 /**
- * Static classes to do some operations on the transactions
+ * 
  * @author Francois Duchemin
  */
 public class Wallet {
 
-    /**
-     * Gets the balance of a list of transactions
-     * @param transactions List of transactions
-     * @return Total balance (0 if the list of transactions is empty)
-     */
-    public static BigDecimal getBalance(List<Transaction> transactions) {
-        BigDecimal totalBalance = new BigDecimal(0); // Sum of the balances of each transaction
+    /** Singleton instance */
+    private static Wallet wallet = null;
+    private List<FileImport> fileImports;
+    private Map<Long, Currency> currenciesWithId;
+    private List<Currency> activeCurrencies;
+    private Map<Long, Account> accountsWithId;
+    private Map<Long, Payee> payeesWithId;
+    private List<Payee> payees;
+    private Map<Long, Category> categoriesWithId;
+    private Map<GrisbiCategory, Category> categoriesWithGrisbiCategory;
+    private List<Category> topCategories;
+    private Map<Category, List<Category>> subCategoriesWithParentCategory;
+    private Map<Currency, List<Account>> activeAccountsWithCurrency;
 
-        if (transactions == null) {
-            throw new IllegalArgumentException("The parameter 'transactions' is null");
+    private Wallet() {
+        updateContent();
+    }
+
+    public void updateContent() {
+        this.fileImports = Datamodel.getFileImports();
+        this.currenciesWithId = Datamodel.getCurrenciesWithId();
+        this.activeCurrencies = Datamodel.getActiveCurrencies();
+        this.accountsWithId = Datamodel.getAccountsWithId();
+        this.payeesWithId = Datamodel.getPayeesWithId();
+        this.payees = Datamodel.getPayees();
+        this.categoriesWithId = Datamodel.getCategoriesWithId();
+        this.categoriesWithGrisbiCategory = Datamodel.getCategoriesWithGrisbiCategory();
+        this.topCategories = Datamodel.getTopCategories();
+        
+        this.subCategoriesWithParentCategory = new HashMap<Category, List<Category>>();
+        for (Category topCategory : this.getTopCategories()) {
+            List<Category> subCategories = Datamodel.getSubCategories(topCategory);
+            this.subCategoriesWithParentCategory.put(topCategory, subCategories);
         }
 
-        // Compute the total balance of the list of transactions
-        for (Transaction transaction : transactions) {
-            assert (transaction != null);
-
-            totalBalance = totalBalance.add(transaction.getAmount());
+        this.activeAccountsWithCurrency = new HashMap<Currency, List<Account>>();
+        for (Currency currency : this.getActiveCurrencies()) {
+            List<Account> accounts = Datamodel.getActiveAccounts(currency);
+            this.activeAccountsWithCurrency.put(currency, accounts);
         }
+    }
 
-        // Return the total balance
-        return totalBalance;
+    public static Wallet getInstance() {
+        if (wallet == null) {
+            wallet = new Wallet();
+        }
+        return wallet;
     }
 
     /**
-     * Gets the total income of a list of transactions
-     * @param transactions List of transactions
-     * @return Total income
+     * @return the fileImports
      */
-    public static BigDecimal getIncome(List<Transaction> transactions) {
-        BigDecimal totalIncome = new BigDecimal(0); // Total income
-
-        if (transactions == null) {
-            throw new IllegalArgumentException("The parameter 'transactions' is null");
-        }
-
-        // Compute the total income of the list of transactions
-        for (Transaction transaction : transactions) {
-            assert (transaction != null);
-
-            if (transaction.getAmount().compareTo(BigDecimal.ZERO) > 0) {
-                totalIncome = totalIncome.add(transaction.getAmount());
-            }
-        }
-
-        // Return the total income
-        return totalIncome;
+    public List<FileImport> getFileImports() {
+        return fileImports;
     }
 
     /**
-     * Gets the total expenses of a list of transactions
-     * @param transactions List of transactions
-     * @return Total expenses
+     * @return the currenciesWithId
      */
-    public static BigDecimal getExpenses(List<Transaction> transactions) {
-        BigDecimal totalExpenses = new BigDecimal(0); // Total expenses
+    public Map<Long, Currency> getCurrenciesWithId() {
+        return currenciesWithId;
+    }
 
-        if (transactions == null) {
-            throw new IllegalArgumentException("The parameter 'transactions' is null");
-        }
+    /**
+     * @return the activeCurrencies
+     */
+    public List<Currency> getActiveCurrencies() {
+        return activeCurrencies;
+    }
 
-        // Compute the total expenses of the list of transactions
-        for (Transaction transaction : transactions) {
-            assert (transaction != null);
+    /**
+     * @return the accountsWithId
+     */
+    public Map<Long, Account> getAccountsWithId() {
+        return accountsWithId;
+    }
 
-            if (transaction.getAmount().compareTo(BigDecimal.ZERO) < 0) {
-                totalExpenses = totalExpenses.add(transaction.getAmount());
-            }
-        }
+    /**
+     * @return the payeesWithId
+     */
+    public Map<Long, Payee> getPayeesWithId() {
+        return payeesWithId;
+    }
 
-        // Return the total expenses
-        return totalExpenses;
+    /**
+     * @return the payees
+     */
+    public List<Payee> getPayees() {
+        return payees;
+    }
+
+    /**
+     * @return the categoriesWithGrisbiCategory
+     */
+    public Map<GrisbiCategory, Category> getCategoriesWithGrisbiCategory() {
+        return categoriesWithGrisbiCategory;
+    }
+
+    /**
+     * @return the topCategories
+     */
+    public List<Category> getTopCategories() {
+        return topCategories;
+    }
+
+    /**
+     * @return the subCategoriesWithParentCategory
+     */
+    public Map<Category, List<Category>> getSubCategoriesWithParentCategory() {
+        return subCategoriesWithParentCategory;
+    }
+
+    /**
+     * @return the activeAccountsWithCurrency
+     */
+    public Map<Currency, List<Account>> getActiveAccountsWithCurrency() {
+        return activeAccountsWithCurrency;
+    }
+
+    /**
+     * @return the categoriesWithId
+     */
+    public Map<Long, Category> getCategoriesWithId() {
+        return categoriesWithId;
     }
 }

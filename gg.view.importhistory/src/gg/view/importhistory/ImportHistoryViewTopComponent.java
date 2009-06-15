@@ -22,8 +22,8 @@
 package gg.view.importhistory;
 
 import gg.application.components.FieldsVisibility;
-import gg.db.datamodel.Datamodel;
 import gg.db.entities.FileImport;
+import gg.wallet.Wallet;
 import java.io.Serializable;
 import java.util.List;
 import java.util.logging.Logger;
@@ -104,6 +104,7 @@ final class ImportHistoryViewTopComponent extends TopComponent {
                 }
             }
         });
+        
         eTableImportHistory.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
         eTableImportHistory.setColumnHidingAllowed(false);
         eTableImportHistory.setPopupUsedFromTheCorner(false);
@@ -209,7 +210,7 @@ final class ImportHistoryViewTopComponent extends TopComponent {
         }
 
         // Fill the table with the file import logs
-        List<FileImport> fileImports = Datamodel.getFileImports();
+        List<FileImport> fileImports = Wallet.getInstance().getFileImports();
         for (FileImport fileImport : fileImports) {
             ((DefaultTableModel) eTableImportHistory.getModel()).addRow(new Object[]{
                         fileImport.getImportedOn(), fileImport.getFilePath(), fileImport.getImportDuration(), fileImport.getSuccess()});

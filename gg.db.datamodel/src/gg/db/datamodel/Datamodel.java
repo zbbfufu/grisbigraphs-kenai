@@ -264,6 +264,17 @@ public class Datamodel {
         return categories;
     }
 
+    public static Map<Long, Category> getCategoriesWithId() {
+        Map<Long, Category> categories = new HashMap<Long, Category>();
+        List<Category> list = getCategories();
+
+        for (Category category : list) {
+            categories.put(category.getId(), category);
+        }
+
+        return categories;
+    }
+
     /**
      * Gets the list of transactions that belong to an account<BR/>
      * The list contains only transactions (no sub-transaction)

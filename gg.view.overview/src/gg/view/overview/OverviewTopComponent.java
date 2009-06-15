@@ -22,13 +22,16 @@
 package gg.view.overview;
 
 import gg.application.components.FieldsVisibility;
-import gg.db.datamodel.Datamodel;
 import gg.db.entities.Account;
 import gg.db.entities.Currency;
 import gg.db.entities.MoneyContainer;
+import gg.options.Options;
 import gg.utilities.Utilities;
+import gg.wallet.Wallet;
 import java.io.Serializable;
+import java.math.BigDecimal;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.logging.Logger;
 import javax.swing.ListSelectionModel;
@@ -67,8 +70,9 @@ public final class OverviewTopComponent extends TopComponent {
         associateLookup(Lookups.singleton(fieldsVisibility));
 
         outlineOverview.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
-        outlineOverview.setColumnHidingAllowed(false);
+        outlineOverview.setRootVisible(false);
         outlineOverview.setPopupUsedFromTheCorner(false);
+        outlineOverview.setColumnHidingAllowed(false);
 
         displayData();
     }
@@ -172,19 +176,20 @@ public final class OverviewTopComponent extends TopComponent {
 
     public void displayData() {
         Utilities.changeCursorWaitStatus(true);
-        
-        DefaultMutableTreeNode rootNode = new DefaultMutableTreeNode(); // Root (Not displayed)
-        Map<MoneyContainer, String> balances = new HashMap<MoneyContainer, String>(); // Map of currency/account and corresponding balance
 
-        for (Currency currency : Datamodel.getActiveCurrencies()) {
+        DefaultMutableTreeNode rootNode = new DefaultMutableTreeNode(); // Root (Not displayed)
+        Map<MoneyContainer, BigDecimal> balances = new HashMap<MoneyContainer, BigDecimal>(); // Map of currency/account and corresponding balance
+
+        List<Currency> currencies = Wallet.getInstance().getActiveCurrencies();
+        for (Currency currency : currencies) {
             DefaultMutableTreeNode currencyNode = new DefaultMutableTreeNode(currency);
             rootNode.add(currencyNode);
-            balances.put(currency, currency.getBalance().toString());
+            balances.put(currency, currency.getBalance());
 
-            for (Account account : Datamodel.getActiveAccounts(currency)) {
+            for (Account account : Wallet.getInstance().getActiveAccountsWithCurrency().get(currency)) {
                 DefaultMutableTreeNode accountNode = new DefaultMutableTreeNode(account);
                 currencyNode.add(accountNode);
-                balances.put(account, account.getBalance().toString());
+                balances.put(account, account.getBalance());
             }
         }
 
@@ -229,9 +234,9 @@ public final class OverviewTopComponent extends TopComponent {
 
     private class OverviewRowModel implements RowModel {
 
-        private Map<MoneyContainer, String> balances;
+        private Map<MoneyContainer, BigDecimal> balances;
 
-        public OverviewRowModel(Map<MoneyContainer, String> balances) {
+        public OverviewRowModel(Map<MoneyContainer, BigDecimal> balances) {
             if (balances == null) {
                 throw new IllegalArgumentException("The parameter 'balances' is null");
             }
@@ -255,13 +260,28 @@ public final class OverviewTopComponent extends TopComponent {
 
         @Override
         public Object getValueFor(Object node, int column) {
-            Object nodeInfo = ((DefaultMutableTreeNode) node).getUserObject();
+            // Value to display in the current cell
+            String value = "";
 
-            if (column == 0 && nodeInfo != null) {
-                MoneyContainer moneyContainer = (MoneyContainer) nodeInfo;
-                return balances.get(moneyContainer);
+            // Get the object contained in the current cell
+            Object nodeUserObject = ((DefaultMutableTreeNode) node).getUserObject();
+            assert (nodeUserObject != null);
+
+            // Display the currency or the account's balance value
+            MoneyContainer moneyContainer = (MoneyContainer) nodeUserObject;
+
+            // Display the currency or the account's balance value
+            // - if the object is an account or
+            // - if the object is a currency and if the user wants to see the sums
+            if (moneyContainer instanceof Account || Options.calculateSums()) {
+                BigDecimal moneyContainerValue = balances.get(moneyContainer);
+                assert (moneyContainerValue != null);
+                if (moneyContainerValue.compareTo(BigDecimal.ZERO) != 0 || Options.displayZero()) {
+                    value = moneyContainerValue.toString();
+                }
             }
-            return null;
+
+            return value;
         }
 
         @Override

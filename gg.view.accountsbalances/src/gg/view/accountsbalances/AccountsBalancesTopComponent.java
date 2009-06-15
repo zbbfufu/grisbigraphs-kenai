@@ -12,6 +12,7 @@ import gg.db.entities.Currency;
 import gg.db.entities.MoneyContainer;
 import gg.options.Options;
 import gg.utilities.Utilities;
+import gg.wallet.Wallet;
 import java.io.Serializable;
 import java.math.BigDecimal;
 import java.util.ArrayList;
@@ -60,12 +61,11 @@ public final class AccountsBalancesTopComponent extends TopComponent implements 
         putClientProperty(TopComponent.PROP_DRAGGING_DISABLED, Boolean.TRUE);
         putClientProperty(TopComponent.PROP_UNDOCKING_DISABLED, Boolean.TRUE);
 
-        associateLookup(new AbstractLookup(content));
-        
         // Treetable settings
         outlineAccountsBalances.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
         outlineAccountsBalances.setRootVisible(false);
         outlineAccountsBalances.setPopupUsedFromTheCorner(false);
+        outlineAccountsBalances.setColumnHidingAllowed(false);
 
         // Set the supported fields from the search filter
         fieldsVisibility.setFromVisible(true);
@@ -74,6 +74,7 @@ public final class AccountsBalancesTopComponent extends TopComponent implements 
         fieldsVisibility.setCurrencyVisible(true);
         fieldsVisibility.setAccountsVisible(true);
         content.set(Collections.singleton(fieldsVisibility), null);
+        associateLookup(new AbstractLookup(content));
     }
 
     /** This method is called from within the constructor to
@@ -163,10 +164,12 @@ public final class AccountsBalancesTopComponent extends TopComponent implements 
         super.componentActivated();
 
         // Register lookup listener on the search filter top component
-        result = WindowManager.getDefault().findTopComponent("SearchFilterTopComponent").getLookup().lookupResult(SearchFilter.class);
-        result.addLookupListener(this);
-        result.allInstances();
-        resultChanged(null);
+        if (result == null) {
+            result = WindowManager.getDefault().findTopComponent("SearchFilterTopComponent").getLookup().lookupResult(SearchFilter.class);
+            result.addLookupListener(this);
+            result.allInstances();
+            resultChanged(null);
+        }
 
         TopComponentGroup accountsBalancesGroup = WindowManager.getDefault().findTopComponentGroup("AccountsBalancesGroup");
         if (accountsBalancesGroup == null) {
@@ -204,12 +207,12 @@ public final class AccountsBalancesTopComponent extends TopComponent implements 
         long start = System.currentTimeMillis();
 
         // (Account ID --> Account)
-        Map<Long, Account> accountsMap = Datamodel.getAccountsWithId();
+        Map<Long, Account> accountsMap = Wallet.getInstance().getAccountsWithId();
         // (Currency --> List of accounts)
         Map<Currency, List<Account>> currencyAccountsMap = new HashMap<Currency, List<Account>>();
-        List<Currency> currencies = Datamodel.getActiveCurrencies();
+        List<Currency> currencies = Wallet.getInstance().getActiveCurrencies();
         for (Currency currency : currencies) {
-            List<Account> currencyAccounts = Datamodel.getActiveAccounts(currency);
+            List<Account> currencyAccounts = Wallet.getInstance().getActiveAccountsWithCurrency().get(currency);
             currencyAccountsMap.put(currency, currencyAccounts);
         }
 
@@ -230,7 +233,7 @@ public final class AccountsBalancesTopComponent extends TopComponent implements 
                 Account account = accountsMap.get(accountId);
                 assert (account != null);
                 BigDecimal accountBalance = (BigDecimal) rowAccountBalance[1];
-                assert(accountBalance != null);
+                assert (accountBalance != null);
                 accountBalance = accountBalance.add(account.getInitialAmount());
 
                 // Map that contains the account's balance for the current search filter
@@ -249,6 +252,7 @@ public final class AccountsBalancesTopComponent extends TopComponent implements 
                 moneyContainerBalancesMap.put(account, accountBalanceForCurrentSearchFilterMap);
             }
 
+            // Compute the currency balance
             for (Currency currency : currencies) {
                 BigDecimal currencyBalance = new BigDecimal(0);
 
@@ -374,26 +378,33 @@ public final class AccountsBalancesTopComponent extends TopComponent implements 
 
         @Override
         public Object getValueFor(Object node, int column) {
-            Object nodeInfo = ((DefaultMutableTreeNode) node).getUserObject();
+            // Value to display in the current cell
+            String value = "";
 
-            if (nodeInfo != null) {
-                MoneyContainer moneyContainer = (MoneyContainer) nodeInfo;
+            // Get the object contained in the current cell
+            Object nodeUserObject = ((DefaultMutableTreeNode) node).getUserObject();
+            assert (nodeUserObject != null);
+
+            // The object is either a currency or an account
+            MoneyContainer moneyContainer = (MoneyContainer) nodeUserObject;
+
+            // Display the currency or the account's balance value
+            // - if the object is an account or
+            // - if the object is a currency and if the user wants to see the sums
+            if (moneyContainer instanceof Account || Options.calculateSums()) {
                 SearchFilter searchFilter = searchFilters.get(column);
                 Map<SearchFilter, BigDecimal> moneyContainerBalances = balances.get(moneyContainer);
                 if (moneyContainerBalances != null) {
                     BigDecimal moneyContainerBalanceSearchFilter = moneyContainerBalances.get(searchFilter);
-                    if (moneyContainerBalanceSearchFilter != null) {
-                        return moneyContainerBalanceSearchFilter.toString();
+                    assert (moneyContainerBalanceSearchFilter != null);
+                    if (moneyContainerBalanceSearchFilter.compareTo(BigDecimal.ZERO) != 0 ||
+                            Options.displayZero()) {
+                        value = Utilities.getBalance(moneyContainerBalanceSearchFilter);
                     }
                 }
-                if (Options.displayZero()) {
-                    return Utilities.getSignedBalance(BigDecimal.ZERO);
-                } else {
-                    return "";
-                }
-
             }
-            return null;
+
+            return value;
         }
 
         @Override

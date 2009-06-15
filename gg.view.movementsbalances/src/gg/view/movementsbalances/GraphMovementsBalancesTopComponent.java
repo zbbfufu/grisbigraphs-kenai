@@ -132,11 +132,13 @@ public final class GraphMovementsBalancesTopComponent extends TopComponent imple
     @Override
     public void componentOpened() {
         // Register lookup listener on the movements' balances table top component
-        result = WindowManager.getDefault().findTopComponent("MovementsBalancesTopComponent").
-                getLookup().lookupResult(Map.class);
-        result.addLookupListener(this);
-        result.allInstances();
-        resultChanged(null);
+        if (result == null) {
+            result = WindowManager.getDefault().findTopComponent("MovementsBalancesTopComponent").
+                    getLookup().lookupResult(Map.class);
+            result.addLookupListener(this);
+            result.allInstances();
+            resultChanged(null);
+        }
     }
 
     @Override
@@ -195,7 +197,7 @@ public final class GraphMovementsBalancesTopComponent extends TopComponent imple
 
                 SortedSet<SearchFilter> sortedSearchFilters = new TreeSet<SearchFilter>(
                         balances.get(moneyContainer).keySet());
-                
+
                 for (SearchFilter searchFilter : sortedSearchFilters) {
                     BigDecimal accountBalance = balances.get(moneyContainer).get(searchFilter);
                     accountBalance = accountBalance.setScale(2, RoundingMode.HALF_EVEN);

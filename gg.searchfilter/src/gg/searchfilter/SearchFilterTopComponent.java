@@ -5,7 +5,6 @@
 package gg.searchfilter;
 
 import gg.application.components.FieldsVisibility;
-import gg.db.datamodel.Datamodel;
 import gg.db.datamodel.Period;
 import gg.db.datamodel.PeriodType;
 import gg.db.datamodel.Periods;
@@ -14,6 +13,7 @@ import gg.db.entities.Account;
 import gg.db.entities.Category;
 import gg.db.entities.Currency;
 import gg.db.entities.Payee;
+import gg.wallet.Wallet;
 import java.awt.BorderLayout;
 import java.awt.GridBagLayout;
 import java.awt.event.ActionEvent;
@@ -56,7 +56,7 @@ import org.openide.util.lookup.InstanceContent;
 /**
  * Top component which displays something.
  */
-final class SearchFilterTopComponent extends TopComponent implements LookupListener {
+public final class SearchFilterTopComponent extends TopComponent implements LookupListener {
 
     private static SearchFilterTopComponent instance;
     /** path to the icon used by the component and its open action */
@@ -224,29 +224,30 @@ final class SearchFilterTopComponent extends TopComponent implements LookupListe
 
         // combobox "currency"
         jComboBoxCurrency.removeAllItems();
-        for (Currency currency : Datamodel.getActiveCurrencies()) {
+        for (Currency currency : Wallet.getInstance().getActiveCurrencies()) {
             jComboBoxCurrency.addItem(currency);
         }
 
         // tree "categories"
         rootCategoryNode.removeAllChildren();
-        for (Category category : Datamodel.getTopCategories()) {
+        for (Category category : Wallet.getInstance().getTopCategories()) {
             if (!category.getSystemProperty()) {
                 DefaultMutableTreeNode categoryNode = new DefaultMutableTreeNode(category);
                 rootCategoryNode.add(categoryNode);
 
-                for (Category subCategory : Datamodel.getSubCategories(category)) {
+                for (Category subCategory : Wallet.getInstance().getSubCategoriesWithParentCategory().get(category)) {
                     DefaultMutableTreeNode subCategoryNode = new DefaultMutableTreeNode(subCategory);
                     categoryNode.add(subCategoryNode);
                 }
             }
         }
+        treeModelCategories.reload(rootCategoryNode);
         expandAll(jTreeCategories);
         jTreeCategories.setRootVisible(false);
 
         // listbox "payees"
         listModelPayees.removeAllElements();
-        for (Payee payee : Datamodel.getPayees()) {
+        for (Payee payee : Wallet.getInstance().getPayees()) {
             if (!payee.getSystemProperty()) {
                 listModelPayees.addElement(payee);
             }
@@ -270,13 +271,13 @@ final class SearchFilterTopComponent extends TopComponent implements LookupListe
         if (selectedCurrencyObject != null) { // Currency selected
             Currency selectedCurrency = (Currency) selectedCurrencyObject;
             // Display accounts that belong to the selected currency
-            for (Account account : Datamodel.getActiveAccounts(selectedCurrency)) {
+            for (Account account : Wallet.getInstance().getActiveAccountsWithCurrency().get(selectedCurrency)) {
                 listModelAccounts.addElement(account);
             }
         }
     }
 
-    private void jButtonSearchActionPerformed() {
+    public void jButtonSearchActionPerformed() {
         Currency selectedCurrency = null;
         List<Account> selectedAccounts = new ArrayList<Account>();
         List<Category> selectedCategories = new ArrayList<Category>();
@@ -476,7 +477,6 @@ final class SearchFilterTopComponent extends TopComponent implements LookupListe
     private void jMenuItemDeselectAllAccountsActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jMenuItemDeselectAllAccountsActionPerformed
         jListAccounts.clearSelection();
     }//GEN-LAST:event_jMenuItemDeselectAllAccountsActionPerformed
-
     // Variables declaration - do not modify//GEN-BEGIN:variables
     private javax.swing.JMenuItem jMenuItemDeselectAllAccounts;
     private javax.swing.JMenuItem jMenuItemDeselectAllCategories;
@@ -527,9 +527,15 @@ final class SearchFilterTopComponent extends TopComponent implements LookupListe
 
     @Override
     public void componentOpened() {
-        result = Utilities.actionsGlobalContext().lookupResult(FieldsVisibility.class);
-        result.addLookupListener(this);
-        result.allInstances();
+        if (result == null) {
+            result = Utilities.actionsGlobalContext().lookupResult(FieldsVisibility.class);
+            result.addLookupListener(this);
+            result.allInstances();
+        }
+
+        if (jXDatePickerFrom.getDate() != null && jXDatePickerTo.getDate() != null &&
+                jXDatePickerFrom.getDate().compareTo(jXDatePickerTo.getDate()) <= 0)
+            jButtonSearchActionPerformed();
 
         loadComboboxes();
     }

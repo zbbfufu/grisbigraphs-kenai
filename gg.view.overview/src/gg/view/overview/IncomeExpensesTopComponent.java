@@ -11,6 +11,7 @@ import gg.db.datamodel.PeriodType;
 import gg.db.datamodel.Periods;
 import gg.db.datamodel.SearchFilter;
 import gg.utilities.Utilities;
+import gg.wallet.Wallet;
 import java.awt.BorderLayout;
 import java.awt.Color;
 import java.awt.GradientPaint;
@@ -172,7 +173,7 @@ public final class IncomeExpensesTopComponent extends TopComponent {
                 Periods.getAdjustedEndDate(today, PeriodType.MONTH),
                 PeriodType.MONTH);
 
-        List<Currency> currencies = Datamodel.getActiveCurrencies();
+        List<Currency> currencies = Wallet.getInstance().getActiveCurrencies();
         for (Currency currency : currencies) {
             SearchFilter searchFilter = new SearchFilter(currency, null, currentMonth, null, null, null, false);
 

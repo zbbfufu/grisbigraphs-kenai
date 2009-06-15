@@ -12,6 +12,7 @@ import gg.db.entities.Currency;
 import gg.db.entities.MoneyContainer;
 import gg.options.Options;
 import gg.utilities.Utilities;
+import gg.wallet.Wallet;
 import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -19,6 +20,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.logging.Logger;
+import javax.swing.ListSelectionModel;
 import javax.swing.tree.DefaultMutableTreeNode;
 import javax.swing.tree.DefaultTreeModel;
 import javax.swing.tree.TreePath;
@@ -64,8 +66,10 @@ public final class MovementsBalancesTopComponent extends TopComponent implements
         associateLookup(new AbstractLookup(content));
 
         // Treetable settings
+        outlineMovementsBalances.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
         outlineMovementsBalances.setRootVisible(false);
         outlineMovementsBalances.setPopupUsedFromTheCorner(false);
+        outlineMovementsBalances.setColumnHidingAllowed(false);
 
         // Set the supported fields from the search filter
         fieldsVisibility.setFromVisible(true);
@@ -153,10 +157,12 @@ public final class MovementsBalancesTopComponent extends TopComponent implements
         super.componentActivated();
 
         // Register lookup listener on the search filter top component
-        result = WindowManager.getDefault().findTopComponent("SearchFilterTopComponent").getLookup().lookupResult(SearchFilter.class);
-        result.addLookupListener(this);
-        result.allInstances();
-        resultChanged(null);
+        if (result == null) {
+            result = WindowManager.getDefault().findTopComponent("SearchFilterTopComponent").getLookup().lookupResult(SearchFilter.class);
+            result.addLookupListener(this);
+            result.allInstances();
+            resultChanged(null);
+        }
 
         TopComponentGroup movementsBalancesGroup = WindowManager.getDefault().findTopComponentGroup("MovementsBalancesGroup");
         if (movementsBalancesGroup == null) {
@@ -198,7 +204,7 @@ public final class MovementsBalancesTopComponent extends TopComponent implements
         Map<MoneyContainer, Map<SearchFilter, BigDecimal>> balances =
                 new HashMap<MoneyContainer, Map<SearchFilter, BigDecimal>>(); // Map of currency/account and corresponding movement's balance
 
-        for (Currency currency : Datamodel.getActiveCurrencies()) {
+        for (Currency currency : Wallet.getInstance().getActiveCurrencies()) {
             if (!searchFilters.get(0).hasCurrencyFilter() ||
                     (searchFilters.get(0).hasCurrencyFilter() && searchFilters.get(0).getCurrency().compareTo(currency) == 0)) {
                 // Add currency to the tree
@@ -212,7 +218,7 @@ public final class MovementsBalancesTopComponent extends TopComponent implements
                 }
 
                 // Compute the accounts' movements for each search filter
-                for (Account account : Datamodel.getActiveAccounts(currency)) {
+                for (Account account : Wallet.getInstance().getActiveAccountsWithCurrency().get(currency)) {
                     if (!searchFilters.get(0).hasAccountsFilter() ||
                             (searchFilters.get(0).hasAccountsFilter() && searchFilters.get(0).getAccounts().contains(account))) {
                         // Add account to the tree
@@ -323,20 +329,31 @@ public final class MovementsBalancesTopComponent extends TopComponent implements
 
         @Override
         public Object getValueFor(Object node, int column) {
-            Object nodeInfo = ((DefaultMutableTreeNode) node).getUserObject();
+            // Value to display in the current cell
+            String value = "";
 
-            if (nodeInfo != null) {
-                MoneyContainer moneyContainer = (MoneyContainer) nodeInfo;
+            // Get the object contained in the current cell
+            Object nodeUserObject = ((DefaultMutableTreeNode) node).getUserObject();
+            assert (nodeUserObject != null);
+
+            // The object is either a currency or an account
+            MoneyContainer moneyContainer = (MoneyContainer) nodeUserObject;
+
+            // Display the currency or the account's balance value
+            // - if the object is an account or
+            // - if the object is a currency and if the user wants to see the sums
+            if (moneyContainer instanceof Account || Options.calculateSums()) {
                 SearchFilter searchFilter = searchFilters.get(column);
+                assert (searchFilter != null);
                 BigDecimal movementValue = balances.get(moneyContainer).get(searchFilter);
+                assert (movementValue != null);
 
                 if (movementValue.compareTo(BigDecimal.ZERO) != 0 || Options.displayZero()) {
-                    return Utilities.getSignedBalance(movementValue);
-                } else {
-                    return "";
+                    value = Utilities.getSignedBalance(movementValue);
                 }
             }
-            return null;
+
+            return value;
         }
 
         @Override
