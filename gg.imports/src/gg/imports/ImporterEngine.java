@@ -229,7 +229,7 @@ public class ImporterEngine implements Runnable {
             }
 
             // Log the import in the database
-            fileImport = new FileImport(new DateTime(), grisbiFile.getAbsolutePath(), importDuration, success);
+            fileImport = new FileImport(new DateTime(), grisbiFile.getAbsolutePath(), grisbiFile.getName(), new DateTime(grisbiFile.lastModified()), importDuration, success);
             Datamodel.saveFileImport(fileImport);
 
             // Update content of the wallet

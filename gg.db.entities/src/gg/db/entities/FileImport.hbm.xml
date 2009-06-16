@@ -28,6 +28,8 @@
         </id>
         <property name="importedOn" type="org.joda.time.contrib.hibernate.PersistentDateTime" not-null="true" column="IMPORTED_ON"/>
         <property name="filePath" type="string" length="200" not-null="true" column="FILE_PATH"/>
+        <property name="fileName" type="string" length="30" not-null="true" column="FILE_NAME"/>
+        <property name="lastModifiedOn" type="org.joda.time.contrib.hibernate.PersistentDateTime" not-null="true" column="LAST_MODIFIED_ON"/>
         <property name="importDuration" type="long" not-null="true" column="IMPORT_DURATION"/>
         <property name="success" type="boolean" not-null="true" column="SUCCESS"/>
     </class>

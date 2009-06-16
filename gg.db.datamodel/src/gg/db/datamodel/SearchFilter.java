@@ -34,39 +34,23 @@ import java.util.List;
  * <LI>Criterion (Period of time, keywords, categories...), that permit to look for transactions</LI>
  * <LI>The boolean operator is 'or': if the search filter contains a list of two keywords, and if a transaction contains one of them,
  * then the transaction matches the filter</LI>
- * <LI>The list of categories does never contain a null category</LI>
- * <LI>The list of categories does never contain two categories having the same ID</LI>
- * <LI>The list of keywords does never contain a null keyword</LI>
- * <LI>The list of keywords does never contain two identic keywords</LI>
  * </UL>
  * @author Francois Duchemin
  */
-public class SearchFilter implements Comparable<SearchFilter>{
+public class SearchFilter implements Comparable<SearchFilter> {
 
-    /** Currency (null if there is no currency filter) */
+    /** Currency (null if there is no filter on the currency) */
     private Currency currency;
-    /** 
-     * List of accounts (never null)
-     * There is an "Account" filter if the size of 'accounts' is greater than 0 (the list of keywords always exists: it is never null)
-     */
+    /**  List of accounts (empty if there is no filter on the accounts) */
     private List<Account> accounts;
-    /** Period of time between 2 dates (null if there is no period filter) */
+    /** Period of time between 2 dates (null if there is no filter on the period) */
     private Period period;
-    /** 
-     * List of categories (never null)
-     * There is a "Category" filter if the size of 'categories' is greater than 0 (the list of categories always exists: it is never null)
-     */
+    /** List of categories (empty if there is no filter on the categories) */
     private List<Category> categories;
-    /**
-     * List of keywords (never null)<BR/>
-     * There is a "Keyword" filter if the size of 'keywords' is greater than 0 (the list of keywords always exists: it is never null)
-     */
-    private List<String> keywords;
-    /** 
-     * List of payees (never null)
-     * There is a "Payee" filter if the size of 'payees' is greater than 0 (the list of payees always exists: it is never null)
-     */
+    /** List of payees (empty if there is no filter on the payees) */
     private List<Payee> payees;
+    /** List of keywords (empty if there is no filter on the keywords) */
+    private List<String> keywords;
     /** Include transfer transactions in the search? */
     private boolean includeTransferTransactions;
 
@@ -81,7 +65,7 @@ public class SearchFilter implements Comparable<SearchFilter>{
         setIncludeTransferTransactions(true);
 
         assert (!hasCurrencyFilter() && !hasAccountsFilter() && !hasPeriodFilter() &&
-                !hasCategoriesFilter() && !hasKeywordsFilter() && !hasPayeesFilter());
+                !hasCategoriesFilter() && !hasPayeesFilter() && !hasKeywordsFilter());
     }
 
     /**
@@ -90,48 +74,47 @@ public class SearchFilter implements Comparable<SearchFilter>{
      * @param accounts List of accounts (can be null if there is no filter on the accounts)
      * @param period Period (can be null if there is no filter on the period)
      * @param categories List of categoroes (can be null if there is no filter on the categories)
-     * @param keywords List of keywords (can be null if there is no filter on the comments: in this case, an empty list of keywords is created)
-     * @param payees List of payees (can be null if there is no filter on the payees (use <CODE>Payee.NO_PAYEE</CODE> to search transactions for which no payee is defined)
+     * @param payees List of payees (can be null if there is no filter on the payees)
+     * @param keywords List of keywords (can be null if there is no filter on the comments)
      * @param includeTransferTransactions Should the transactions of type "Transfer" be included in the search?
      */
-    public SearchFilter(Currency currency, List<Account> accounts, Period period, List<Category> categories, List<String> keywords, List<Payee> payees, boolean includeTransferTransactions) {
+    public SearchFilter(Currency currency, List<Account> accounts, Period period, List<Category> categories, List<Payee> payees, List<String> keywords, boolean includeTransferTransactions) {
         setCurrency(currency);
         setAccounts(accounts);
         setPeriod(period);
         setCategories(categories);
-        setKeywords(keywords); // If 'keywords' is null, an empty list of keywords is created
         setPayees(payees);
+        setKeywords(keywords);
         setIncludeTransferTransactions(includeTransferTransactions);
     }
 
     /**
-     * Gets the currency (can be null if there is no filter on the currency)
-     * @return Currency<BR/>
-     * There is a "Currency" filter, if the currency is not null
+     * Gets the filtered currency
+     * @return Currency on which the result will be filtered (null if there is no filter on the currency)
      */
     public Currency getCurrency() {
         return currency;
     }
 
     /**
-     * Sets the currency
-     * @param currency Currency (can be null if there is no filter on the currency)
+     * Sets a filter on the currency
+     * @param currency Currency on which the result will be filtered (null if there shall be no filter on the currency)
      */
     public void setCurrency(Currency currency) {
         this.currency = currency;
     }
 
     /**
-     * Gets the list of accounts
-     * @return List of accounts
+     * Gets the filtered accounts
+     * @return List of accounts on which the result will be filtered (empty if there is no filter on the accounts)
      */
     public List<Account> getAccounts() {
         return accounts;
     }
 
     /**
-     * Sets the list of accounts
-     * @param accounts List of accounts
+     * Sets a filter on the accounts
+     * @param accounts List of accounts (null if there shall be no filter on the accounts)
      */
     public void setAccounts(List<Account> accounts) {
         if (accounts == null) {
@@ -142,33 +125,32 @@ public class SearchFilter implements Comparable<SearchFilter>{
     }
 
     /**
-     * Gets the period (can be null if there is no filter on the period)
-     * @return Period<BR/>
-     * There is a "Period" filter, if the period is not null
+     * Gets the filtered period
+     * @return Period on which the result will be filtered (null if there shall be no filter on the period)
      */
     public Period getPeriod() {
         return period;
     }
 
     /**
-     * Sets the period
-     * @param period Period (can be null if there is no filter on the period)
+     * Sets a filter on the period
+     * @param period Period on which the result will be filtered (null if there shall be no filter on the period)
      */
     public void setPeriod(Period period) {
         this.period = period;
     }
 
     /**
-     * Gets the list of categories
-     * @return Categories
+     * Gets the filtered categories
+     * @return List of categories on which the result will be filtered (empty if there is no filter on the categories)
      */
     public List<Category> getCategories() {
         return categories;
     }
 
     /**
-     * Sets the list of categories
-     * @param categories List of categories
+     * Sets a filter on the categories
+     * @param categories List of categories (null if there shall be no filter on the categories)
      */
     public void setCategories(List<Category> categories) {
         if (categories == null) {
@@ -179,9 +161,28 @@ public class SearchFilter implements Comparable<SearchFilter>{
     }
 
     /**
-     * Gets the list of keywords
-     * @return List of keywords (never null)<BR/>
-     * There is a "keyword" filter, if the size of this list is greater than 0
+     * Gets the filtered payees
+     * @return List of payees on which the result will be filtered (empty if there is no filter on the payees)
+     */
+    public List<Payee> getPayees() {
+        return payees;
+    }
+
+    /**
+     * Sets a filter on the payees
+     * @param payees List of payees (null if there shall be no filter on the payees)
+     */
+    public void setPayees(List<Payee> payees) {
+        if (payees == null) {
+            this.payees = new ArrayList<Payee>();
+        } else {
+            this.payees = payees;
+        }
+    }
+
+    /**
+     * Gets the filtered keywords
+     * @return List of keywords on which the result will be filtered (empty if there is no filter on the keywords)
      */
     public List<String> getKeywords() {
         assert (keywords != null); // The list of keywords is never null
@@ -189,12 +190,11 @@ public class SearchFilter implements Comparable<SearchFilter>{
     }
 
     /**
-     * Sets the list of keywords
-     * @param keywords List of keywords (can be null)<BR/>
-     * If keywords is null, an empty list of keywords is created
+     * Sets a filter on the keywords
+     * @param keywords List of keywords (empty if there shall be no filter on the keywords)
      */
     public void setKeywords(List<String> keywords) {
-        if (keywords == null) { // If the list of keywords to set is null, create an empty list
+        if (keywords == null) {
             this.keywords = new ArrayList<String>();
         } else {
             // Make sure that 'keywords' does not contain two identic keywords
@@ -217,26 +217,6 @@ public class SearchFilter implements Comparable<SearchFilter>{
     }
 
     /**
-     * Gets the list of payees
-     * @return List of Payees
-     */
-    public List<Payee> getPayees() {
-        return payees;
-    }
-
-    /**
-     * Sets the list of payees
-     * @param payees List of payees
-     */
-    public void setPayees(List<Payee> payees) {
-        if (payees == null) {
-            this.payees = new ArrayList<Payee>();
-        } else {
-            this.payees = payees;
-        }
-    }
-
-    /**
      * Are the transfer transactions included in the search?
      * @return true if the transactions of category "transfer" must be included in the search
      */
@@ -245,7 +225,7 @@ public class SearchFilter implements Comparable<SearchFilter>{
     }
 
     /**
-     * Sets the transaction transfer inclusion flag
+     * Should the transfer transactions be included in the search?
      * @param includeTransferTransactions true if the transfer transactions must be included in the search
      */
     public void setIncludeTransferTransactions(boolean includeTransferTransactions) {
@@ -253,57 +233,57 @@ public class SearchFilter implements Comparable<SearchFilter>{
     }
 
     /**
-     * Is there a "currency" filter
-     * @return true if there is a "currency" filter on the transactions, false otherwise
+     * Is there a filter on a currency
+     * @return true if there is a filter on a currency
      */
     public boolean hasCurrencyFilter() {
         return (currency != null);
     }
 
     /**
-     * Is there an "account" filter
-     * @return true if there is an "account" filter on the transactions, false otherwise
+     * Is there a filter on accounts
+     * @return true if there is a filter on accounts
      */
     public boolean hasAccountsFilter() {
         return (accounts.size() > 0);
     }
 
     /**
-     * Is there a "period" filter (if GrisbiGraphs should look for transactions, which are in a certain period)
-     * @return true if there is a "period" filter on the transactions, false otherwise
+     * Is there a filter on a period
+     * @return true if there is a filter on a period
      */
     public boolean hasPeriodFilter() {
         return (period != null);
     }
 
     /**
-     * Is there a "category" filter (if GrisbiGraphs should look for transactions, which belongs to certain categories)
-     * @return true if there is a "category" filter, false otherwise
+     * Is there a filter on categories
+     * @return true if there is a filter on categories
      */
     public boolean hasCategoriesFilter() {
         return (categories.size() > 0);
     }
 
     /**
-     * Is there a "keyword" filter (if GrisbiGraphs should look for transactions, which have certain keywords)
-     * @return true if there is a "keyword" filter, false otherwise
+     * Is there a filter on payees
+     * @return true if there is a filter on payees
+     */
+    public boolean hasPayeesFilter() {
+        return (payees.size() > 0);
+    }
+
+    /**
+     * Is there a filter on keywords
+     * @return true if there is a filter on keywords
      */
     public boolean hasKeywordsFilter() {
         assert (keywords != null); // The list of keywords always exists
         return (keywords.size() > 0);
     }
 
-    /**
-     * Is there a "Payee" filter (if GrisbiGraphs should look for transactions, which have a certain Payee)
-     * @return true if there is a "Payee" filter, false otherwise
-     */
-    public boolean hasPayeesFilter() {
-        return (payees.size() > 0);
-    }
 
     @Override
     public int compareTo(SearchFilter searchFilter) {
-        // Make sure that the parameter is not null
         if (searchFilter == null) {
             throw new IllegalArgumentException("The parameter 'searchFilter' is null");
         }

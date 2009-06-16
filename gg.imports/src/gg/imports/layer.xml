@@ -12,12 +12,26 @@
                 <attr name="noIconInMenu" stringvalue="false"/>
             </file>
         </folder>
+        <folder name="File">
+            <file name="gg-imports-UpdateGrisbiFileAction.instance">
+                <attr name="SystemFileSystem.localizingBundle" stringvalue="gg.imports.Bundle"/>
+                <attr name="delegate" newvalue="gg.imports.UpdateGrisbiFileAction"/>
+                <attr name="displayName" bundlevalue="gg.imports.Bundle#CTL_UpdateGrisbiFileAction"/>
+                <attr name="iconBase" stringvalue="gg/resources/icons/UpdateGrisbiFile.png"/>
+                <attr name="instanceCreate" methodvalue="org.openide.awt.Actions.alwaysEnabled"/>
+                <attr name="noIconInMenu" boolvalue="false"/>
+            </file>
+        </folder>
     </folder>
     <folder name="Menu">
         <folder name="File">
             <file name="gg-imports-ImportGrisbiFileAction.shadow">
                 <attr name="originalFile" stringvalue="Actions/Edit/gg-imports-ImportGrisbiFileAction.instance"/>
-                <attr name="position" intvalue="2400"/>
+                <attr name="position" intvalue="100"/>
+            </file>
+            <file name="gg-imports-UpdateGrisbiFileAction.shadow">
+                <attr name="originalFile" stringvalue="Actions/File/gg-imports-UpdateGrisbiFileAction.instance"/>
+                <attr name="position" intvalue="200"/>
             </file>
         </folder>
     </folder>
@@ -31,6 +45,10 @@
             <file name="gg-imports-ImportGrisbiFileAction.shadow">
                 <attr name="originalFile" stringvalue="Actions/Edit/gg-imports-ImportGrisbiFileAction.instance"/>
                 <attr name="position" intvalue="100"/>
+            </file>
+            <file name="gg-imports-UpdateGrisbiFileAction.shadow">
+                <attr name="originalFile" stringvalue="Actions/File/gg-imports-UpdateGrisbiFileAction.instance"/>
+                <attr name="position" intvalue="200"/>
             </file>
         </folder>
     </folder>

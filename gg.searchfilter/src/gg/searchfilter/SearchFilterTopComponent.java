@@ -4,7 +4,6 @@
  */
 package gg.searchfilter;
 
-import gg.application.components.FieldsVisibility;
 import gg.db.datamodel.Period;
 import gg.db.datamodel.PeriodType;
 import gg.db.datamodel.Periods;
@@ -13,6 +12,7 @@ import gg.db.entities.Account;
 import gg.db.entities.Category;
 import gg.db.entities.Currency;
 import gg.db.entities.Payee;
+import gg.options.Options;
 import gg.wallet.Wallet;
 import java.awt.BorderLayout;
 import java.awt.GridBagLayout;
@@ -23,6 +23,7 @@ import java.awt.event.MouseEvent;
 import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Date;
 import java.util.List;
 import java.util.logging.Logger;
 import javax.swing.DefaultListModel;
@@ -39,6 +40,7 @@ import javax.swing.tree.DefaultTreeModel;
 import javax.swing.tree.TreePath;
 import javax.swing.tree.TreeSelectionModel;
 import org.jdesktop.swingx.JXDatePicker;
+import org.joda.time.DateTime;
 import org.joda.time.LocalDate;
 import org.openide.DialogDisplayer;
 import org.openide.NotifyDescriptor;
@@ -47,6 +49,7 @@ import org.openide.util.Lookup;
 import org.openide.util.LookupEvent;
 import org.openide.util.LookupListener;
 import org.openide.util.NbBundle;
+import org.openide.util.NbPreferences;
 import org.openide.util.Utilities;
 import org.openide.windows.TopComponent;
 import org.openide.windows.WindowManager;
@@ -89,6 +92,12 @@ public final class SearchFilterTopComponent extends TopComponent implements Look
     private JTextField jTextFieldKeywords;
     private JButton jButtonSearch;
     private JLabel jLabelNoFieldsSupported;
+    /** Key used in the properties file to identify the 'date from' property */
+    private static final String DATE_FROM_KEY = "DateFrom";
+    /** Key used in the properties file to identify the 'date to' property */
+    private static final String DATE_TO_KEY = "DateTo";
+    /** Key used in the properties file to identify the 'by' property */
+    private static final String PERIOD_TYPE_KEY = "PeriodType";
 
     private SearchFilterTopComponent() {
         initComponents();
@@ -293,7 +302,9 @@ public final class SearchFilterTopComponent extends TopComponent implements Look
             d.setTitle("Period invalid");
             DialogDisplayer.getDefault().notify(d);
             return;
-        } else if (jXDatePickerTo.getDate() == null) {
+        }
+
+        if (jXDatePickerTo.getDate() == null) {
             // 'to' date has not been entered
             NotifyDescriptor d = new NotifyDescriptor.Message(
                     "Please enter a date in the field 'to'",
@@ -301,93 +312,105 @@ public final class SearchFilterTopComponent extends TopComponent implements Look
             d.setTitle("Period invalid");
             DialogDisplayer.getDefault().notify(d);
             return;
-        } else {
-            // Get the 'from' and 'to' dates
-            LocalDate from = new LocalDate(jXDatePickerFrom.getDate());
-            LocalDate to = new LocalDate(jXDatePickerTo.getDate());
-
-            // Check that 'from' is before 'to'
-            if (from.compareTo(to) > 0) {
-                NotifyDescriptor d = new NotifyDescriptor.Message(
-                        "The entered period is not valid.\n" +
-                        "'From' should be before 'To'.",
-                        NotifyDescriptor.WARNING_MESSAGE);
-                d.setTitle("Period invalid");
-                DialogDisplayer.getDefault().notify(d);
-                return;
-            }
-
-            // Get 'by' (day, week, month, year)
-            assert (jComboBoxBy.getSelectedIndex() != -1);
-            PeriodType periodType = (PeriodType) jComboBoxBy.getSelectedItem();
-            Periods periods = new Periods(from, to, periodType);
-
-            // Check the number of periods
-            if (periods.getPeriods().size() > 10) {
-                NotifyDescriptor d = new NotifyDescriptor.Message(
-                        "Only 10 periods can be displayed: please enter new dates",
-                        NotifyDescriptor.WARNING_MESSAGE);
-                d.setTitle("Period invalid");
-                DialogDisplayer.getDefault().notify(d);
-                return;
-            }
-
-            // Get selected currency
-            Object selectedCurrencyObject = jComboBoxCurrency.getSelectedItem();
-            selectedCurrency = (Currency) selectedCurrencyObject;
-
-            // Get selected accounts
-            int[] selectedAccountsIndices = jListAccounts.getSelectedIndices();
-            for (int i = 0; i < selectedAccountsIndices.length; i++) {
-                Object selectedAccountObject = jListAccounts.getModel().getElementAt(selectedAccountsIndices[i]);
-                selectedAccounts.add((Account) selectedAccountObject);
-            }
-
-            // Get selected categories
-            TreePath[] paths = jTreeCategories.getSelectionPaths();
-            if (paths != null) { // category selected
-                for (TreePath path : paths) {
-                    DefaultMutableTreeNode node = (DefaultMutableTreeNode) path.getLastPathComponent();
-                    Object selectedCategoryObject = node.getUserObject();
-                    Category category = (Category) selectedCategoryObject;
-                    selectedCategories.add(category);
-                }
-            }
-
-            // Get selected payees
-            int[] selectedPayeesIndices = jListPayees.getSelectedIndices();
-            for (int i = 0; i < selectedPayeesIndices.length; i++) {
-                Object selectedPayeeObject = jListPayees.getModel().getElementAt(selectedPayeesIndices[i]);
-                selectedPayees.add((Payee) selectedPayeeObject);
-            }
-
-            // Get selected keywords
-            String keywords = jTextFieldKeywords.getText();
-            if (keywords.compareTo("") != 0) {
-                String[] keywordsSplit = keywords.split(" ");
-                for (int i = 0; i < keywordsSplit.length; i++) {
-                    enteredKeywords.add(keywordsSplit[i]);
-                }
-            }
-
-            // Create the search filters (one for each period)
-            for (Period period : periods.getPeriods()) {
-                SearchFilter searchFilter = new SearchFilter();
-
-                searchFilter.setPeriod(period);
-                searchFilter.setCurrency(selectedCurrency);
-                searchFilter.setAccounts(selectedAccounts);
-                searchFilter.setCategories(selectedCategories);
-                searchFilter.setPayees(selectedPayees);
-                searchFilter.setKeywords(enteredKeywords);
-                searchFilter.setIncludeTransferTransactions(true);
-
-                searchFilters.add(searchFilter);
-            }
-
-            // Put the list of SearchFilter in the lookup of the TC
-            content.set(searchFilters, null);
         }
+
+        // Get the 'from' and 'to' dates
+        LocalDate from = new LocalDate(jXDatePickerFrom.getDate());
+        LocalDate to = new LocalDate(jXDatePickerTo.getDate());
+
+        // Check that 'from' is before 'to'
+        if (from.compareTo(to) > 0) {
+            NotifyDescriptor d = new NotifyDescriptor.Message(
+                    "The entered period is not valid.\n" +
+                    "'From' should be before 'To'.",
+                    NotifyDescriptor.WARNING_MESSAGE);
+            d.setTitle("Period invalid");
+            DialogDisplayer.getDefault().notify(d);
+            return;
+        }
+
+        // Get 'by' (day, week, month, year)
+        assert (jComboBoxBy.getSelectedIndex() != -1);
+        PeriodType periodType = (PeriodType) jComboBoxBy.getSelectedItem();
+        assert (periodType != null);
+        Periods periods = new Periods(from, to, periodType);
+
+        // Check the number of periods
+        int maxNumberPeriods = Options.getMaxPeriods();
+        if (periods.getPeriods().size() > maxNumberPeriods) {
+            NotifyDescriptor d = new NotifyDescriptor.Message(
+                    "Only " + maxNumberPeriods + " periods can be displayed: please enter new dates",
+                    NotifyDescriptor.WARNING_MESSAGE);
+            d.setTitle("Period invalid");
+            DialogDisplayer.getDefault().notify(d);
+            return;
+        }
+
+        NbPreferences.forModule(SearchFilterTopComponent.class).putLong(
+                DATE_FROM_KEY,
+                new DateTime(jXDatePickerFrom.getDate()).getMillis());
+        NbPreferences.forModule(SearchFilterTopComponent.class).putLong(
+                DATE_TO_KEY,
+                new DateTime(jXDatePickerTo.getDate()).getMillis());
+        NbPreferences.forModule(SearchFilterTopComponent.class).put(
+                PERIOD_TYPE_KEY,
+                periodType.name());
+
+        // Get selected currency
+        Object selectedCurrencyObject = jComboBoxCurrency.getSelectedItem();
+        selectedCurrency = (Currency) selectedCurrencyObject;
+
+        // Get selected accounts
+        int[] selectedAccountsIndices = jListAccounts.getSelectedIndices();
+        for (int i = 0; i < selectedAccountsIndices.length; i++) {
+            Object selectedAccountObject = jListAccounts.getModel().getElementAt(selectedAccountsIndices[i]);
+            selectedAccounts.add((Account) selectedAccountObject);
+        }
+
+        // Get selected categories
+        TreePath[] paths = jTreeCategories.getSelectionPaths();
+        if (paths != null) { // category selected
+            for (TreePath path : paths) {
+                DefaultMutableTreeNode node = (DefaultMutableTreeNode) path.getLastPathComponent();
+                Object selectedCategoryObject = node.getUserObject();
+                Category category = (Category) selectedCategoryObject;
+                selectedCategories.add(category);
+            }
+        }
+
+        // Get selected payees
+        int[] selectedPayeesIndices = jListPayees.getSelectedIndices();
+        for (int i = 0; i < selectedPayeesIndices.length; i++) {
+            Object selectedPayeeObject = jListPayees.getModel().getElementAt(selectedPayeesIndices[i]);
+            selectedPayees.add((Payee) selectedPayeeObject);
+        }
+
+        // Get selected keywords
+        String keywords = jTextFieldKeywords.getText();
+        if (keywords.compareTo("") != 0) {
+            String[] keywordsSplit = keywords.split(" ");
+            for (int i = 0; i < keywordsSplit.length; i++) {
+                enteredKeywords.add(keywordsSplit[i]);
+            }
+        }
+
+        // Create the search filters (one for each period)
+        for (Period period : periods.getPeriods()) {
+            SearchFilter searchFilter = new SearchFilter();
+
+            searchFilter.setPeriod(period);
+            searchFilter.setCurrency(selectedCurrency);
+            searchFilter.setAccounts(selectedAccounts);
+            searchFilter.setCategories(selectedCategories);
+            searchFilter.setPayees(selectedPayees);
+            searchFilter.setKeywords(enteredKeywords);
+            searchFilter.setIncludeTransferTransactions(true);
+
+            searchFilters.add(searchFilter);
+        }
+
+        // Put the list of SearchFilter in the lookup of the TC
+        content.set(searchFilters, null);
     }
 
     /** This method is called from within the constructor to
@@ -533,11 +556,44 @@ public final class SearchFilterTopComponent extends TopComponent implements Look
             result.allInstances();
         }
 
-        if (jXDatePickerFrom.getDate() != null && jXDatePickerTo.getDate() != null &&
-                jXDatePickerFrom.getDate().compareTo(jXDatePickerTo.getDate()) <= 0)
-            jButtonSearchActionPerformed();
-
         loadComboboxes();
+
+        // Retrieve 'from' date
+        long storedDateFromMillis = NbPreferences.forModule(SearchFilterTopComponent.class).getLong(
+                DATE_FROM_KEY,
+                new DateTime().minusMonths(1).getMillis());
+        jXDatePickerFrom.setDate(new Date(storedDateFromMillis));
+
+        // Retrieve 'to' date
+        long storedDateToMillis = NbPreferences.forModule(SearchFilterTopComponent.class).getLong(
+                DATE_TO_KEY,
+                new DateTime().getMillis());
+        jXDatePickerTo.setDate(new Date(storedDateToMillis));
+
+        // Retrieve 'by'
+        String storedPeriodTypeString = NbPreferences.forModule(SearchFilterTopComponent.class).get(
+                PERIOD_TYPE_KEY,
+                PeriodType.WEEK.name());
+        assert (storedPeriodTypeString != null);
+        PeriodType storedPeriodType = PeriodType.valueOf(storedPeriodTypeString);
+
+        int i = 0;
+        int indexToSelect = 0;
+        boolean periodFound = false;
+        while (i < jComboBoxBy.getItemCount() && !periodFound) {
+            if (jComboBoxBy.getItemAt(i).equals(storedPeriodType)) {
+                indexToSelect = i;
+                periodFound = true;
+            }
+            i++;
+        }
+        jComboBoxBy.setSelectedIndex(indexToSelect);
+
+        assert (jXDatePickerFrom.getDate() != null);
+        assert (jXDatePickerTo.getDate() != null);
+        assert (jXDatePickerFrom.getDate().compareTo(jXDatePickerTo.getDate()) <= 0);
+
+        jButtonSearchActionPerformed();
     }
 
     @Override

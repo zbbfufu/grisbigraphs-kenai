@@ -21,9 +21,10 @@
  */
 package gg.view.overview;
 
-import gg.application.components.FieldsVisibility;
+import gg.searchfilter.FieldsVisibility;
 import gg.db.entities.Account;
 import gg.db.entities.Currency;
+import gg.db.entities.FileImport;
 import gg.db.entities.MoneyContainer;
 import gg.options.Options;
 import gg.utilities.Utilities;
@@ -32,12 +33,14 @@ import java.io.Serializable;
 import java.math.BigDecimal;
 import java.util.HashMap;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
 import java.util.logging.Logger;
 import javax.swing.ListSelectionModel;
 import javax.swing.tree.DefaultMutableTreeNode;
 import javax.swing.tree.DefaultTreeModel;
 import javax.swing.tree.TreePath;
+import org.joda.time.format.DateTimeFormat;
 import org.netbeans.swing.outline.DefaultOutlineModel;
 import org.netbeans.swing.outline.OutlineModel;
 import org.netbeans.swing.outline.RowModel;
@@ -87,8 +90,29 @@ public final class OverviewTopComponent extends TopComponent {
 
         jScrollPaneOverview = new javax.swing.JScrollPane();
         outlineOverview = new org.netbeans.swing.outline.Outline();
+        jLabelGrisbiFileName = new javax.swing.JLabel();
+        jTextFieldGrisbiFileName = new javax.swing.JTextField();
+        jLabelLastModifiedOn = new javax.swing.JLabel();
+        jTextFieldLastModifiedOn = new javax.swing.JTextField();
+        jLabelImportedOn = new javax.swing.JLabel();
+        jTextFieldImportedOn = new javax.swing.JTextField();
 
         jScrollPaneOverview.setViewportView(outlineOverview);
+
+        org.openide.awt.Mnemonics.setLocalizedText(jLabelGrisbiFileName, org.openide.util.NbBundle.getMessage(OverviewTopComponent.class, "OverviewTopComponent.jLabelGrisbiFileName.text")); // NOI18N
+
+        jTextFieldGrisbiFileName.setEditable(false);
+        jTextFieldGrisbiFileName.setText(org.openide.util.NbBundle.getMessage(OverviewTopComponent.class, "OverviewTopComponent.jTextFieldGrisbiFileName.text")); // NOI18N
+
+        org.openide.awt.Mnemonics.setLocalizedText(jLabelLastModifiedOn, org.openide.util.NbBundle.getMessage(OverviewTopComponent.class, "OverviewTopComponent.jLabelLastModifiedOn.text")); // NOI18N
+
+        jTextFieldLastModifiedOn.setEditable(false);
+        jTextFieldLastModifiedOn.setText(org.openide.util.NbBundle.getMessage(OverviewTopComponent.class, "OverviewTopComponent.jTextFieldLastModifiedOn.text")); // NOI18N
+
+        org.openide.awt.Mnemonics.setLocalizedText(jLabelImportedOn, org.openide.util.NbBundle.getMessage(OverviewTopComponent.class, "OverviewTopComponent.jLabelImportedOn.text")); // NOI18N
+
+        jTextFieldImportedOn.setEditable(false);
+        jTextFieldImportedOn.setText(org.openide.util.NbBundle.getMessage(OverviewTopComponent.class, "OverviewTopComponent.jTextFieldImportedOn.text")); // NOI18N
 
         javax.swing.GroupLayout layout = new javax.swing.GroupLayout(this);
         this.setLayout(layout);
@@ -96,19 +120,51 @@ public final class OverviewTopComponent extends TopComponent {
             layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
             .addGroup(layout.createSequentialGroup()
                 .addContainerGap()
-                .addComponent(jScrollPaneOverview, javax.swing.GroupLayout.DEFAULT_SIZE, 380, Short.MAX_VALUE)
+                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                    .addComponent(jScrollPaneOverview, javax.swing.GroupLayout.DEFAULT_SIZE, 380, Short.MAX_VALUE)
+                    .addGroup(layout.createSequentialGroup()
+                        .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                            .addComponent(jLabelLastModifiedOn)
+                            .addComponent(jLabelGrisbiFileName)
+                            .addComponent(jLabelImportedOn))
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                        .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING, false)
+                            .addComponent(jTextFieldLastModifiedOn)
+                            .addComponent(jTextFieldImportedOn)
+                            .addComponent(jTextFieldGrisbiFileName, javax.swing.GroupLayout.PREFERRED_SIZE, 209, javax.swing.GroupLayout.PREFERRED_SIZE))))
                 .addContainerGap())
         );
+
+        layout.linkSize(javax.swing.SwingConstants.HORIZONTAL, new java.awt.Component[] {jTextFieldGrisbiFileName, jTextFieldImportedOn, jTextFieldLastModifiedOn});
+
         layout.setVerticalGroup(
             layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
             .addGroup(layout.createSequentialGroup()
                 .addContainerGap()
-                .addComponent(jScrollPaneOverview, javax.swing.GroupLayout.DEFAULT_SIZE, 252, Short.MAX_VALUE)
+                .addComponent(jScrollPaneOverview, javax.swing.GroupLayout.DEFAULT_SIZE, 311, Short.MAX_VALUE)
+                .addGap(18, 18, 18)
+                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
+                    .addComponent(jLabelGrisbiFileName)
+                    .addComponent(jTextFieldGrisbiFileName, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
+                    .addComponent(jLabelLastModifiedOn)
+                    .addComponent(jTextFieldLastModifiedOn, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
+                    .addComponent(jLabelImportedOn)
+                    .addComponent(jTextFieldImportedOn, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
                 .addContainerGap())
         );
     }// </editor-fold>//GEN-END:initComponents
     // Variables declaration - do not modify//GEN-BEGIN:variables
+    private javax.swing.JLabel jLabelGrisbiFileName;
+    private javax.swing.JLabel jLabelImportedOn;
+    private javax.swing.JLabel jLabelLastModifiedOn;
     private javax.swing.JScrollPane jScrollPaneOverview;
+    private javax.swing.JTextField jTextFieldGrisbiFileName;
+    private javax.swing.JTextField jTextFieldImportedOn;
+    private javax.swing.JTextField jTextFieldLastModifiedOn;
     private org.netbeans.swing.outline.Outline outlineOverview;
     // End of variables declaration//GEN-END:variables
 
@@ -176,6 +232,20 @@ public final class OverviewTopComponent extends TopComponent {
 
     public void displayData() {
         Utilities.changeCursorWaitStatus(true);
+
+        FileImport currentFileImport = Wallet.getInstance().getCurrentFileImport();
+        if (currentFileImport != null) {
+            jTextFieldGrisbiFileName.setText(currentFileImport.getFileName());
+            jTextFieldGrisbiFileName.setToolTipText(currentFileImport.getFilePath());
+            
+            jTextFieldImportedOn.setText(currentFileImport.getImportedOn().toString("EEEE d MMMM yyyy - HH:mm"));
+            jTextFieldLastModifiedOn.setText(currentFileImport.getLastModifiedOn().toString("EEEE d MMMM yyyy - HH:mm"));
+        } else {
+            jTextFieldGrisbiFileName.setText("");
+            jTextFieldGrisbiFileName.setToolTipText("");
+            jTextFieldImportedOn.setText("");
+            jTextFieldLastModifiedOn.setText("");
+        }
 
         DefaultMutableTreeNode rootNode = new DefaultMutableTreeNode(); // Root (Not displayed)
         Map<MoneyContainer, BigDecimal> balances = new HashMap<MoneyContainer, BigDecimal>(); // Map of currency/account and corresponding balance

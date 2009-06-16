@@ -4,7 +4,7 @@
  */
 package gg.view.accountsbalances;
 
-import gg.application.components.FieldsVisibility;
+import gg.searchfilter.FieldsVisibility;
 import gg.db.datamodel.Datamodel;
 import gg.db.datamodel.SearchFilter;
 import gg.db.entities.Account;

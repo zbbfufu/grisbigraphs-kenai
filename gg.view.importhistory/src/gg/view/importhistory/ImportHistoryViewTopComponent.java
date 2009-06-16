@@ -21,7 +21,7 @@
  */
 package gg.view.importhistory;
 
-import gg.application.components.FieldsVisibility;
+import gg.searchfilter.FieldsVisibility;
 import gg.db.entities.FileImport;
 import gg.wallet.Wallet;
 import java.io.Serializable;
@@ -63,7 +63,7 @@ final class ImportHistoryViewTopComponent extends TopComponent {
         eTableImportHistory.setModel(new DefaultTableModel(
                 new Object[][]{},
                 new String[]{
-                    "Imported on", "File path", "Duration (s)", "Success"
+                    "Imported on", "File", "Duration (s)", "Success"
                 }) {
 
             Class[] types = new Class[]{
@@ -128,14 +128,6 @@ final class ImportHistoryViewTopComponent extends TopComponent {
         jScrollPaneImportHistory = new javax.swing.JScrollPane();
         eTableImportHistory = new org.netbeans.swing.etable.ETable();
 
-        eTableImportHistory.setModel(new javax.swing.table.DefaultTableModel(
-            new Object [][] {
-
-            },
-            new String [] {
-
-            }
-        ));
         jScrollPaneImportHistory.setViewportView(eTableImportHistory);
 
         javax.swing.GroupLayout layout = new javax.swing.GroupLayout(this);

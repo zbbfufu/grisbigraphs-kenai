@@ -39,6 +39,10 @@ public class FileImport {
     private DateTime importedOn;
     /** File path of the imported Grisbi file */
     private String filePath;
+    /** File name of the imported Grisbi file */
+    private String fileName;
+    /** Date of last modification of the imported Grisbi file */
+    private DateTime lastModifiedOn;
     /** Import duration */
     private Long importDuration;
     /** Success */
@@ -55,9 +59,11 @@ public class FileImport {
      * @param importDuration Import duration
      * @param success Success flag (true if the Grisbi file is correctly imported, false otherwise)
      */
-    public FileImport(DateTime importedOn, String filePath, Long importDuration, Boolean success) {
+    public FileImport(DateTime importedOn, String filePath, String fileName, DateTime lastModifiedOn, Long importDuration, Boolean success) {
         setImportedOn(importedOn);
         setFilePath(filePath);
+        setFileName(fileName);
+        setLastModifiedOn(lastModifiedOn);
         setImportDuration(importDuration);
         setSuccess(success);
     }
@@ -165,5 +171,33 @@ public class FileImport {
     public String toString() {
         assert (importedOn != null);
         return importedOn.toString();
+    }
+
+    /**
+     * @return the fileName
+     */
+    public String getFileName() {
+        return fileName;
+    }
+
+    /**
+     * @param fileName the fileName to set
+     */
+    public void setFileName(String fileName) {
+        this.fileName = fileName;
+    }
+
+    /**
+     * @return the lastModifiedOn
+     */
+    public DateTime getLastModifiedOn() {
+        return lastModifiedOn;
+    }
+
+    /**
+     * @param lastModifiedOn the lastModifiedOn to set
+     */
+    public void setLastModifiedOn(DateTime lastModifiedOn) {
+        this.lastModifiedOn = lastModifiedOn;
     }
 }

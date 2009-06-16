@@ -32,24 +32,30 @@ public class Installer extends ModuleInstall {
 
     @Override
     public void restored() {
-        // Set the version of the program
+        // Set the version of the program when the application is started
         System.setProperty("netbeans.buildnumber", Constants.VERSION);
     }
 
     @Override
     public boolean closing() {
-        // Activate the first editor tc so that the Searchfilter tc is not active when the app is closed (otherwise its listener is not registered correctly)
+        // When the application is closed: activate the first editor TopComponent
+        // so that the SearchFilter TopComponent is not active when the application is closed
+        // (otherwise its listener is not registered correctly when the application is re-opened)
+
+        // Get the list of opened TopComponents (not necessarily 'editor' TopComponents)
+        TopComponent[] openedTopComponents = TopComponent.getRegistry().getOpened().toArray(new TopComponent[0]);
+        // 'openedTopComponents' contains the opened TopComponents in a reverse order
+        int i = openedTopComponents.length - 1;
         boolean tcFound = false;
-        TopComponent[] tc = TopComponent.getRegistry().getOpened().toArray(new TopComponent[0]);
-        int i = tc.length - 1;
         while (i >= 0 && !tcFound) {
-            if (WindowManager.getDefault().isOpenedEditorTopComponent(tc[i])) {
-                tc[i].requestActive();
+            if (WindowManager.getDefault().isOpenedEditorTopComponent(openedTopComponents[i])) { // TopComponent is an 'editor' TopComponent
+                openedTopComponents[i].requestActive(); // Activate the first 'editor' TopComponent
                 tcFound = true;
             }
             i--;
         }
 
+        // Close application
         return super.closing();
     }
 }

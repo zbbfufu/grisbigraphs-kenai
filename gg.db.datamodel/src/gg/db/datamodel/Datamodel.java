@@ -396,8 +396,7 @@ public class Datamodel {
 
     private static Query getQuery(SearchFilter searchFilter, boolean searchFromStartDate,
             boolean searchUntilEndDate, String select, String where,
-            String groupBy,
-            boolean isIncludeSubCategories) {
+            String groupBy) {
         Category transferCategory = getCategory(Category.TRANSFER.getGrisbiCategoryId(), Category.TRANSFER.getGrisbiSubCategoryId());
         String queryString = "";
         String fromClause;
@@ -509,7 +508,7 @@ public class Datamodel {
      * @return Income
      */
     public static BigDecimal getIncome(SearchFilter searchFilter) {
-        Query query = getQuery(searchFilter, true, true, "select sum(t.amount)", "t.amount>0", "", false);
+        Query query = getQuery(searchFilter, true, true, "select sum(t.amount)", "t.amount>0", "");
         //Session s = Installer.currentSession();
         //Transaction t = s.beginTransaction();
 
@@ -529,7 +528,7 @@ public class Datamodel {
      * @return Expenses
      */
     public static BigDecimal getExpenses(SearchFilter searchFilter) {
-        Query query = getQuery(searchFilter, true, true, "select sum(t.amount)", "t.amount<0", "", false);
+        Query query = getQuery(searchFilter, true, true, "select sum(t.amount)", "t.amount<0", "");
         //Session s = Installer.currentSession();
         //Transaction t = s.beginTransaction();
 
@@ -549,7 +548,7 @@ public class Datamodel {
      * @return Balance
      */
     public static BigDecimal getBalance(SearchFilter searchFilter) {
-        Query query = getQuery(searchFilter, true, true, "select sum(t.amount)", null, "", false);
+        Query query = getQuery(searchFilter, true, true, "select sum(t.amount)", null, "");
         Session s = Installer.currentSession();
         Transaction t = s.beginTransaction();
 
@@ -569,7 +568,7 @@ public class Datamodel {
      * @return Balance
      */
     public static BigDecimal getBalanceWithSubCategories(SearchFilter searchFilter) {
-        Query query = getQuery(searchFilter, true, true, "select sum(t.amount)", null, "", true);
+        Query query = getQuery(searchFilter, true, true, "select sum(t.amount)", null, "");
         Session s = Installer.currentSession();
         Transaction t = s.beginTransaction();
 
@@ -584,7 +583,7 @@ public class Datamodel {
     }
 
     public static List getCategoriesBalances(SearchFilter searchFilter) {
-        Query query = getQuery(searchFilter, true, true, "select t.category.id, sum(t.amount)", null, " group by t.category.id", false);
+        Query query = getQuery(searchFilter, true, true, "select t.category.id, sum(t.amount)", null, " group by t.category.id");
         Session s = Installer.currentSession();
         Transaction t = s.beginTransaction();
 
@@ -596,7 +595,7 @@ public class Datamodel {
     }
 
     public static List getAccountsBalancesUntil(SearchFilter searchFilter) {
-        Query query = getQuery(searchFilter, false, true, "select t.account.id, sum(t.amount)", null, " group by t.account.id", false);
+        Query query = getQuery(searchFilter, false, true, "select t.account.id, sum(t.amount)", null, " group by t.account.id");
         Session s = Installer.currentSession();
         Transaction t = s.beginTransaction();
 
@@ -613,7 +612,7 @@ public class Datamodel {
      * @return Balance
      */
     public static BigDecimal getBalanceUntil(SearchFilter searchFilter) {
-        Query query = getQuery(searchFilter, false, true, "select sum(t.amount)", null, "", false);
+        Query query = getQuery(searchFilter, false, true, "select sum(t.amount)", null, "");
         Session s = Installer.currentSession();
         Transaction t = s.beginTransaction();
 
@@ -634,7 +633,7 @@ public class Datamodel {
      */
     @SuppressWarnings("unchecked")
     public static List<gg.db.entities.Transaction> getTransactions(SearchFilter searchFilter) {
-        Query query = getQuery(searchFilter, true, true, null, null, "", false);
+        Query query = getQuery(searchFilter, true, true, null, null, "");
         Session s = Installer.currentSession();
         Transaction t = s.beginTransaction();
 

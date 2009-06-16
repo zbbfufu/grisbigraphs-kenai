@@ -94,6 +94,15 @@ public class Wallet {
         return fileImports;
     }
 
+    public FileImport getCurrentFileImport() {
+        FileImport currentFileImport = null;
+        if (fileImports != null && !fileImports.isEmpty()) {
+            currentFileImport = fileImports.get(0);
+        }
+
+        return currentFileImport;
+    }
+
     /**
      * @return the currenciesWithId
      */
