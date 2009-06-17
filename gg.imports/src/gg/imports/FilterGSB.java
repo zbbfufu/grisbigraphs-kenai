@@ -26,23 +26,23 @@ import java.io.File;
 import javax.swing.filechooser.FileFilter;
 
 /**
- * Custom XML filter: display only GSB files
+ * Custom file filter: display only GSB files
  * @author Francois Duchemin
  */
 public class FilterGSB extends FileFilter {
     /**
      * Displays a file or not
-     * @param m_file File to test
+     * @param file File to test
      * @return true if the file extension is accepted
      */
     @Override
-    public boolean accept(File m_file) {
-        return m_file.isDirectory() || m_file.getName().toLowerCase().endsWith(".gsb");
+    public boolean accept(File file) {
+        return file.isDirectory() || file.getName().toLowerCase().endsWith(".gsb");
     }
 
     /**
-     * Get the <B>description</B> of the XML files
-     * @return <B>Description</B> of the XML files
+     * Get the <B>description</B> of the files
+     * @return <B>Description</B> of the files
      */
     @Override
     public String getDescription() {

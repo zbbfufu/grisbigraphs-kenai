@@ -102,7 +102,7 @@ public class ImporterEngine implements Runnable {
 
     /**
      * Is the import task cancelled by the user?
-     * @return true if the import task is cancelled, false otherwise
+     * @return true if the import task is cancelled
      */
     public boolean isImportCancelled() {
         return importCancelled;
@@ -122,16 +122,12 @@ public class ImporterEngine implements Runnable {
      * @throws DocumentException If there is an error parsing the Grisbi file
      */
     private Document getGrisbiFileDocument() throws DocumentException {
-        Document grisbiFileDocument; // Document in which the Grisbi file is imported
-        long startParsingTime; // Time when the parsing starts
-        long endParsingTime; // Time when the parsing ends
-
-        // Try to parse the Grisbi file and import it into a DOM document (which support XPath)
-        startParsingTime = System.currentTimeMillis();
+        long startParsingTime = System.currentTimeMillis();
         SAXReader reader = new SAXReader();
 
-        grisbiFileDocument = reader.read(grisbiFile); // Throws a DocumentException if there is an error parsing the Grisbi file
-        endParsingTime = System.currentTimeMillis();
+        // Try to parse the Grisbi file and import it into a DOM document (which support XPath)
+        Document grisbiFileDocument = reader.read(grisbiFile); // Throws a DocumentException if there is an error parsing the Grisbi file
+        long endParsingTime = System.currentTimeMillis();
 
         log.info("The Grisbi file '" + grisbiFile.getAbsolutePath() + "' has been successfully imported into a document in " + (endParsingTime - startParsingTime) + " ms");
 
@@ -144,16 +140,12 @@ public class ImporterEngine implements Runnable {
      * @return Version of the Grisbi file (<CODE>FileVersion.UNSUPPORTED_VERSION</CODE> if the file is not supported)
      */
     private static FileVersion getFileVersion(Document grisbiFileDocument) {
-        Node fileVersionNode; // Node containing the file version
-        String fileVersion; // File version
-
-        // Make sure that the Grisbi file has already been imported into a document
         assert (grisbiFileDocument != null);
 
         // Get the version of the grisbi file
-        fileVersionNode = grisbiFileDocument.selectSingleNode("/Grisbi/Generalites/Version_fichier");
+        Node fileVersionNode = grisbiFileDocument.selectSingleNode("/Grisbi/Generalites/Version_fichier");
         if (fileVersionNode != null) {
-            fileVersion = fileVersionNode.getText();
+            String fileVersion = fileVersionNode.getText();
             if (fileVersion.compareToIgnoreCase("0.5.0") == 0) {
                 return FileVersion.VERSION_0_5_0;
             }
@@ -171,20 +163,16 @@ public class ImporterEngine implements Runnable {
      * @throws DateFormatException If a date is wrongly formatted
      */
     public long importFile() throws DocumentException, ParsingException, NumberFormatException, DateFormatException {
-        FileVersion fileVersion;     // Grisbi version
-        Document grisbiFileDocument; // Document in which the Grisbi file is imported
-        Importer grisbiFileImporter; // Importer object
-        long importDuration;         // Time to import the Grisbi file
-
         setImportCancelled(false);
 
         // Import the Grisbi file into a Document (that supports XPath)
-        grisbiFileDocument = getGrisbiFileDocument();
+        Document grisbiFileDocument = getGrisbiFileDocument();
 
         // Get the version of the Grisbi file
-        fileVersion = getFileVersion(grisbiFileDocument);
+        FileVersion fileVersion = getFileVersion(grisbiFileDocument);
 
         // Depending on the Grisbi file version, use the correct importer class to import the file into the embedded database
+        Importer grisbiFileImporter;
         switch (fileVersion) {
             case VERSION_0_5_0:
                 log.finest("GrisbiFile050 importer used to import '" + grisbiFile.getAbsolutePath() + "'");
@@ -200,7 +188,7 @@ public class ImporterEngine implements Runnable {
                 log.severe("This version of Grisbi file is not supported");
                 throw new AssertionError("This version of Grisbi file is not supported");
         }
-        importDuration = grisbiFileImporter.importFile();
+        long importDuration = grisbiFileImporter.importFile();
         setImportCancelled(grisbiFileImporter.isImportCancelled());
 
         return importDuration;
@@ -208,14 +196,11 @@ public class ImporterEngine implements Runnable {
 
     @Override
     public void run() {
-        long importDuration; // Time to import the Grisbi file
-        FileImport fileImport; // Entity to save in the database
-        boolean success = false; // Is the Grisbi file is correcty imported into the database?
-
         try {
             // Import the Grisbi file into the embedded database using the correct importer object
-            importDuration = importFile();
-
+            long importDuration = importFile();
+            boolean success = false; // Is the Grisbi file is correcty imported into the database?
+            
             if (isImportCancelled()) { // Import cancelled manually by the user
                 Datamodel.emptyDatabase();
                 StatusDisplayer.getDefault().setStatusText("Import cancelled");
@@ -229,13 +214,13 @@ public class ImporterEngine implements Runnable {
             }
 
             // Log the import in the database
-            fileImport = new FileImport(new DateTime(), grisbiFile.getAbsolutePath(), grisbiFile.getName(), new DateTime(grisbiFile.lastModified()), importDuration, success);
+            FileImport fileImport = new FileImport(new DateTime(), grisbiFile.getAbsolutePath(), grisbiFile.getName(), new DateTime(grisbiFile.lastModified()), importDuration, success);
             Datamodel.saveFileImport(fileImport);
 
             // Update content of the wallet
             Wallet.getInstance().updateContent();
 
-            // Display overview
+            // Display overview window
             Runnable worker = new Runnable() {
 
                 @Override
@@ -358,11 +343,11 @@ public class ImporterEngine implements Runnable {
      * @return Total balance (0 if the list of transactions is empty)
      */
     public static BigDecimal getBalance(List<Transaction> transactions) {
-        BigDecimal totalBalance = new BigDecimal(0); // Sum of the balances of each transaction
-
         if (transactions == null) {
             throw new IllegalArgumentException("The parameter 'transactions' is null");
         }
+
+        BigDecimal totalBalance = new BigDecimal(0); // Sum of the balances of each transaction
 
         // Compute the total balance of the list of transactions
         for (Transaction transaction : transactions) {

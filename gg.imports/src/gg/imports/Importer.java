@@ -45,7 +45,7 @@ public interface Importer {
 
     /**
      * Is the import task cancelled by the user?
-     * @return true if the import task is cancelled, false otherwise
+     * @return true if the import task is cancelled
      */
     public boolean isImportCancelled();
 }

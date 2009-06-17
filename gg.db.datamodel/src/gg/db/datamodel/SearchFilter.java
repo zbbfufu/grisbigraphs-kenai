@@ -281,7 +281,6 @@ public class SearchFilter implements Comparable<SearchFilter> {
         return (keywords.size() > 0);
     }
 
-
     @Override
     public int compareTo(SearchFilter searchFilter) {
         if (searchFilter == null) {

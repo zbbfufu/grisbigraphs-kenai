@@ -33,11 +33,12 @@ import org.openide.util.NbPreferences;
 import org.openide.windows.WindowManager;
 
 /**
- * Import Grisbi File action
+ * Import Grisbi File action<BR/>
+ * Permits to import the content of a Grisbi file into the embedded database
  */
 public final class ImportGrisbiFileAction implements ActionListener {
 
-    /** Key used in the properties file to "remember" the last selected folder */
+    /** Key used to save the last selected folder in the file choosers */
     public static final String CURRENT_FOLDER_PATH_KEY = "CurrentFolder";
     /** Logger */
     private Logger log = Logger.getLogger(ImportGrisbiFileAction.class.getName());
@@ -62,7 +63,7 @@ public final class ImportGrisbiFileAction implements ActionListener {
                 Thread t = new Thread(importerEngine);
                 t.start();
 
-                // Remember the folder path
+                // Save the folder path so that the folder will be selected by default next time a file chooser will be opened
                 File folder = fileChooser.getSelectedFile().getParentFile();
                 assert (folder.isDirectory());
                 NbPreferences.forModule(ImportGrisbiFileAction.class).put(CURRENT_FOLDER_PATH_KEY, folder.getAbsolutePath());

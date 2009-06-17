@@ -19,7 +19,6 @@
  * along with GrisbiGraphs; if not, write to the Free Software
  * Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
  */
-
 package gg.db.datamodel;
 
 import java.util.ArrayList;
@@ -42,15 +41,12 @@ public class Periods {
 
     /** Start date of the period */
     private LocalDate start;
-
     /** End date of the period */
     private LocalDate end;
-
     /** Type of the period (DAY, WEEK...) */
     private PeriodType periodType;
-
     /** List of Period */
-    private List <Period> periods;
+    private List<Period> periods;
 
     /**
      * Creates a new instance of Periods<BR/>
@@ -60,20 +56,17 @@ public class Periods {
      * <LI> Second month: <B>June 2006</B> (from 06/01/2006 to 06/30/2006)</LI>
      * <LI> Third month: <B>July 2006</B> (from 07/01/2006 to 07/31/2006)</LI>
      * </UL>
-     * @param start Start of the period
-     * @param end End of the period
+     * @param start Start date of the period
+     * @param end End date of the period
      * @param periodType Type of the period (day, week, month, year, free)
      */
     public Periods(LocalDate start, LocalDate end, PeriodType periodType) {
-        List<Period> newPeriods; // List of Period
-
-        // Try to create the new Periods
         setStart(start);
         setEnd(end);
         setPeriodType(periodType);
 
-        // Set the list of Period
-        newPeriods = getListOfPeriod(start, end, periodType);
+        // Create the list of Period objects
+        List<Period> newPeriods = getListOfPeriod(start, end, periodType);
         setPeriods(newPeriods);
     }
 
@@ -92,30 +85,27 @@ public class Periods {
      * @return The list of computed Period
      */
     private List<Period> getListOfPeriod(LocalDate start, LocalDate end, PeriodType periodType) {
-        List<Period> listOfPeriod = new ArrayList <Period>(); // List of created Period (returned object)
-        LocalDate startPeriods; // Start date of the period (used to create the list of Period objects)
-        LocalDate endPeriods; // End date of the period (used to create the list of Period objects)
-        Period newPeriod; // Period to add in the list of periods (listOfPeriod)
-        String nullParameter = ""; // Name of the parameter, which is null (if there is one)
-
         if (start == null || end == null || periodType == null) {
             throw new IllegalArgumentException("One of the following parameters is null: 'start', 'end', 'periodType'");
         }
 
         // Adjust the start date to the start of the period's type (first day of the week, first day of the month, first day of the year depending on the type of the period to create)
-        startPeriods = getAdjustedStartDate(start, periodType);
+        LocalDate startPeriods = getAdjustedStartDate(start, periodType);
 
         // Adjust the end date to the end of the period's type (last day of the week, last day of the month, last day of the year depending on the type of the period to create)
-        endPeriods = getAdjustedEndDate(end, periodType);
+        LocalDate endPeriods = getAdjustedEndDate(end, periodType);
 
         assert (startPeriods != null && endPeriods != null);
 
+        // Create the list of Period objects
+        List<Period> listOfPeriod = new ArrayList<Period>(); // List of created Period (returned object)
+        Period newPeriod;
         if (periodType == PeriodType.FREE) {
-            // Create one Period object and add it to the list of Period
+            // Create the Period object and add it to the list of Period
             newPeriod = new Period(start, end, PeriodType.FREE);
-            listOfPeriod.add(newPeriod); // Add the Free Period to the list of Period
+            listOfPeriod.add(newPeriod);
         } else {
-            // Create all the Period objects and add them to the list of Period
+            // Create all Period objects and add them to the list of Period
             while (startPeriods.compareTo(endPeriods) <= 0) {
                 switch (periodType) {
                     case DAY:
@@ -143,22 +133,24 @@ public class Periods {
                     default: // should never happen
                         throw new AssertionError("Unknown PeriodType");
                 }
-
                 assert (newPeriod != null);
 
-                // Add the created period in the list of Period
+                // Add the created period to the list of Period
                 listOfPeriod.add(newPeriod);
             }
         }
 
-        assert (listOfPeriod != null);
-
-        // Return the list of created Period objects
         return listOfPeriod;
     }
 
     /**
-     * Gets the adjusted date: the date is adjusted to the first day of the period<BR/><BR/>
+     * Gets the adjusted start date: the date is adjusted to the first day of the period<BR/>
+     * Depending on periodType, the date will be:
+     * <UL>
+     * <LI>First day of the week (monday)</LI>
+     * <LI>First day of the month</LI>
+     * <LI>First day of the year</LI>>
+     * </UL>
      * Example:
      * <UL>
      * <LI>getAdjustedStartDate(new LocalDate(2006, 5, 20), PeriodType.DAY) should return: <B>05/20/2006</B></LI>
@@ -172,19 +164,19 @@ public class Periods {
      * @return Date adjusted to the start of the period
      */
     public static LocalDate getAdjustedStartDate(LocalDate date, PeriodType periodType) {
-        LocalDate adjustedStartDate; // Date adjusted to the start of the period
-
-        // Make sure that the parameters are not null
         if (date == null || periodType == null) {
             throw new IllegalArgumentException("One of the following parameters is null: 'date', 'periodType'");
         }
 
+        LocalDate adjustedStartDate = null;
         switch (periodType) {
             case DAY: // No adjustement to do
-            case FREE:
                 adjustedStartDate = date;
                 break;
-            case WEEK: // Adjust the date to the first day of the week (depending on what is defined as "Week starting on" in Configuration)
+            case FREE: // No adjustement to do
+                adjustedStartDate = date;
+                break;
+            case WEEK: // Adjust the date to the first day of the week (Monday)
                 adjustedStartDate = date.toDateMidnight().withField(DateTimeFieldType.dayOfWeek(), DateTimeConstants.MONDAY).toLocalDate();
                 break;
             case MONTH: // Adjust the date to the first day of the month (<MONTH>/01/<YEAR>)
@@ -202,7 +194,13 @@ public class Periods {
     }
 
     /**
-     * Gets the adjusted date: the date is adjusted to the last day of the period<BR/><BR/>
+     * Gets the adjusted end date: the date is adjusted to the last day of the period<BR/>
+     * Depending on periodType, the date will be:
+     * <UL>
+     * <LI>Last day of the week (sunday)</LI>
+     * <LI>Last day of the month</LI>
+     * <LI>Last day of the year</LI>>
+     * </UL>
      * Example:
      * <UL>
      * <LI>getAdjustedEndDate(new LocalDate(2006, 5, 20), PeriodType.DAY) should return: <B>05/20/2006</B></LI>
@@ -216,18 +214,19 @@ public class Periods {
      * @return Date adjusted to the end of the period
      */
     public static LocalDate getAdjustedEndDate(LocalDate date, PeriodType periodType) {
-        LocalDate adjustedEndDate; // Date adjusted to the end of the period
-
         if (date == null || periodType == null) {
             throw new IllegalArgumentException("One of the following parameters is null: 'date', 'periodType'");
         }
 
+        LocalDate adjustedEndDate = null;
         switch (periodType) {
             case DAY: // No adjustement to do
-            case FREE:
                 adjustedEndDate = date;
                 break;
-            case WEEK: // Adjust the date to the last day of the week (depending on what is defined in Configuration: Week starting on + 6)
+            case FREE: // No adjustement to do
+                adjustedEndDate = date;
+                break;
+            case WEEK: // Adjust the date to the last day of the week (sunday)
                 adjustedEndDate = date.toDateMidnight().withField(DateTimeFieldType.dayOfWeek(), DateTimeConstants.MONDAY + 6).toLocalDate();
                 break;
             case MONTH: // Adjust the date to the last day of the month
@@ -259,7 +258,7 @@ public class Periods {
      */
     private void setStart(LocalDate start) {
         if (start == null) {
-            throw new IllegalArgumentException("The parameter 'aStart' is null");
+            throw new IllegalArgumentException("The parameter 'start' is null");
         }
 
         // Make sure that the Periods is valid
@@ -311,7 +310,7 @@ public class Periods {
      */
     private void setPeriodType(PeriodType periodType) {
         if (periodType == null) {
-            throw new IllegalArgumentException("The parameter 'aPeriodType' is null");
+            throw new IllegalArgumentException("The parameter 'periodType' is null");
         }
 
         this.periodType = periodType;
@@ -332,7 +331,7 @@ public class Periods {
      */
     private void setPeriods(List<Period> periods) {
         if (periods == null) {
-            throw new IllegalArgumentException("The parameter 'aPeriods' is null");
+            throw new IllegalArgumentException("The parameter 'periods' is null");
         }
 
         // Make sure that the list of Period is not empty
@@ -343,7 +342,7 @@ public class Periods {
         // Make sure that each period is not null
         for (Period p : periods) {
             if (p == null) {
-                throw new IllegalArgumentException("A Period of 'periods' is null");
+                throw new IllegalArgumentException("One of the period is null");
             }
         }
 
@@ -357,30 +356,5 @@ public class Periods {
         }
 
         this.periods = periods;
-    }
-
-    /**
-     * Does the current Periods contain a period?<BR/>
-     * The method <CODE>CompareTo</CODE> is used
-     * @param period Period to search
-     * @return true if the current periods contains "period", false otherwise<BR/>
-     * If the current periods contains no period, then false is returned
-     */
-    public boolean contains(Period period) {
-        if (period == null) {
-            throw new IllegalArgumentException("The parameter 'aPeriod' is null");
-        }
-
-        // Go through the list of Period and look for 'period'
-        assert (periods != null); // The list of periods is never null
-        for (Period p : periods) {
-            assert (p != null);
-            if (p.compareTo(period) == 0) {
-                return true;
-            }
-        }
-
-        // The current Periods object does not contain the Period
-        return false;
     }
 }

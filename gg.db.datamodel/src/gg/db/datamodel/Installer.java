@@ -28,22 +28,26 @@ import org.hibernate.SessionFactory;
 import org.hibernate.cfg.Configuration;
 import org.openide.modules.ModuleInstall;
 
-/** Initialize the Database connection */
+/**
+ * Initializes the DB connection when the module is installed
+ * @author Francois Duchemin
+ */
 public class Installer extends ModuleInstall {
 
     /** Session factory */
     private static final SessionFactory sessionFactory;
 
-    /** Set the database folder and initiate the connection with the DB */
+    /** Set the database folder and initializes the connection with the DB */
     static {
         try {
             // Set the DB system directory
-            // The DB is saved in the home directory as .grisbigraphs/grisbigraphs-db
             System.setProperty("derby.system.home", Constants.DATABASE_FOLDER_PATH);
 
             // Create the DB directory if it does not already exist
             File fileSystemDir = new File(Constants.DATABASE_FOLDER_PATH);
-            fileSystemDir.mkdir(); // Does nothing (returns false) if the directory already exists
+            if (!fileSystemDir.exists()) {
+                fileSystemDir.mkdir();
+            }
 
             // Create the SessionFactory from hibernate.cfg.xml (create the DB is it does not already exist)
             sessionFactory = new Configuration().configure().buildSessionFactory();

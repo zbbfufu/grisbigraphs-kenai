@@ -228,7 +228,7 @@ public class Currency implements MoneyContainer {
     /**
      * Compare currencies
      * @param currency Currency to compare
-     * @return 0 if the two currencies IDs are identic
+     * @return 0 if the two currencies' IDs are identic
      */
     public int compareTo(Currency currency) {
         if (currency == null) {

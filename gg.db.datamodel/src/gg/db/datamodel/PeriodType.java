@@ -19,27 +19,23 @@
  * along with GrisbiGraphs; if not, write to the Free Software
  * Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
  */
-
 package gg.db.datamodel;
 
 /**
  * Type of period (Day, Week, Month, Year, Free)<BR/>
- * The financial reports are grouped by PeriodType.
+ * The reports are grouped by PeriodType
  * @author Francois Duchemin
  */
 public enum PeriodType {
+
     /** Day */
     DAY,
-
     /** Week */
     WEEK,
-
     /** Month */
     MONTH,
-
     /** Year */
     YEAR,
-
     /** Free */
     FREE;
 

@@ -38,156 +38,152 @@ import org.hibernate.Session;
 import org.hibernate.Transaction;
 
 /**
- * <b>Datamodel</b>
- * <ul>
- * <li>Enable GrisbiGraphs to communicate with the embedded Derby database</li>
- * </ul>
+ * Enable GrisbiGraphs to communicate with the embedded Derby database
  * @author Francois Duchemin
  */
 public class Datamodel {
 
     /**
      * Gets the file imports log
-     * @return List of Grisbi file imports
+     * @return List of Grisbi files imported in the embedded database
      */
-    @SuppressWarnings("unchecked")
     public static List<FileImport> getFileImports() {
         Session s = Installer.currentSession();
         Transaction t = s.beginTransaction();
-        List<FileImport> list = (List<FileImport>) s.createQuery("from FileImport f order by f.importedOn desc").list();
+        @SuppressWarnings("unchecked")
+        List<FileImport> fileImports = (List<FileImport>) s.createQuery("from FileImport order by importedOn desc").list();
         t.commit();
 
-        return list;
+        return fileImports;
     }
 
     /**
-     * Gets the available currencies
+     * Gets the currencies
      * @return List of currencies
      */
-    @SuppressWarnings("unchecked")
     public static List<Currency> getCurrencies() {
         Session s = Installer.currentSession();
         Transaction t = s.beginTransaction();
-        List<Currency> list = (List<Currency>) s.createQuery("from Currency order by name").list();
+        @SuppressWarnings("unchecked")
+        List<Currency> currencies = (List<Currency>) s.createQuery("from Currency order by name").list();
         t.commit();
 
-        return list;
+        return currencies;
     }
 
     /**
-     * Gets the available currencies together with their IDs
-     * @return List of currencies with their IDs
+     * Gets the currencies with their IDs
+     * @return Map of currencies: the key is the currency ID, the value is the currency itself
      */
     public static Map<Long, Currency> getCurrenciesWithId() {
-        Map<Long, Currency> currencies = new HashMap<Long, Currency>(); // Collection to return that contains the currencies - the key is the Currency ID
-        List<Currency> list = getCurrencies();
+        Map<Long, Currency> currenciesWithId = new HashMap<Long, Currency>();
+        List<Currency> currencies = getCurrencies();
 
-        for (Currency currency : list) {
-            currencies.put(currency.getId(), currency);
+        for (Currency currency : currencies) {
+            currenciesWithId.put(currency.getId(), currency);
         }
 
-        return currencies;
+        return currenciesWithId;
     }
 
     /**
      * Gets the active currencies
      * @return List of active currencies
      */
-    @SuppressWarnings("unchecked")
     public static List<Currency> getActiveCurrencies() {
         Session s = Installer.currentSession();
         Transaction t = s.beginTransaction();
-        List<Currency> list = (List<Currency>) s.createQuery("from Currency c where c.active=true order by name").list();
+        @SuppressWarnings("unchecked")
+        List<Currency> activeCurrencies = (List<Currency>) s.createQuery("from Currency where active=true order by name").list();
         t.commit();
 
-        return list;
+        return activeCurrencies;
     }
 
     /**
-     * Gets the available payees
+     * Gets the payees
      * @return List of payees
      */
-    @SuppressWarnings("unchecked")
     public static List<Payee> getPayees() {
         Session s = Installer.currentSession();
         Transaction t = s.beginTransaction();
-        List<Payee> list = (List<Payee>) s.createQuery("from Payee order by name").list();
+        @SuppressWarnings("unchecked")
+        List<Payee> payees = (List<Payee>) s.createQuery("from Payee order by name").list();
         t.commit();
-
-        return list;
-    }
-
-    /**
-     * Gets the available payees togetheir with their IDs
-     * @return List of payees with their IDs
-     */
-    public static Map<Long, Payee> getPayeesWithId() {
-        Map<Long, Payee> payees = new HashMap<Long, Payee>(); // Collection to return that contains the payees - the key is the Payee ID
-        List<Payee> list = getPayees();
-
-        for (Payee payee : list) {
-            payees.put(payee.getId(), payee);
-        }
 
         return payees;
     }
 
     /**
-     * Gets the available accounts
+     * Gets the payees with their IDs
+     * @return Map of payees: the key is the payee ID, the value is the payee itself
+     */
+    public static Map<Long, Payee> getPayeesWithId() {
+        Map<Long, Payee> payeesWithId = new HashMap<Long, Payee>();
+        List<Payee> payees = getPayees();
+
+        for (Payee payee : payees) {
+            payeesWithId.put(payee.getId(), payee);
+        }
+
+        return payeesWithId;
+    }
+
+    /**
+     * Gets the accounts
      * @return List of accounts
      */
-    @SuppressWarnings("unchecked")
     public static List<Account> getAccounts() {
         Session s = Installer.currentSession();
         Transaction t = s.beginTransaction();
-        List<Account> list = (List<Account>) s.createQuery("from Account a order by name").list();
+        @SuppressWarnings("unchecked")
+        List<Account> accounts = (List<Account>) s.createQuery("from Account order by name").list();
         t.commit();
 
-        return list;
+        return accounts;
     }
 
     /**
      * Gets the active accounts
      * @return List of active accounts
      */
-    @SuppressWarnings("unchecked")
     public static List<Account> getActiveAccounts() {
         Session s = Installer.currentSession();
         Transaction t = s.beginTransaction();
-        List<Account> list = (List<Account>) s.createQuery("from Account a where a.active=true order by name").list();
+        @SuppressWarnings("unchecked")
+        List<Account> list = (List<Account>) s.createQuery("from Account where active=true order by name").list();
         t.commit();
 
         return list;
     }
 
     /**
-     * Gets the available accounts together with their IDs
-     * @return List of accounts with their IDs
+     * Gets the accounts with their IDs
+     * @return Map of accounts: the key is the account ID, the value is the account itself
      */
     public static Map<Long, Account> getAccountsWithId() {
-        Map<Long, Account> accounts = new HashMap<Long, Account>(); // Collection to return that contains the accounts - the key is the Account ID
-        List<Account> list = getAccounts();
+        Map<Long, Account> accountsWithId = new HashMap<Long, Account>();
+        List<Account> accounts = getAccounts();
 
-        for (Account account : list) {
-            accounts.put(account.getId(), account);
+        for (Account account : accounts) {
+            accountsWithId.put(account.getId(), account);
         }
 
-        return accounts;
+        return accountsWithId;
     }
 
     /**
-     * Gets the available categories
+     * Gets the categories
      * @return List of categories
      */
-    @SuppressWarnings("unchecked")
     public static List<Category> getCategories() {
         Session s = Installer.currentSession();
         Transaction t = s.beginTransaction();
-        List<Category> list = (List<Category>) s.createQuery("from Category c " +
-                "order by c.name").list();
+        @SuppressWarnings("unchecked")
+        List<Category> categories = (List<Category>) s.createQuery("from Category order by name").list();
         t.commit();
 
-        return list;
+        return categories;
     }
 
     /**
@@ -195,103 +191,107 @@ public class Datamodel {
      * @param category Category for which the sub-categories are wanted
      * @return Sub-categories of the category
      */
-    @SuppressWarnings("unchecked")
     public static List<Category> getSubCategories(Category category) {
+        if (category == null) {
+            throw new IllegalArgumentException("The parameter 'category' is null");
+        }
+
         Session s = Installer.currentSession();
         Transaction t = s.beginTransaction();
-        Query query = s.createQuery("from Category c " +
-                "where c.parentCategory=:category").setEntity("category", category);
-        List<Category> list = (List<Category>) query.list();
+        @SuppressWarnings("unchecked")
+        List<Category> subCategories = (List<Category>) s.createQuery("from Category where parentCategory=:category").
+                setEntity("category", category).list();
         t.commit();
 
-        return list;
+        return subCategories;
     }
 
-    @SuppressWarnings("unchecked")
-    public static List<Account> getAccounts(Currency currency) {
-        Session s = Installer.currentSession();
-        Transaction t = s.beginTransaction();
-        Query query = s.createQuery("from Account a " +
-                "where a.currency=:currency").setEntity("currency", currency);
-        List<Account> list = (List<Account>) query.list();
-        t.commit();
-
-        return list;
-    }
-
-    @SuppressWarnings("unchecked")
+    /**
+     * Gets the active accounts of a currency
+     * @param currency Currency for which the active accounts are wanted
+     * @return Active accounts of the currency
+     */
     public static List<Account> getActiveAccounts(Currency currency) {
+        if (currency == null) {
+            throw new IllegalArgumentException("The parameter 'currency' is null");
+        }
+
         Session s = Installer.currentSession();
         Transaction t = s.beginTransaction();
-        Query query = s.createQuery("from Account a " +
-                "where a.active=true and a.currency=:currency").setEntity("currency", currency);
-        List<Account> list = (List<Account>) query.list();
+        @SuppressWarnings("unchecked")
+        List<Account> activeAccounts = (List<Account>) s.createQuery("from Account where active=true and currency=:currency").
+                setEntity("currency", currency).list();
         t.commit();
 
-        return list;
+        return activeAccounts;
     }
 
     /**
      * Gets the available top-categories
      * @return List of top categories
      */
-    @SuppressWarnings("unchecked")
     public static List<Category> getTopCategories() {
         Session s = Installer.currentSession();
         Transaction t = s.beginTransaction();
-        List<Category> list = (List<Category>) s.createQuery("from Category c " +
-                "where c.parentCategory is null " +
-                "order by c.name").list();
+        @SuppressWarnings("unchecked")
+        List<Category> topCategories = (List<Category>) s.createQuery("from Category " +
+                "where parentCategory is null " +
+                "order by name").list();
         t.commit();
 
-        return list;
+        return topCategories;
     }
 
     /**
-     * Gets the available categories together with their IDs<BR/>
-     * A category ID is a GrisbiCategory object<BR/>
-     * It's an object that contains the Grisbi category ID and Grisbi sub-category ID
-     * @return List of categories with their IDs
+     * Gets the categories with their Grisbi Category
+     * @return Map of categories: the key is the Grisbi Category ID, the value is the category itself
      */
     public static Map<GrisbiCategory, Category> getCategoriesWithGrisbiCategory() {
-        Map<GrisbiCategory, Category> categories = new HashMap<GrisbiCategory, Category>(); // Collection to return that contains the categories - the key is the Grisbi category
-        List<Category> list = getCategories();
+        Map<GrisbiCategory, Category> categoriesWithGrisbiCategory = new HashMap<GrisbiCategory, Category>(); // Collection to return that contains the categories - the key is the Grisbi category
+        List<Category> categories = getCategories();
 
-        for (Category category : list) {
-            categories.put(new GrisbiCategory(category.getGrisbiCategoryId(), category.getGrisbiSubCategoryId()), category);
+        for (Category category : categories) {
+            categoriesWithGrisbiCategory.put(new GrisbiCategory(category.getGrisbiCategoryId(), category.getGrisbiSubCategoryId()), category);
         }
 
-        return categories;
-    }
-
-    public static Map<Long, Category> getCategoriesWithId() {
-        Map<Long, Category> categories = new HashMap<Long, Category>();
-        List<Category> list = getCategories();
-
-        for (Category category : list) {
-            categories.put(category.getId(), category);
-        }
-
-        return categories;
+        return categoriesWithGrisbiCategory;
     }
 
     /**
-     * Gets the list of transactions that belong to an account<BR/>
+     * Gets the categories with their IDs
+     * @return Map of categories: the key is the category ID, the value is the category itself
+     */
+    public static Map<Long, Category> getCategoriesWithId() {
+        Map<Long, Category> categoriesWithId = new HashMap<Long, Category>();
+        List<Category> categories = getCategories();
+
+        for (Category category : categories) {
+            categoriesWithId.put(category.getId(), category);
+        }
+
+        return categoriesWithId;
+    }
+
+    /**
+     * Gets the transactions that belong to an account<BR/>
      * The list contains only transactions (no sub-transaction)
-     * @param account Account for which the transactions must be retrieved
+     * @param account Account for which the transactions are wanted
      * @return List of transactions that belong to the account
      */
-    @SuppressWarnings("unchecked")
     public static List<gg.db.entities.Transaction> getAccountTransactions(Account account) {
+        if (account == null) {
+            throw new IllegalArgumentException("The parameter 'account' is null");
+        }
         Session s = Installer.currentSession();
         Transaction t = s.beginTransaction();
-        List<gg.db.entities.Transaction> list = (List<gg.db.entities.Transaction>) s.createQuery("from Transaction t " +
-                "where t.account=:account " +
-                "and t.parentTransaction is null " +
-                "order by t.date").setEntity("account", account).list();
+        @SuppressWarnings("unchecked")
+        List<gg.db.entities.Transaction> transactions = (List<gg.db.entities.Transaction>) s.createQuery("from Transaction " +
+                "where account=:account " +
+                "and parentTransaction is null " +
+                "order by date").setEntity("account", account).list();
         t.commit();
 
-        return list;
+        return transactions;
     }
 
     /**
@@ -302,11 +302,14 @@ public class Datamodel {
      * @return Total balance in the currency of the account
      */
     public static BigDecimal getAccountTotalBalance(Account account) {
+        if (account == null) {
+            throw new IllegalArgumentException("The parameter 'account' is null");
+        }
         Session s = Installer.currentSession();
         Transaction t = s.beginTransaction();
         Query query = s.createQuery("select sum(amount) " +
-                "from Transaction t " +
-                "where t.account=:account and t.parentTransaction is null").setEntity("account", account);
+                "from Transaction " +
+                "where account=:account and parentTransaction is null").setEntity("account", account);
         BigDecimal totalBalance = (BigDecimal) query.uniqueResult();
         if (totalBalance == null) {
             totalBalance = new BigDecimal(0);
@@ -319,11 +322,14 @@ public class Datamodel {
     /**
      * Gets the list of transactions that belong to a currency<BR/>
      * The list contains only transactions (no sub-transaction)
-     * @param currency Currency for which the transactions must be retrieved
+     * @param currency Currency for which the transactions are wanted
      * @return List of transactions that belong to the currency
      */
     @SuppressWarnings("unchecked")
     public static List<gg.db.entities.Transaction> getCurrencyTransactions(Currency currency) {
+        if (currency == null) {
+            throw new IllegalArgumentException("The parameter 'currency' is null");
+        }
         Session s = Installer.currentSession();
         Transaction t = s.beginTransaction();
         Query query = s.createQuery("select t " +
@@ -332,27 +338,10 @@ public class Datamodel {
                 "a.currency=:currency and " +
                 "a.active=true " +
                 "order by t.date").setEntity("currency", currency);
-        List<gg.db.entities.Transaction> list = (List<gg.db.entities.Transaction>) query.list();
+        List<gg.db.entities.Transaction> transactions = (List<gg.db.entities.Transaction>) query.list();
         t.commit();
 
-        return list;
-    }
-
-    /**
-     * Gets the sub-transactions of a transaction
-     * @param transaction Transaction for which the sub-transactions are wanted
-     * @return Sub-transactions of the transaction
-     */
-    @SuppressWarnings("unchecked")
-    public static List<gg.db.entities.Transaction> getSubTransactions(gg.db.entities.Transaction transaction) {
-        Session s = Installer.currentSession();
-        Transaction t = s.beginTransaction();
-        Query query = s.createQuery("from Transaction t " +
-                "where t.parentTransaction=:transaction").setEntity("transaction", transaction);
-        List<gg.db.entities.Transaction> list = (List<gg.db.entities.Transaction>) query.list();
-        t.commit();
-
-        return list;
+        return transactions;
     }
 
     /**
@@ -361,12 +350,15 @@ public class Datamodel {
      * @return Total balance
      */
     public static BigDecimal getCurrencyTotalBalance(Currency currency) {
+        if (currency == null) {
+            throw new IllegalArgumentException("The parameter 'currency' is null");
+        }
         Session s = Installer.currentSession();
         Transaction t = s.beginTransaction();
         Query query = s.createQuery("select sum(balance) " +
-                "from Account a " +
-                "where a.currency=:currency and " +
-                "a.active=true").setEntity("currency", currency);
+                "from Account " +
+                "where currency=:currency and " +
+                "active=true").setEntity("currency", currency);
         BigDecimal totalBalance = (BigDecimal) query.uniqueResult();
         if (totalBalance == null) {
             totalBalance = new BigDecimal(0);
@@ -377,34 +369,54 @@ public class Datamodel {
     }
 
     /**
-     * Gets a category
+     * Gets a category based on a Grisbi category ID and a grisbi sub-category ID
      * @param grisbiCategoryId Grisbi category ID
      * @param grisbiSubCategoryId Grisbi sub-category ID
      * @return Category
      */
     public static Category getCategory(Long grisbiCategoryId, Long grisbiSubCategoryId) {
+        if (grisbiCategoryId == null) {
+            throw new IllegalArgumentException("The parameter 'grisbiCategoryId' is null");
+        }
+        if (grisbiSubCategoryId == null) {
+            throw new IllegalArgumentException("The parameter 'grisbiSubCategoryId' is null");
+        }
         Session s = Installer.currentSession();
         Transaction t = s.beginTransaction();
-        Query query = s.createQuery("from Category c " +
-                "where c.grisbiCategoryId=:grisbiCategoryId and " +
-                "c.grisbiSubCategoryId=:grisbiSubCategoryId").setParameter("grisbiCategoryId", grisbiCategoryId).setParameter("grisbiSubCategoryId", grisbiSubCategoryId);
+        Query query = s.createQuery("from Category " +
+                "where grisbiCategoryId=:grisbiCategoryId and " +
+                "grisbiSubCategoryId=:grisbiSubCategoryId").
+                setParameter("grisbiCategoryId", grisbiCategoryId).
+                setParameter("grisbiSubCategoryId", grisbiSubCategoryId);
         Category category = (Category) query.uniqueResult();
         t.commit();
 
         return category;
     }
 
-    private static Query getQuery(SearchFilter searchFilter, boolean searchFromStartDate,
-            boolean searchUntilEndDate, String select, String where,
-            String groupBy) {
-        Category transferCategory = getCategory(Category.TRANSFER.getGrisbiCategoryId(), Category.TRANSFER.getGrisbiSubCategoryId());
-        String queryString = "";
-        String fromClause;
-        List<String> whereClause = new ArrayList<String>();
-        Session s = Installer.currentSession();
-        Transaction t = s.beginTransaction();
+    /**
+     * Gets a query object
+     * @param session Database session
+     * @param searchFilter Search filter
+     * @param searchFromStartDate Search from start? (if false, no filter on start date)
+     * @param searchUntilEndDate Search until end? (if false, no filter on end date)
+     * @param filterOnCategories Filter on categories?
+     * @param select Select statement
+     * @param where Where statement
+     * @param groupBy Group by statement
+     * @return Query object
+     */
+    private static Query getQuery(Session session, SearchFilter searchFilter, boolean searchFromStartDate,
+            boolean searchUntilEndDate, boolean filterOnCategories,
+            String select, String where, String groupBy) {
+        if (searchFilter == null) {
+            throw new IllegalArgumentException("The parameter 'searchFilter' is null");
+        }
 
-        whereClause.clear();
+        Category transferCategory = getCategory(
+                Category.TRANSFER.getGrisbiCategoryId(),
+                Category.TRANSFER.getGrisbiSubCategoryId());
+        String queryString = "";
 
         // SELECT clause
         if (select != null) {
@@ -412,9 +424,10 @@ public class Datamodel {
         }
 
         // FROM clause
-        fromClause = "from Transaction t inner join t.account as a";
+        String fromClause = "from Transaction t inner join t.account as a";
 
         // WHERE clause
+        List<String> whereClause = new ArrayList<String>();
         whereClause.add("a.active=true");
         if (searchFilter.hasAccountsFilter()) {
             whereClause.add("t.account in (:accounts)");
@@ -432,8 +445,8 @@ public class Datamodel {
         if (searchFilter.hasPeriodFilter() && searchUntilEndDate) {
             whereClause.add("t.date<=:end");
         }
-        if (searchFilter.hasCategoriesFilter()) {
-            //whereClause.add("t.category in (:categories)");
+        if (searchFilter.hasCategoriesFilter() && filterOnCategories) {
+            whereClause.add("t.category in (:categories)");
         }
         if (searchFilter.hasPayeesFilter()) {
             whereClause.add("t.payee in (:payees)");
@@ -462,9 +475,10 @@ public class Datamodel {
         }
 
         // Group by statement
-        queryString += groupBy;
+        queryString += " " + groupBy;
 
-        Query query = s.createQuery(queryString);
+        // Create query
+        Query query = session.createQuery(queryString);
 
         // Add the entities to the query
         if (searchFilter.hasAccountsFilter()) {
@@ -478,16 +492,8 @@ public class Datamodel {
         if (searchFilter.hasPeriodFilter() && searchUntilEndDate) {
             query.setParameter("end", searchFilter.getPeriod().getEnd());
         }
-        if (searchFilter.hasCategoriesFilter()) {
-            /*List<Category> categories = searchFilter.getCategories();
-            if (isIncludeSubCategories) {
-            List<Category> subCategories = new ArrayList<Category>();
-            for (Category category : categories) {
-            subCategories.addAll(category.getSubCategories());
-            }
-            categories.addAll(subCategories);
-            }*/
-            //query.setParameterList("categories", categories);
+        if (searchFilter.hasCategoriesFilter() && filterOnCategories) {
+            query.setParameterList("categories", searchFilter.getCategories());
         }
         if (searchFilter.hasPayeesFilter()) {
             query.setParameterList("payees", searchFilter.getPayees());
@@ -503,153 +509,181 @@ public class Datamodel {
     }
 
     /**
-     * Gets an income
+     * Gets an income total based on a search filter
      * @param searchFilter Search filter
      * @return Income
      */
     public static BigDecimal getIncome(SearchFilter searchFilter) {
-        Query query = getQuery(searchFilter, true, true, "select sum(t.amount)", "t.amount>0", "");
-        //Session s = Installer.currentSession();
-        //Transaction t = s.beginTransaction();
+        if (searchFilter == null) {
+            throw new IllegalArgumentException("The parameter 'searchFilter' is null");
+        }
+
+        Session session = Installer.createSession();
+        Transaction tx = session.beginTransaction();
+
+        Query query = getQuery(session,
+                searchFilter,
+                true, // Search from start
+                true, // Search until end
+                false, // No filter on categories
+                "select sum(t.amount)",
+                "t.amount>0", // Search only incomes
+                ""); // No group by
 
         // Execute the query
         BigDecimal income = (BigDecimal) query.uniqueResult();
         if (income == null) {
             income = new BigDecimal(0);
         }
-        //t.commit();
+
+        session.flush();
+        tx.commit();
+        session.close();
 
         return income;
     }
 
     /**
-     * Gets the expenses
+     * Gets the expenses total based on a search filter
      * @param searchFilter Search filter
      * @return Expenses
      */
     public static BigDecimal getExpenses(SearchFilter searchFilter) {
-        Query query = getQuery(searchFilter, true, true, "select sum(t.amount)", "t.amount<0", "");
-        //Session s = Installer.currentSession();
-        //Transaction t = s.beginTransaction();
+        if (searchFilter == null) {
+            throw new IllegalArgumentException("The parameter 'searchFilter' is null");
+        }
+        Session session = Installer.createSession();
+        Transaction tx = session.beginTransaction();
+
+        Query query = getQuery(session,
+                searchFilter,
+                true, // Search from start
+                true, // Search until end
+                false, // No filter on categories
+                "select sum(t.amount)",
+                "t.amount<0", // Search only expenses
+                ""); // No group by
 
         // Execute the query
         BigDecimal expenses = (BigDecimal) query.uniqueResult();
         if (expenses == null) {
             expenses = new BigDecimal(0);
         }
-        //t.commit();
+
+        session.flush();
+        tx.commit();
+        session.close();
 
         return expenses;
     }
 
     /**
-     * Gets the balance
+     * Gets the balance corresponding to a search filter
      * @param searchFilter Search filter
      * @return Balance
      */
     public static BigDecimal getBalance(SearchFilter searchFilter) {
-        Query query = getQuery(searchFilter, true, true, "select sum(t.amount)", null, "");
-        Session s = Installer.currentSession();
-        Transaction t = s.beginTransaction();
+        if (searchFilter == null) {
+            throw new IllegalArgumentException("The parameter 'searchFilter' is null");
+        }
+        Session session = Installer.createSession();
+        Transaction tx = session.beginTransaction();
+
+        Query query = getQuery(session,
+                searchFilter,
+                true, // Search from start
+                true, // Search until end
+                false, // No filter on categories
+                "select sum(t.amount)",
+                null, // No specific where clause
+                ""); // No group by
 
         // Execute the query
         BigDecimal balance = (BigDecimal) query.uniqueResult();
         if (balance == null) {
             balance = new BigDecimal(0);
         }
-        t.commit();
+        session.flush();
+        tx.commit();
+        session.close();
 
         return balance;
     }
 
     /**
-     * Gets the balance
+     * Gets the balances for categories and sub-categories
      * @param searchFilter Search filter
-     * @return Balance
+     * @return List of category balances: each item of the list is an array.
+     * The first element of the array is the category ID.
+     * The second element of the array is the corresponding category balance.
      */
-    public static BigDecimal getBalanceWithSubCategories(SearchFilter searchFilter) {
-        Query query = getQuery(searchFilter, true, true, "select sum(t.amount)", null, "");
-        Session s = Installer.currentSession();
-        Transaction t = s.beginTransaction();
-
-        // Execute the query
-        BigDecimal balance = (BigDecimal) query.uniqueResult();
-        if (balance == null) {
-            balance = new BigDecimal(0);
-        }
-        t.commit();
-
-        return balance;
-    }
-
     public static List getCategoriesBalances(SearchFilter searchFilter) {
-        Query query = getQuery(searchFilter, true, true, "select t.category.id, sum(t.amount)", null, " group by t.category.id");
-        Session s = Installer.currentSession();
-        Transaction t = s.beginTransaction();
-
-        // Execute the query
-        List list = query.list();
-        t.commit();
-
-        return list;
-    }
-
-    public static List getAccountsBalancesUntil(SearchFilter searchFilter) {
-        Query query = getQuery(searchFilter, false, true, "select t.account.id, sum(t.amount)", null, " group by t.account.id");
-        Session s = Installer.currentSession();
-        Transaction t = s.beginTransaction();
-
-        // Execute the query
-        List list = query.list();
-        t.commit();
-
-        return list;
-    }
-
-    /**
-     * Gets the balance
-     * @param searchFilter Search filter
-     * @return Balance
-     */
-    public static BigDecimal getBalanceUntil(SearchFilter searchFilter) {
-        Query query = getQuery(searchFilter, false, true, "select sum(t.amount)", null, "");
-        Session s = Installer.currentSession();
-        Transaction t = s.beginTransaction();
-
-        // Execute the query
-        BigDecimal balance = (BigDecimal) query.uniqueResult();
-        if (balance == null) {
-            balance = new BigDecimal(0);
+        if (searchFilter == null) {
+            throw new IllegalArgumentException("The parameter 'searchFilter' is null");
         }
-        t.commit();
+        Session session = Installer.createSession();
+        Transaction tx = session.beginTransaction();
 
-        return balance;
-    }
-
-    /**
-     * Gets the transactions
-     * @param searchFilter Search filter
-     * @return Transactions
-     */
-    @SuppressWarnings("unchecked")
-    public static List<gg.db.entities.Transaction> getTransactions(SearchFilter searchFilter) {
-        Query query = getQuery(searchFilter, true, true, null, null, "");
-        Session s = Installer.currentSession();
-        Transaction t = s.beginTransaction();
+        Query query = getQuery(session,
+                searchFilter,
+                true, // Search from start
+                true, // Search until end
+                false, // No filter on categories (all categories are expected)
+                "select t.category.id, sum(t.amount)",
+                null, // No specific where clause
+                "group by t.category.id");
 
         // Execute the query
-        List<gg.db.entities.Transaction> list = (List<gg.db.entities.Transaction>) query.list();
-        t.commit();
+        List categoriesBalances = query.list();
 
-        return list;
+        session.flush();
+        tx.commit();
+        session.close();
+
+        return categoriesBalances;
     }
 
     /**
-     * Saves a file import log<BR/>
-     * When a Grisbi file is successfuly imported into the embedded DB, a new FileImport entry is created
+     * Gets the balances for accounts until a date (from is not taken into account)
+     * @param searchFilter Search filter
+     * @return List of account balances: each item of the list is an array.
+     * The first element of the array is the account ID.
+     * The second element of the array is the corresponding account balance.
+     */
+    public static List getAccountsBalancesUntil(SearchFilter searchFilter) {
+        if (searchFilter == null) {
+            throw new IllegalArgumentException("The parameter 'searchFilter' is null");
+        }
+        Session session = Installer.createSession();
+        Transaction tx = session.beginTransaction();
+
+        Query query = getQuery(session,
+                searchFilter,
+                false, // from is not taken into account
+                true, // Search until end
+                false, // No filter on categories
+                "select t.account.id, sum(t.amount)",
+                null, // No specific where clause
+                "group by t.account.id");
+
+        // Execute the query
+        List accountsBalances = query.list();
+
+        session.flush();
+        tx.commit();
+        session.close();
+
+        return accountsBalances;
+    }
+
+    /**
+     * Saves a file import log
      * @param fileImport New log to insert
      */
     public static void saveFileImport(FileImport fileImport) {
+        if (fileImport == null) {
+            throw new IllegalArgumentException("The parameter 'fileImport' is null");
+        }
         Session s = Installer.currentSession();
         Transaction t = s.beginTransaction();
         s.save(fileImport);
@@ -661,6 +695,9 @@ public class Datamodel {
      * @param payee Payee to save
      */
     public static void savePayee(Payee payee) {
+        if (payee == null) {
+            throw new IllegalArgumentException("The parameter 'payee' is null");
+        }
         Session s = Installer.currentSession();
         Transaction t = s.beginTransaction();
         s.save(payee);
@@ -683,6 +720,9 @@ public class Datamodel {
      * @param currency Currency to save
      */
     public static void saveCurrency(Currency currency) {
+        if (currency == null) {
+            throw new IllegalArgumentException("The parameter 'currency' is null");
+        }
         Session s = Installer.currentSession();
         Transaction t = s.beginTransaction();
         s.saveOrUpdate(currency);
@@ -694,6 +734,9 @@ public class Datamodel {
      * @param account Account to save
      */
     public static void saveAccount(Account account) {
+        if (account == null) {
+            throw new IllegalArgumentException("The parameter 'account' is null");
+        }
         Session s = Installer.currentSession();
         Transaction t = s.beginTransaction();
         s.save(account);
@@ -705,11 +748,11 @@ public class Datamodel {
      * @param transaction Transaction to save
      */
     public static void saveTransaction(gg.db.entities.Transaction transaction) {
+        if (transaction == null) {
+            throw new IllegalArgumentException("The parameter 'transaction' is null");
+        }
         Session s = Installer.currentSession();
         Transaction t = s.beginTransaction();
-        if (transaction.getCategory() == null) {
-            System.out.println("transaction id=" + transaction.getId());
-        }
         s.save(transaction);
         t.commit();
     }

@@ -19,7 +19,6 @@
  * along with GrisbiGraphs; if not, write to the Free Software
  * Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
  */
-
 package gg.imports;
 
 import java.util.logging.Logger;
@@ -33,15 +32,14 @@ import java.util.logging.Logger;
  * @author Francois Duchemin
  */
 public enum FileVersion {
+
     /** Grisbi File - Version 0.5.0 */
     VERSION_0_5_0,
-
     /** Grisbi File - Version 0.6.0 */
     VERSION_0_6_0,
-
     /** Unsupported format */
     UNSUPPORTED_VERSION;
-
+    /** Logger */
     private static Logger log = Logger.getLogger(FileVersion.class.getName());
 
     // Returns a string description of the Grisbi version

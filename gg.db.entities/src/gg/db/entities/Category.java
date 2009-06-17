@@ -46,13 +46,13 @@ public class Category {
     private Category parentCategory;
     /** Sub-categories */
     private Set<Category> subCategories;
-    /** System property */
+    /** System property (category created by the system: transfer, breakdown, nocategory) */
     private Boolean systemProperty;
     /** Category 'Transfer': transfer between two transactions */
     public static final Category TRANSFER = new Category(-10L, -10L, "Transfer", null, true);
     /** Category 'Breakdown of transactions', when a transaction contains sub-transactions */
     public static final Category BREAKDOWN_OF_TRANSACTIONS = new Category(-30L, -30L, "Breakdown", null, true);
-    /** This constant permits to search for transactions, which have <B>no categories</B> */
+    /** This constant permits to search for transactions, which have no category */
     public static final Category NO_CATEGORY = new Category(-40L, -40L, "NO_CATEGORY", null, true);
 
     /** Creates a new instance of Category */
@@ -65,7 +65,7 @@ public class Category {
      * @param grisbiSubCategoryId Sub-category ID from the Grisbi file
      * @param name Name of the category
      * @param parentCategory Parent of the category (null if the current category is a top category)
-     * @param systemProperty Is the category a system category?
+     * @param systemProperty Is the category a system category (i.e. transfer, breakdown of transactions, no category)?
      */
     public Category(Long grisbiCategoryId, Long grisbiSubCategoryId, String name, Category parentCategory, Boolean systemProperty) {
         setGrisbiCategoryId(grisbiCategoryId);
@@ -188,7 +188,7 @@ public class Category {
 
     /**
      * Is the category a system category?
-     * @return true if the category is a system category, false otherwise
+     * @return true if the category is a system category (i.e. transfer, breakdown...), false otherwise
      */
     public Boolean getSystemProperty() {
         return systemProperty;
@@ -196,7 +196,7 @@ public class Category {
 
     /**
      * Sets the system property
-     * @param systemProperty true if the category is a system category
+     * @param systemProperty true if the category is a system category (i.e. transfer, breakdown...)
      */
     public void setSystemProperty(Boolean systemProperty) {
         this.systemProperty = systemProperty;

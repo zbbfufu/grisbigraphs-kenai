@@ -19,7 +19,6 @@
  * along with GrisbiGraphs; if not, write to the Free Software
  * Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
  */
-
 package gg.imports;
 
 /**
@@ -28,13 +27,13 @@ package gg.imports;
  */
 public class ParsingException extends java.lang.Exception {
 
-    /** Creates a new instance of <code>ParsingException</code> without detail message. */
+    /** Creates a new instance of <code>ParsingException</code> without detail message */
     public ParsingException() {
     }
 
     /**
-     * Constructs an instance of <code>ParsingException</code> with the specified detail message.
-     * @param msg the detail message.
+     * Constructs an instance of <code>ParsingException</code> with the specified detail message
+     * @param msg the detail message
      */
     public ParsingException(String msg) {
         super(msg);

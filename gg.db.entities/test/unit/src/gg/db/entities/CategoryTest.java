@@ -133,6 +133,6 @@ public class CategoryTest {
         c3.setId(1L);
         Category c4 = new Category(1L, 1L, "Alimentation", null, false);
         c4.setId(2L);
-        assertFalse(c3.compareTo(c4) == 0);
+        assertFalse(c3.compareTo(c4) != 0);
     }
 }

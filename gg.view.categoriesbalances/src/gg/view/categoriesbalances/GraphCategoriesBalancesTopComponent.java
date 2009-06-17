@@ -143,14 +143,11 @@ public final class GraphCategoriesBalancesTopComponent extends TopComponent impl
         result = null;
     }
 
-    void writeProperties(java.util.Properties p) {
-        // better to version settings since initial version as advocated at
-        // http://wiki.apidesign.org/wiki/PropertyFiles
+    public void writeProperties(java.util.Properties p) {
         p.setProperty("version", "1.0");
-        // TODO store your settings
     }
 
-    Object readProperties(java.util.Properties p) {
+    public Object readProperties(java.util.Properties p) {
         GraphCategoriesBalancesTopComponent singleton = GraphCategoriesBalancesTopComponent.getDefault();
         singleton.readPropertiesImpl(p);
         return singleton;
@@ -158,7 +155,6 @@ public final class GraphCategoriesBalancesTopComponent extends TopComponent impl
 
     private void readPropertiesImpl(java.util.Properties p) {
         String version = p.getProperty("version");
-        // TODO read your settings according to their version
     }
 
     @Override
