@@ -1,9 +1,27 @@
 /*
- * To change this template, choose Tools | Templates
- * and open the template in the editor.
+ * SearchFilterTopComponent.java
+ *
+ * Copyright (C) 2009 Francois Duchemin
+ *
+ * This file is part of GrisbiGraphs.
+ *
+ * GrisbiGraphs is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation; either version 2 of the License, or
+ * (at your option) any later version.
+ *
+ * GrisbiGraphs is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with GrisbiGraphs; if not, write to the Free Software
+ * Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
  */
 package gg.searchfilter;
 
+import gg.application.Constants;
 import gg.db.datamodel.Period;
 import gg.db.datamodel.PeriodType;
 import gg.db.datamodel.Periods;
@@ -57,48 +75,79 @@ import org.openide.util.lookup.AbstractLookup;
 import org.openide.util.lookup.InstanceContent;
 
 /**
- * Top component which displays something.
+ * Top component which displays the fields that permit to filter the results on currencies,
+ * accounts, period, categories, payees and payees.
  */
 public final class SearchFilterTopComponent extends TopComponent implements LookupListener {
 
+    /** Singleton instance of the topcomponent */
     private static SearchFilterTopComponent instance;
-    /** path to the icon used by the component and its open action */
-    static final String ICON_PATH = "gg/resources/icons/SearchFilter.png";
+    /** Path to the icon used by the component and its open action */
+    private static final String ICON_PATH = "gg/resources/icons/SearchFilter.png";
+    /** ID of the component */
     private static final String PREFERRED_ID = "SearchFilterTopComponent";
+    /** Content available in the lookup of the topcomponent (list of search filter objects) */
     private InstanceContent content = new InstanceContent();
+    /** Model for the accounts list */
     private DefaultListModel listModelAccounts = new DefaultListModel();
+    /** Root of the categories tree */
     private DefaultMutableTreeNode rootCategoryNode = new DefaultMutableTreeNode();
+    /** Model for the categories tree */
     private DefaultTreeModel treeModelCategories = new DefaultTreeModel(rootCategoryNode);
+    /** Model for the payees list */
     private DefaultListModel listModelPayees = new DefaultListModel();
+    /** Result of a lookup request */
     private static Lookup.Result result = null;
+    /** From label */
     private JLabel jLabelFrom;
+    /** From field */
     private JXDatePicker jXDatePickerFrom;
+    /** To label */
     private JLabel jLabelTo;
+    /** To field */
     private JXDatePicker jXDatePickerTo;
+    /** By label */
     private JLabel jLabelBy;
+    /** By field */
     private JComboBox jComboBoxBy;
+    /** Currency label */
     private JLabel jLabelCurrency;
+    /** Currency field */
     private JComboBox jComboBoxCurrency;
+    /** Accounts label */
     private JLabel jLabelAccounts;
+    /** Scrollpane that contains the accounts field */
     private JScrollPane jScrollPaneAccounts;
+    /** Accounts field */
     private JList jListAccounts;
+    /** Categories label */
     private JLabel jLabelCategories;
+    /** Scrollpane that contains the categories field */
     private JScrollPane jScrollPaneCategories;
+    /** Categories field */
     private JTree jTreeCategories;
+    /** Payees label */
     private JLabel jLabelPayees;
+    /** Scrollpane that contains the payees field */
     private JScrollPane jScrollPanePayees;
+    /** Payees field */
     private JList jListPayees;
+    /** Keywords label */
     private JLabel jLabelKeywords;
+    /** Keywords field */
     private JTextField jTextFieldKeywords;
+    /** Search button */
     private JButton jButtonSearch;
-    private JLabel jLabelNoFieldsSupported;
-    /** Key used in the properties file to identify the 'date from' property */
+    /** 'No field supported' label */
+    private JLabel jLabelNoFieldSupported;
+    /** Key used to identify the 'date from' property */
     private static final String DATE_FROM_KEY = "DateFrom";
-    /** Key used in the properties file to identify the 'date to' property */
+    /** Key used to identify the 'date to' property */
     private static final String DATE_TO_KEY = "DateTo";
-    /** Key used in the properties file to identify the 'by' property */
+    /** Key used to identify the 'by' property */
     private static final String PERIOD_TYPE_KEY = "PeriodType";
 
+    /** Creates a new instance of SearchFilterTopComponent */
     private SearchFilterTopComponent() {
         initComponents();
         setName(NbBundle.getMessage(SearchFilterTopComponent.class, "CTL_SearchFilterTopComponent"));
@@ -108,6 +157,7 @@ public final class SearchFilterTopComponent extends TopComponent implements Look
         putClientProperty(TopComponent.PROP_DRAGGING_DISABLED, Boolean.TRUE);
         putClientProperty(TopComponent.PROP_UNDOCKING_DISABLED, Boolean.TRUE);
 
+        // Initialize the topcomponent's lookup
         associateLookup(new AbstractLookup(content));
 
         // Initiate the controls
@@ -127,6 +177,7 @@ public final class SearchFilterTopComponent extends TopComponent implements Look
         jComboBoxCurrency.addActionListener(new ActionListener() {
 
             public void actionPerformed(ActionEvent evt) {
+                // Currency selected --> display the corresponding accounts
                 jComboBoxCurrencyActionPerformed();
             }
         });
@@ -179,7 +230,7 @@ public final class SearchFilterTopComponent extends TopComponent implements Look
         });
         jPanelSearch.add(jButtonSearch, BorderLayout.EAST);
 
-        jLabelNoFieldsSupported = new JLabel(
+        jLabelNoFieldSupported = new JLabel(
                 NbBundle.getMessage(SearchFilterTopComponent.class, "SearchFilterTopComponent.jLabelInformation.text"),
                 JLabel.CENTER);
 
@@ -188,56 +239,56 @@ public final class SearchFilterTopComponent extends TopComponent implements Look
         jPanelSearchFilter.setLayout(new GridBagLayout());
         FormUtility jPanelSearchUtility = new FormUtility();
 
-        // Add fields on the form
-        jPanelSearchUtility.addFirstField(jLabelFrom, jPanelSearchFilter);
-        jPanelSearchUtility.addLastField(jXDatePickerFrom, jPanelSearchFilter);
+        // Add fields on jPanelSearchFilter
+        jPanelSearchUtility.addLabel(jLabelFrom, jPanelSearchFilter);
+        jPanelSearchUtility.addField(jXDatePickerFrom, jPanelSearchFilter);
 
-        jPanelSearchUtility.addFirstField(jLabelTo, jPanelSearchFilter);
-        jPanelSearchUtility.addLastField(jXDatePickerTo, jPanelSearchFilter);
+        jPanelSearchUtility.addLabel(jLabelTo, jPanelSearchFilter);
+        jPanelSearchUtility.addField(jXDatePickerTo, jPanelSearchFilter);
 
-        jPanelSearchUtility.addFirstField(jLabelBy, jPanelSearchFilter);
-        jPanelSearchUtility.addLastField(jComboBoxBy, jPanelSearchFilter);
+        jPanelSearchUtility.addLabel(jLabelBy, jPanelSearchFilter);
+        jPanelSearchUtility.addField(jComboBoxBy, jPanelSearchFilter);
 
-        jPanelSearchUtility.addFirstField(jLabelCurrency, jPanelSearchFilter);
-        jPanelSearchUtility.addLastField(jComboBoxCurrency, jPanelSearchFilter);
+        jPanelSearchUtility.addLabel(jLabelCurrency, jPanelSearchFilter);
+        jPanelSearchUtility.addField(jComboBoxCurrency, jPanelSearchFilter);
 
-        jPanelSearchUtility.addFirstField(jLabelAccounts, jPanelSearchFilter);
-        jPanelSearchUtility.addLastField(jScrollPaneAccounts, jPanelSearchFilter);
+        jPanelSearchUtility.addLabel(jLabelAccounts, jPanelSearchFilter);
+        jPanelSearchUtility.addField(jScrollPaneAccounts, jPanelSearchFilter);
 
-        jPanelSearchUtility.addFirstField(jLabelCategories, jPanelSearchFilter);
-        jPanelSearchUtility.addLastField(jScrollPaneCategories, jPanelSearchFilter);
+        jPanelSearchUtility.addLabel(jLabelCategories, jPanelSearchFilter);
+        jPanelSearchUtility.addField(jScrollPaneCategories, jPanelSearchFilter);
 
-        jPanelSearchUtility.addFirstField(jLabelPayees, jPanelSearchFilter);
-        jPanelSearchUtility.addLastField(jScrollPanePayees, jPanelSearchFilter);
+        jPanelSearchUtility.addLabel(jLabelPayees, jPanelSearchFilter);
+        jPanelSearchUtility.addField(jScrollPanePayees, jPanelSearchFilter);
 
-        jPanelSearchUtility.addFirstField(jLabelKeywords, jPanelSearchFilter);
-        jPanelSearchUtility.addLastField(jTextFieldKeywords, jPanelSearchFilter);
+        jPanelSearchUtility.addLabel(jLabelKeywords, jPanelSearchFilter);
+        jPanelSearchUtility.addField(jTextFieldKeywords, jPanelSearchFilter);
 
-        jPanelSearchUtility.addLastField(jLabelNoFieldsSupported, jPanelSearchFilter);
+        jPanelSearchUtility.addField(jLabelNoFieldSupported, jPanelSearchFilter);
 
-        jPanelSearchUtility.addLastField(jPanelSearch, jPanelSearchFilter);
+        jPanelSearchUtility.addField(jPanelSearch, jPanelSearchFilter);
 
         // By default no field is visible
         FieldsVisibility fieldsVisibility = new FieldsVisibility();
         setVisibility(fieldsVisibility);
     }
 
-    /** Loads the "type of graph" and the "type of period" comboboxes */
-    private void loadComboboxes() {
-        // combobox "period type"
+    /** Loads the fields 'by', 'currency', 'categories' and 'payees' */
+    private void loadLists() {
+        // Combobox "By"
         jComboBoxBy.removeAllItems();
         jComboBoxBy.addItem(PeriodType.DAY);
         jComboBoxBy.addItem(PeriodType.WEEK);
         jComboBoxBy.addItem(PeriodType.MONTH);
         jComboBoxBy.addItem(PeriodType.YEAR);
 
-        // combobox "currency"
+        // Combobox "currency"
         jComboBoxCurrency.removeAllItems();
         for (Currency currency : Wallet.getInstance().getActiveCurrencies()) {
             jComboBoxCurrency.addItem(currency);
         }
 
-        // tree "categories"
+        // Tree "categories"
         rootCategoryNode.removeAllChildren();
         for (Category category : Wallet.getInstance().getTopCategories()) {
             if (!category.getSystemProperty()) {
@@ -254,7 +305,7 @@ public final class SearchFilterTopComponent extends TopComponent implements Look
         expandAll(jTreeCategories);
         jTreeCategories.setRootVisible(false);
 
-        // listbox "payees"
+        // Listbox "payees"
         listModelPayees.removeAllElements();
         for (Payee payee : Wallet.getInstance().getPayees()) {
             if (!payee.getSystemProperty()) {
@@ -263,7 +314,11 @@ public final class SearchFilterTopComponent extends TopComponent implements Look
         }
     }
 
-    public void expandAll(JTree tree) {
+    /**
+     * Expands all the nodes of a tree
+     * @param tree Tree to expand
+     */
+    private void expandAll(JTree tree) {
         int row = 0;
         while (row < tree.getRowCount()) {
             tree.expandRow(row);
@@ -271,36 +326,31 @@ public final class SearchFilterTopComponent extends TopComponent implements Look
         }
     }
 
+    /** Updates the content of the 'accounts' combobox with the accounts that belong to the selected currency */
     private void jComboBoxCurrencyActionPerformed() {
-        // Filter accounts on the selected currency
         listModelAccounts.clear();
 
+        // Get the selected currency
         Object selectedCurrencyObject = jComboBoxCurrency.getSelectedItem();
-
         if (selectedCurrencyObject != null) { // Currency selected
             Currency selectedCurrency = (Currency) selectedCurrencyObject;
-            // Display accounts that belong to the selected currency
+
+            // Add accounts that belong to the selected currency
             for (Account account : Wallet.getInstance().getActiveAccountsWithCurrency().get(selectedCurrency)) {
                 listModelAccounts.addElement(account);
             }
         }
     }
 
+    /** Creates search filters objects and put them in the lookup */
     public void jButtonSearchActionPerformed() {
-        Currency selectedCurrency = null;
-        List<Account> selectedAccounts = new ArrayList<Account>();
-        List<Category> selectedCategories = new ArrayList<Category>();
-        List<Payee> selectedPayees = new ArrayList<Payee>();
-        List<String> enteredKeywords = new ArrayList<String>();
-        List<SearchFilter> searchFilters = new ArrayList<SearchFilter>();
-
         if (jXDatePickerFrom.getDate() == null) {
             // 'from' date has not been entered
-            NotifyDescriptor d = new NotifyDescriptor.Message(
+            NotifyDescriptor message = new NotifyDescriptor.Message(
                     "Please enter a date in the field 'from'",
                     NotifyDescriptor.WARNING_MESSAGE);
-            d.setTitle("Period invalid");
-            DialogDisplayer.getDefault().notify(d);
+            message.setTitle(Constants.APPLICATION_TITLE);
+            DialogDisplayer.getDefault().notify(message);
             return;
         }
 
@@ -358,9 +408,10 @@ public final class SearchFilterTopComponent extends TopComponent implements Look
 
         // Get selected currency
         Object selectedCurrencyObject = jComboBoxCurrency.getSelectedItem();
-        selectedCurrency = (Currency) selectedCurrencyObject;
+        Currency selectedCurrency = (Currency) selectedCurrencyObject;
 
         // Get selected accounts
+        List<Account> selectedAccounts = new ArrayList<Account>();
         int[] selectedAccountsIndices = jListAccounts.getSelectedIndices();
         for (int i = 0; i < selectedAccountsIndices.length; i++) {
             Object selectedAccountObject = jListAccounts.getModel().getElementAt(selectedAccountsIndices[i]);
@@ -368,6 +419,7 @@ public final class SearchFilterTopComponent extends TopComponent implements Look
         }
 
         // Get selected categories
+        List<Category> selectedCategories = new ArrayList<Category>();
         TreePath[] paths = jTreeCategories.getSelectionPaths();
         if (paths != null) { // category selected
             for (TreePath path : paths) {
@@ -379,6 +431,7 @@ public final class SearchFilterTopComponent extends TopComponent implements Look
         }
 
         // Get selected payees
+        List<Payee> selectedPayees = new ArrayList<Payee>();
         int[] selectedPayeesIndices = jListPayees.getSelectedIndices();
         for (int i = 0; i < selectedPayeesIndices.length; i++) {
             Object selectedPayeeObject = jListPayees.getModel().getElementAt(selectedPayeesIndices[i]);
@@ -386,6 +439,7 @@ public final class SearchFilterTopComponent extends TopComponent implements Look
         }
 
         // Get selected keywords
+        List<String> enteredKeywords = new ArrayList<String>();
         String keywords = jTextFieldKeywords.getText();
         if (keywords.compareTo("") != 0) {
             String[] keywordsSplit = keywords.split(" ");
@@ -395,6 +449,7 @@ public final class SearchFilterTopComponent extends TopComponent implements Look
         }
 
         // Create the search filters (one for each period)
+        List<SearchFilter> searchFilters = new ArrayList<SearchFilter>();
         for (Period period : periods.getPeriods()) {
             SearchFilter searchFilter = new SearchFilter();
 
@@ -556,7 +611,7 @@ public final class SearchFilterTopComponent extends TopComponent implements Look
             result.allInstances();
         }
 
-        loadComboboxes();
+        loadLists();
 
         // Retrieve 'from' date
         long storedDateFromMillis = NbPreferences.forModule(SearchFilterTopComponent.class).getLong(
@@ -652,10 +707,10 @@ public final class SearchFilterTopComponent extends TopComponent implements Look
                 fieldsVisibility.isAccountsVisible() || fieldsVisibility.isCategoriesVisible() ||
                 fieldsVisibility.isPayeesVisible() || fieldsVisibility.isKeywordsVisible()) {
             jButtonSearch.setVisible(true);
-            jLabelNoFieldsSupported.setVisible(false);
+            jLabelNoFieldSupported.setVisible(false);
         } else {
             jButtonSearch.setVisible(false);
-            jLabelNoFieldsSupported.setVisible(true);
+            jLabelNoFieldSupported.setVisible(true);
         }
     }
 

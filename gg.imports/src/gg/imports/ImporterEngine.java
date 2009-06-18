@@ -21,6 +21,7 @@
  */
 package gg.imports;
 
+import gg.application.Constants;
 import gg.db.datamodel.Datamodel;
 import gg.db.entities.Account;
 import gg.db.entities.Currency;
@@ -51,7 +52,7 @@ import org.openide.windows.WindowManager;
  * <B>ImporterEngine</B>
  * <UL>
  * <LI>Permits to import Grisbi files</LI>
- * <LI>The correct importer class is used depending on the Grisbi file version written in the Grisbi file</LI>
+ * <LI>The correct importer object is used to import the Grisbi file</LI>
  * </UL>
  * @author Francois Duchemin
  */
@@ -59,7 +60,7 @@ public class ImporterEngine implements Runnable {
 
     /** Grisbi file to import */
     private File grisbiFile;
-    /** Is the import task cancelled? */
+    /** Is the import task cancelled by the user? */
     private boolean importCancelled;
     /** Logger */
     private Logger log = Logger.getLogger(ImporterEngine.class.getName());
@@ -197,35 +198,45 @@ public class ImporterEngine implements Runnable {
     @Override
     public void run() {
         try {
-            // Import the Grisbi file into the embedded database using the correct importer object
+            // Import the Grisbi file
             long importDuration = importFile();
+
+            // Display a message in the status bar
             boolean success = false; // Is the Grisbi file is correcty imported into the database?
-            
-            if (isImportCancelled()) { // Import cancelled manually by the user
+            if (isImportCancelled()) { // Import cancelled by the user
+                log.info("Import cancelled by the user");
                 Datamodel.emptyDatabase();
                 StatusDisplayer.getDefault().setStatusText("Import cancelled");
             } else {
                 if (checkDatabase()) {
+                    log.info("Grisbi file correctly imported");
                     StatusDisplayer.getDefault().setStatusText("Grisbi file imported");
                     success = true;
                 } else { // Errors during the consistency checks
+                    log.info("Consistency check errors found");
                     StatusDisplayer.getDefault().setStatusText("Consistency check error");
                 }
             }
 
             // Log the import in the database
-            FileImport fileImport = new FileImport(new DateTime(), grisbiFile.getAbsolutePath(), grisbiFile.getName(), new DateTime(grisbiFile.lastModified()), importDuration, success);
+            FileImport fileImport = new FileImport(
+                    new DateTime(), // Import date
+                    grisbiFile.getAbsolutePath(),
+                    grisbiFile.getName(),
+                    new DateTime(grisbiFile.lastModified()), // Last modification date of the grisbi file
+                    importDuration, // Import duration in ms
+                    success);
             Datamodel.saveFileImport(fileImport);
 
-            // Update content of the wallet
+            // Update content of the wallet with the new database content
             Wallet.getInstance().updateContent();
 
-            // Display overview window
+            // Close all windows and display Overview window
             Runnable worker = new Runnable() {
 
                 @Override
                 public void run() {
-                    // Close all opened editor TopComponents
+                    // Close all opened editor TopComponents  (when an editor is closed, its group is also closed)
                     TopComponent[] tc = TopComponent.getRegistry().getOpened().toArray(new TopComponent[0]);
                     for (int i = tc.length - 1; i >= 0; i--) {
                         if (WindowManager.getDefault().isEditorTopComponent(tc[i])) {
@@ -233,14 +244,14 @@ public class ImporterEngine implements Runnable {
                         }
                     }
 
-                    // Refresh "Search filter" topcomponent
+                    // Refresh content of "Search filter" TopComponent
                     TopComponent searchFilterTc = WindowManager.getDefault().findTopComponent("SearchFilterTopComponent");
                     if (searchFilterTc != null) {
                         searchFilterTc.close();
                         searchFilterTc.open();
                     }
 
-                    // Display overview
+                    // Display Overview window and refresh its content
                     OverviewTopComponent overviewTc = (OverviewTopComponent) WindowManager.getDefault().findTopComponent("OverviewTopComponent");
                     if (overviewTc != null) {
                         overviewTc.open();
@@ -254,16 +265,27 @@ public class ImporterEngine implements Runnable {
 
         } catch (DocumentException ex) {
             log.log(Level.SEVERE, "DocumentException catched", ex);
-            NotifyDescriptor d = new NotifyDescriptor.Exception(ex);
+            NotifyDescriptor.Exception message = new NotifyDescriptor.Exception(ex);
+            message.setTitle(Constants.APPLICATION_TITLE);
+            DialogDisplayer.getDefault().notifyLater(message);
+
         } catch (ParsingException ex) {
             log.log(Level.SEVERE, "ParsingException catched", ex);
-            NotifyDescriptor d = new NotifyDescriptor.Exception(ex);
+            NotifyDescriptor.Exception message = new NotifyDescriptor.Exception(ex);
+            message.setTitle(Constants.APPLICATION_TITLE);
+            DialogDisplayer.getDefault().notifyLater(message);
+
         } catch (NumberFormatException ex) {
             log.log(Level.SEVERE, "NumberFormatException catched", ex);
-            NotifyDescriptor d = new NotifyDescriptor.Exception(ex);
+            NotifyDescriptor.Exception message = new NotifyDescriptor.Exception(ex);
+            message.setTitle(Constants.APPLICATION_TITLE);
+            DialogDisplayer.getDefault().notifyLater(message);
+
         } catch (DateFormatException ex) {
             log.log(Level.SEVERE, "DateFormatException catched", ex);
-            NotifyDescriptor d = new NotifyDescriptor.Exception(ex);
+            NotifyDescriptor.Exception message = new NotifyDescriptor.Exception(ex);
+            message.setTitle(Constants.APPLICATION_TITLE);
+            DialogDisplayer.getDefault().notifyLater(message);
         }
     }
 
@@ -272,63 +294,56 @@ public class ImporterEngine implements Runnable {
      * @return true if the database is consistent, false otherwise
      */
     public boolean checkDatabase() {
-        BigDecimal currencyBalance;
-        BigDecimal currencyTotalBalance;
-        BigDecimal currencyWalletBalance;
-        BigDecimal accountBalance;
-        BigDecimal accountTotalBalance;
-        BigDecimal accountWalletBalance;
-
-        // Check active currencies
         List<Currency> currencies = Datamodel.getActiveCurrencies();
         for (Currency currency : currencies) {
-            currencyBalance = currency.getBalance();
-            currencyTotalBalance = Datamodel.getCurrencyTotalBalance(currency);
+            BigDecimal currencyBalance = currency.getBalance();
+            BigDecimal currencyTotalBalance = Datamodel.getCurrencyTotalBalance(currency);
 
             // Check Currency.getBalance() with Datamodel.getCurrencyTotalBalance()
             if (currencyBalance.compareTo(currencyTotalBalance) != 0) {
-                NotifyDescriptor d = new NotifyDescriptor.Message(
-                        "Consistency error for the currency '" + currency + "': currency.getBalance() (" + currencyBalance + ") is different from Datamodel.getCurrencyTotalBalance(currency) (" + currencyTotalBalance + ")",
-                        NotifyDescriptor.ERROR_MESSAGE);
-                DialogDisplayer.getDefault().notify(d);
+                String errorDetails = "Consistency error for the currency '" + currency + "': currency.getBalance() (" + currencyBalance + ") is different from Datamodel.getCurrencyTotalBalance(currency) (" + currencyTotalBalance + ")";
+                log.info(errorDetails);
+                NotifyDescriptor message = new NotifyDescriptor.Message(errorDetails, NotifyDescriptor.ERROR_MESSAGE);
+                message.setTitle(Constants.APPLICATION_TITLE);
+                DialogDisplayer.getDefault().notify(message);
                 return false;
             }
 
             // Check Currency.getBalance() with getBalance()
-            BigDecimal initialCurrencyAmount = new BigDecimal(0); // Find out the initial amount of the currency
-            for (Account account : Datamodel.getActiveAccounts(currency)) {
-                initialCurrencyAmount = initialCurrencyAmount.add(account.getInitialAmount());
-            }
-            currencyWalletBalance = getBalance(Datamodel.getCurrencyTransactions(currency)).add(initialCurrencyAmount);
+            BigDecimal initialCurrencyAmount = currency.getInitialAmount();
+            BigDecimal currencyWalletBalance = getBalance(Datamodel.getCurrencyTransactions(currency)).add(initialCurrencyAmount);
             if (currencyBalance.compareTo(currencyWalletBalance) != 0) {
-                NotifyDescriptor d = new NotifyDescriptor.Message(
-                        "Consistency error for the currency '" + currency + "': currency.getBalance() (" + currencyBalance + ") is different from getBalance(Datamodel.getCurrencyTransactions(currency)).add(initialCurrencyAmount) (" + currencyWalletBalance + ")",
-                        NotifyDescriptor.ERROR_MESSAGE);
-                DialogDisplayer.getDefault().notify(d);
+                String errorDetails = "Consistency error for the currency '" + currency + "': currency.getBalance() (" + currencyBalance + ") is different from getBalance(Datamodel.getCurrencyTransactions(currency)).add(initialCurrencyAmount) (" + currencyWalletBalance + ")";
+                log.info(errorDetails);
+                NotifyDescriptor message = new NotifyDescriptor.Message(errorDetails, NotifyDescriptor.ERROR_MESSAGE);
+                message.setTitle(Constants.APPLICATION_TITLE);
+                DialogDisplayer.getDefault().notify(message);
                 return false;
             }
 
-            // Check active accounts
+            // Check active accounts of the currency
             for (Account account : Datamodel.getActiveAccounts(currency)) {
-                accountBalance = account.getBalance();
-                accountTotalBalance = Datamodel.getAccountTotalBalance(account).add(account.getInitialAmount());
-                accountWalletBalance = getBalance(Datamodel.getAccountTransactions(account)).add(account.getInitialAmount());
+                BigDecimal accountBalance = account.getBalance();
+                BigDecimal accountTotalBalance = Datamodel.getAccountTotalBalance(account).add(account.getInitialAmount());
 
                 // Check Account.getBalance() with Datamodel.getAccountTotalBalance()
                 if (accountBalance.compareTo(accountTotalBalance) != 0) {
-                    NotifyDescriptor d = new NotifyDescriptor.Message(
-                            "Consistency error the the account '" + account + "': account.getBalance() (" + accountBalance + ") is different from Datamodel.getAccountTotalBalance(account).add(account.getInitialAmount()) (" + accountTotalBalance + ")",
-                            NotifyDescriptor.ERROR_MESSAGE);
-                    DialogDisplayer.getDefault().notify(d);
+                    String errorDetails = "Consistency error for the account '" + account + "': account.getBalance() (" + accountBalance + ") is different from Datamodel.getAccountTotalBalance(account).add(account.getInitialAmount()) (" + accountTotalBalance + ")";
+                    log.info(errorDetails);
+                    NotifyDescriptor message = new NotifyDescriptor.Message(errorDetails, NotifyDescriptor.ERROR_MESSAGE);
+                    message.setTitle(Constants.APPLICATION_TITLE);
+                    DialogDisplayer.getDefault().notify(message);
                     return false;
                 }
 
                 // Check Account.getBalance() with getBalance()
+                BigDecimal accountWalletBalance = getBalance(Datamodel.getAccountTransactions(account)).add(account.getInitialAmount());
                 if (accountBalance.compareTo(accountWalletBalance) != 0) {
-                    NotifyDescriptor d = new NotifyDescriptor.Message(
-                            "Consistency error for the account '" + account + "': account.getBalance() (" + accountBalance + ") is different from getBalance(Datamodel.getAccountTransactions(account)).add(account.getInitialAmount()) (" + accountWalletBalance + ")",
-                            NotifyDescriptor.ERROR_MESSAGE);
-                    DialogDisplayer.getDefault().notify(d);
+                    String errorDetails = "Consistency error for the account '" + account + "': account.getBalance() (" + accountBalance + ") is different from getBalance(Datamodel.getAccountTransactions(account)).add(account.getInitialAmount()) (" + accountWalletBalance + ")";
+                    log.info(errorDetails);
+                    NotifyDescriptor message = new NotifyDescriptor.Message(errorDetails, NotifyDescriptor.ERROR_MESSAGE);
+                    message.setTitle(Constants.APPLICATION_TITLE);
+                    DialogDisplayer.getDefault().notify(message);
                     return false;
                 }
             }
@@ -342,7 +357,7 @@ public class ImporterEngine implements Runnable {
      * @param transactions List of transactions
      * @return Total balance (0 if the list of transactions is empty)
      */
-    public static BigDecimal getBalance(List<Transaction> transactions) {
+    private static BigDecimal getBalance(List<Transaction> transactions) {
         if (transactions == null) {
             throw new IllegalArgumentException("The parameter 'transactions' is null");
         }

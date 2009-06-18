@@ -1,6 +1,23 @@
 /*
- * To change this template, choose Tools | Templates
- * and open the template in the editor.
+ * GeneralPanel.java
+ *
+ * Copyright (C) 2009 Francois Duchemin
+ *
+ * This file is part of GrisbiGraphs.
+ *
+ * GrisbiGraphs is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation; either version 2 of the License, or
+ * (at your option) any later version.
+ *
+ * GrisbiGraphs is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with GrisbiGraphs; if not, write to the Free Software
+ * Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
  */
 package gg.options;
 
@@ -8,20 +25,30 @@ import javax.swing.event.DocumentEvent;
 import javax.swing.event.DocumentListener;
 import org.openide.util.NbPreferences;
 
+/**
+ * General options panel
+ * @author Francois Duchemin
+ */
 public final class GeneralPanel extends javax.swing.JPanel implements DocumentListener {
 
     /** General option controller */
     private final GeneralOptionsPanelController controller;
-    /** Key used in the properties file to identidy the 'display zeros' property */
+    /** Key used to identify the 'display zeros' property */
     public static final String DISPLAY_ZEROS_KEY = "DisplayZeros";
-    /** Key used in the properties file to identidy the 'calculate sums' property */
+    /** Key used to identify the 'calculate sums' property */
     public static final String CALCULATE_SUMS_KEY = "CalculateSums";
-    /** Key used in the properties file to identidy the 'maximum number of periods' property */
+    /** Key used to identify the 'maximum number of periods' property */
     public static final String MAX_PERIODS_KEY = "MaxPeriods";
 
+    /**
+     * Creates a new instance of GeneralPanel
+     * @param controller General option controller to associate with the general option panel
+     */
     public GeneralPanel(GeneralOptionsPanelController controller) {
         this.controller = controller;
         initComponents();
+
+        // Initialize the error message
         jLabelErrorMessage.setText("");
 
         // Listen to changes in form fields and call controller.changed() so that valid() method is called
@@ -106,10 +133,11 @@ public final class GeneralPanel extends javax.swing.JPanel implements DocumentLi
 
     /**
      * Checks whether all fields have been entered correctly or not
-     * @return true if the form is valid, false otherwise
+     * @return true if the form is valid
      */
     public boolean valid() {
         if (jTextFieldMaxPeriods.getText().length() == 0) {
+            jLabelErrorMessage.setText("Please enter the maximum number of periods");
             return false;
         }
         if (!isNumber(jTextFieldMaxPeriods.getText())) {

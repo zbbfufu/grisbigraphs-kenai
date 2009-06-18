@@ -28,7 +28,7 @@ import java.awt.GridBagLayout;
 import java.awt.Insets;
 
 /**
- *
+ * Utility class that permits to add fields in a component that has a GridBagLayout
  * @author Francois Duchemin
  */
 public class FormUtility {
@@ -36,35 +36,34 @@ public class FormUtility {
     /** Grid bag constraints for labels */
     private GridBagConstraints labelConstraints = null;
     /** Grid bag constraints for fields */
-    private GridBagConstraints lastConstraints = null;
+    private GridBagConstraints fieldConstraints = null;
 
+    /** Creates a new instance of FormUtility */
     public FormUtility() {
-        // Set up the constraints for the "last" field in each
-        // row first, then copy and modify those constraints.
+        // Set up the constraints for the "fields"
 
         // weightx is 1.0 for fields, 0.0 for labels
         // gridwidth is REMAINDER for fields, 1 for labels
-        lastConstraints = new GridBagConstraints();
+        fieldConstraints = new GridBagConstraints();
 
         // Stretch components horizontally (but not vertically)
-        lastConstraints.fill = GridBagConstraints.HORIZONTAL;
+        fieldConstraints.fill = GridBagConstraints.HORIZONTAL;
 
         // Components that are too short or narrow for their space
         // Should be pinned to the northwest (upper left) corner
-        lastConstraints.anchor = GridBagConstraints.NORTHWEST;
+        fieldConstraints.anchor = GridBagConstraints.NORTHWEST;
 
-        // Give the "last" component as much space as possible
-        lastConstraints.weightx = 1.0;
+        // Give the "field" component as much space as possible
+        fieldConstraints.weightx = 1.0;
 
-        // Give the "last" component the remainder of the row
-        lastConstraints.gridwidth = GridBagConstraints.REMAINDER;
+        // Give the "field" component the remainder of the row
+        fieldConstraints.gridwidth = GridBagConstraints.REMAINDER;
 
         // Add a little padding
-        lastConstraints.insets = new Insets(5, 5, 5, 5);
+        fieldConstraints.insets = new Insets(5, 5, 5, 5);
 
-        // Set up the "label" constrains, typically to be
-        // used for the first component on each row
-        labelConstraints = (GridBagConstraints) lastConstraints.clone();
+        // Set up the "label" constrains
+        labelConstraints = (GridBagConstraints) fieldConstraints.clone();
         labelConstraints.insets = new Insets(9, 5, 1, 5);
 
         // Give these as little space as necessary
@@ -73,25 +72,24 @@ public class FormUtility {
     }
 
     /**
-     * Adds an arbitrary label component, starting a new row
-     * if appropriate. The width of the component will be set
-     * to the minimum width of the widest component on the
-     * form.
+     * Adds a label component
+     * @param labelComponent Label component to add
+     * @param parentComponent Parent component on which the label must be added
      */
-    public void addFirstField(Component c, Container parent) {
-        GridBagLayout gbl = (GridBagLayout) parent.getLayout();
-        gbl.setConstraints(c, labelConstraints);
-        parent.add(c);
+    public void addLabel(Component labelComponent, Container parentComponent) {
+        GridBagLayout gbl = (GridBagLayout) parentComponent.getLayout();
+        gbl.setConstraints(labelComponent, labelConstraints);
+        parentComponent.add(labelComponent);
     }
 
     /**
-     * Adds a field component. Any component may be used. The
-     * component will be stretched to take the remainder of
-     * the current row.
+     * Adds a field component
+     * @param fieldComponent Field component to add
+     * @param parentComponent Parent component on which the field must be added
      */
-    public void addLastField(Component c, Container parent) {
-        GridBagLayout gbl = (GridBagLayout) parent.getLayout();
-        gbl.setConstraints(c, lastConstraints);
-        parent.add(c);
+    public void addField(Component fieldComponent, Container parentComponent) {
+        GridBagLayout gbl = (GridBagLayout) parentComponent.getLayout();
+        gbl.setConstraints(fieldComponent, fieldConstraints);
+        parentComponent.add(fieldComponent);
     }
 }

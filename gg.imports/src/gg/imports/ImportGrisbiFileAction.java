@@ -21,6 +21,7 @@
  */
 package gg.imports;
 
+import gg.application.Constants;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.io.File;
@@ -28,6 +29,7 @@ import java.io.FileNotFoundException;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.swing.JFileChooser;
+import org.openide.DialogDisplayer;
 import org.openide.NotifyDescriptor;
 import org.openide.util.NbPreferences;
 import org.openide.windows.WindowManager;
@@ -70,7 +72,10 @@ public final class ImportGrisbiFileAction implements ActionListener {
 
             } catch (FileNotFoundException ex) {
                 log.log(Level.WARNING, "The Grisbi file '" + fileChooser.getSelectedFile().getAbsolutePath() + "' cannot be found", ex);
-                NotifyDescriptor d = new NotifyDescriptor.Exception(ex);
+
+                NotifyDescriptor.Exception message = new NotifyDescriptor.Exception(ex);
+                message.setTitle(Constants.APPLICATION_TITLE);
+                DialogDisplayer.getDefault().notifyLater(message);
             }
         }
     }
