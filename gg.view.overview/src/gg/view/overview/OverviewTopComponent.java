@@ -29,18 +29,17 @@ import gg.db.entities.MoneyContainer;
 import gg.options.Options;
 import gg.utilities.Utilities;
 import gg.wallet.Wallet;
-import java.io.Serializable;
 import java.math.BigDecimal;
 import java.util.HashMap;
 import java.util.List;
-import java.util.Locale;
 import java.util.Map;
+import java.util.Properties;
 import java.util.logging.Logger;
 import javax.swing.ListSelectionModel;
 import javax.swing.tree.DefaultMutableTreeNode;
 import javax.swing.tree.DefaultTreeModel;
 import javax.swing.tree.TreePath;
-import org.joda.time.format.DateTimeFormat;
+import org.netbeans.api.settings.ConvertAsProperties;
 import org.netbeans.swing.outline.DefaultOutlineModel;
 import org.netbeans.swing.outline.OutlineModel;
 import org.netbeans.swing.outline.RowModel;
@@ -52,16 +51,22 @@ import org.openide.windows.WindowManager;
 import org.openide.windows.TopComponentGroup;
 
 /**
- * Top component which displays the overview
+ * Top component which displays a global overview.
+ * All active accounts are displayed together with their current balances.
  */
+@ConvertAsProperties(dtd = "-//gg.view.categoriesbalances//CategoriesBalances//EN", autostore = false)
 public final class OverviewTopComponent extends TopComponent {
 
+    /** Singleton instance of the topcomponent */
     private static OverviewTopComponent instance;
-    /** path to the icon used by the component and its open action */
-    static final String ICON_PATH = "gg/resources/icons/Overview.png";
+    /** Path to the icon used by the component and its open action */
+    private static final String ICON_PATH = "gg/resources/icons/Overview.png";
+    /** ID of the component */
     private static final String PREFERRED_ID = "OverviewTopComponent";
+    /** Defines which filters are supported by this view */
     private FieldsVisibility fieldsVisibility = new FieldsVisibility();
 
+    /** Creates a new instance of OverviewTopComponent */
     private OverviewTopComponent() {
         initComponents();
         setName(NbBundle.getMessage(OverviewTopComponent.class, "CTL_OverviewTopComponent"));
@@ -70,13 +75,16 @@ public final class OverviewTopComponent extends TopComponent {
         putClientProperty(TopComponent.PROP_DRAGGING_DISABLED, Boolean.TRUE);
         putClientProperty(TopComponent.PROP_UNDOCKING_DISABLED, Boolean.TRUE);
 
+        // Initialize the topcomponent's lookup
         associateLookup(Lookups.singleton(fieldsVisibility));
 
+        // Outline settings
         outlineOverview.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
         outlineOverview.setRootVisible(false);
         outlineOverview.setPopupUsedFromTheCorner(false);
         outlineOverview.setColumnHidingAllowed(false);
 
+        // Display the active accounts together with their current balances
         displayData();
     }
 
@@ -172,6 +180,7 @@ public final class OverviewTopComponent extends TopComponent {
      * Gets default instance. Do not use directly: reserved for *.settings files only,
      * i.e. deserialization routines; otherwise you could get a non-deserialized instance.
      * To obtain the singleton instance, use {@link #findInstance}.
+     * @return Default instance
      */
     public static synchronized OverviewTopComponent getDefault() {
         if (instance == null) {
@@ -182,6 +191,7 @@ public final class OverviewTopComponent extends TopComponent {
 
     /**
      * Obtain the OverviewTopComponent instance. Never call {@link #getDefault} directly!
+     * @return OverviewTopComponent instance
      */
     public static synchronized OverviewTopComponent findInstance() {
         TopComponent win = WindowManager.getDefault().findTopComponent(PREFERRED_ID);
@@ -199,19 +209,52 @@ public final class OverviewTopComponent extends TopComponent {
         return getDefault();
     }
 
+    /**
+     * Gets the persistence type
+     * @return Persistence type
+     */
     @Override
     public int getPersistenceType() {
         return TopComponent.PERSISTENCE_ALWAYS;
     }
 
-    @Override
-    public void componentClosed() {
-        TopComponentGroup overviewGroup = WindowManager.getDefault().findTopComponentGroup("OverviewGroup");
-        if (overviewGroup != null) {
-            overviewGroup.close();
-        }
+    /**
+     * Saves properties
+     * @param p Properties to save
+     */
+    public void writeProperties(Properties p) {
+        p.setProperty("version", "1.0");
     }
 
+    /**
+     * Reads properties
+     * @param p properties to save
+     * @return TopComponent with loaded properties
+     */
+    public Object readProperties(Properties p) {
+        OverviewTopComponent singleton = OverviewTopComponent.getDefault();
+        singleton.readPropertiesImpl(p);
+        return singleton;
+    }
+
+    /**
+     * Reads properties
+     * @param p Properties to read
+     */
+    private void readPropertiesImpl(Properties p) {
+        String version = p.getProperty("version");
+    }
+
+    /**
+     * Gets the topcomponent's ID
+     * @return Topcomponent's ID
+     */
+    @Override
+    protected String preferredID() {
+        return PREFERRED_ID;
+    }
+
+    /** Opens the overview group when the topcomponent is activated */
     @Override
     protected void componentActivated() {
         super.componentActivated();
@@ -221,6 +264,7 @@ public final class OverviewTopComponent extends TopComponent {
         }
     }
 
+    /** Closes the overview group when the topcomponent is hidden */
     @Override
     protected void componentHidden() {
         super.componentDeactivated();
@@ -230,17 +274,21 @@ public final class OverviewTopComponent extends TopComponent {
         }
     }
 
+    /** Displays the active accounts together with their balances in the table */
     public void displayData() {
+        // Display hourglass cursor
         Utilities.changeCursorWaitStatus(true);
 
+        // Display infos about the current Grisbi file
         FileImport currentFileImport = Wallet.getInstance().getCurrentFileImport();
         if (currentFileImport != null) {
             jTextFieldGrisbiFileName.setText(currentFileImport.getFileName());
             jTextFieldGrisbiFileName.setToolTipText(currentFileImport.getFilePath());
-            
+
             jTextFieldImportedOn.setText(currentFileImport.getImportedOn().toString("EEEE d MMMM yyyy - HH:mm"));
             jTextFieldLastModifiedOn.setText(currentFileImport.getLastModifiedOn().toString("EEEE d MMMM yyyy - HH:mm"));
-        } else {
+
+        } else { // There is no current Grisbi file
             jTextFieldGrisbiFileName.setText("");
             jTextFieldGrisbiFileName.setToolTipText("");
             jTextFieldImportedOn.setText("");
@@ -250,62 +298,52 @@ public final class OverviewTopComponent extends TopComponent {
         DefaultMutableTreeNode rootNode = new DefaultMutableTreeNode(); // Root (Not displayed)
         Map<MoneyContainer, BigDecimal> balances = new HashMap<MoneyContainer, BigDecimal>(); // Map of currency/account and corresponding balance
 
+        // Add the nodes in the outline
         List<Currency> currencies = Wallet.getInstance().getActiveCurrencies();
         for (Currency currency : currencies) {
+            // Add the currency to the root
             DefaultMutableTreeNode currencyNode = new DefaultMutableTreeNode(currency);
             rootNode.add(currencyNode);
             balances.put(currency, currency.getBalance());
 
             for (Account account : Wallet.getInstance().getActiveAccountsWithCurrency().get(currency)) {
+                // Add the account to the currency
                 DefaultMutableTreeNode accountNode = new DefaultMutableTreeNode(account);
                 currencyNode.add(accountNode);
                 balances.put(account, account.getBalance());
             }
         }
 
+        // Set the model of the outline
         DefaultTreeModel treeModel = new DefaultTreeModel(rootNode);
-
         OutlineModel outlineModel = DefaultOutlineModel.createOutlineModel(
                 treeModel, new OverviewRowModel(balances), true, "Account");
-
         outlineOverview.setModel(outlineModel);
-        outlineOverview.setRootVisible(false);
-        outlineOverview.setPopupUsedFromTheCorner(false);
+
+        // Expand all nodes of the outline
         for (int i = 0; i < rootNode.getChildCount(); i++) {
             outlineOverview.expandPath(new TreePath(((DefaultMutableTreeNode) rootNode.getChildAt(i)).getPath()));
         }
 
+        // Display the normal cursor
         Utilities.changeCursorWaitStatus(false);
 
+        // Display the income vs expenses chart for the current month
         IncomeExpensesTopComponent overviewGraph =
                 (IncomeExpensesTopComponent) WindowManager.getDefault().findTopComponent("IncomeExpensesTopComponent");
         overviewGraph.displayData();
     }
 
-    /** replaces this in object stream */
-    @Override
-    public Object writeReplace() {
-        return new ResolvableHelper();
-    }
-
-    @Override
-    protected String preferredID() {
-        return PREFERRED_ID;
-    }
-
-    final static class ResolvableHelper implements Serializable {
-
-        private static final long serialVersionUID = 1L;
-
-        public Object readResolve() {
-            return OverviewTopComponent.getDefault();
-        }
-    }
-
+    /** Model for the rows in the overview outline */
     private class OverviewRowModel implements RowModel {
 
+        /** Map containing the currency and account balances: the key is the currency or the account, the value is its balance */
         private Map<MoneyContainer, BigDecimal> balances;
 
+        /**
+         * Creates a new instance of OverviewRowModel
+         * @param balances Map containing the currency and account balances
+         */
         public OverviewRowModel(Map<MoneyContainer, BigDecimal> balances) {
             if (balances == null) {
                 throw new IllegalArgumentException("The parameter 'balances' is null");
@@ -313,21 +351,41 @@ public final class OverviewTopComponent extends TopComponent {
             this.balances = balances;
         }
 
+        /**
+         * Gets the type of a column
+         * @param column Column position
+         * @return Type of the column
+         */
         @Override
         public Class getColumnClass(int column) {
             return String.class;
         }
 
+        /**
+         * Gets the number of columns
+         * @return Number of columns
+         */
         @Override
         public int getColumnCount() {
             return 1;
         }
 
+        /**
+         * Gets the name of a column
+         * @param column Column position
+         * @return Column name
+         */
         @Override
         public String getColumnName(int column) {
             return "Balance";
         }
 
+        /**
+         * Gets the value of a cell
+         * @param node Node
+         * @param column Column position
+         * @return Cell value
+         */
         @Override
         public Object getValueFor(Object node, int column) {
             // Value to display in the current cell
@@ -336,8 +394,6 @@ public final class OverviewTopComponent extends TopComponent {
             // Get the object contained in the current cell
             Object nodeUserObject = ((DefaultMutableTreeNode) node).getUserObject();
             assert (nodeUserObject != null);
-
-            // Display the currency or the account's balance value
             MoneyContainer moneyContainer = (MoneyContainer) nodeUserObject;
 
             // Display the currency or the account's balance value
@@ -354,13 +410,26 @@ public final class OverviewTopComponent extends TopComponent {
             return value;
         }
 
+        /**
+         * Is a cell editable?
+         * @param node Node
+         * @param column Column position
+         * @return true if the cell can be edited
+         */
         @Override
         public boolean isCellEditable(Object node, int column) {
             return false;
         }
 
+        /**
+         * Sets a value for a cell
+         * @param node Node
+         * @param column Column position
+         * @param value New cell value
+         */
         @Override
         public void setValueFor(Object node, int column, Object value) {
+            // Not needed
         }
     }
 }

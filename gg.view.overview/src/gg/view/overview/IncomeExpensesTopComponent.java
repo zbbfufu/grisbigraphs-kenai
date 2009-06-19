@@ -1,6 +1,23 @@
 /*
- * To change this template, choose Tools | Templates
- * and open the template in the editor.
+ * IncomeExpensesTopComponent.java
+ *
+ * Copyright (C) 2009 Francois Duchemin
+ *
+ * This file is part of GrisbiGraphs.
+ *
+ * GrisbiGraphs is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation; either version 2 of the License, or
+ * (at your option) any later version.
+ *
+ * GrisbiGraphs is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with GrisbiGraphs; if not, write to the Free Software
+ * Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
  */
 package gg.view.overview;
 
@@ -15,10 +32,10 @@ import gg.wallet.Wallet;
 import java.awt.BorderLayout;
 import java.awt.Color;
 import java.awt.GradientPaint;
-import java.io.Serializable;
 import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.util.List;
+import java.util.Properties;
 import java.util.logging.Logger;
 import org.jfree.chart.ChartFactory;
 import org.jfree.chart.ChartPanel;
@@ -31,21 +48,27 @@ import org.jfree.chart.plot.PlotOrientation;
 import org.jfree.chart.renderer.category.BarRenderer;
 import org.jfree.data.category.DefaultCategoryDataset;
 import org.joda.time.LocalDate;
+import org.netbeans.api.settings.ConvertAsProperties;
 import org.openide.util.ImageUtilities;
 import org.openide.util.NbBundle;
 import org.openide.windows.TopComponent;
 import org.openide.windows.WindowManager;
 
 /**
- * Top component which displays something.
+ * Top component which displays a chart showing the total income vs expenses
+ * for the current month and for each currency.
  */
+@ConvertAsProperties(dtd = "-//gg.view.categoriesbalances//CategoriesBalances//EN", autostore = false)
 public final class IncomeExpensesTopComponent extends TopComponent {
 
+    /** Singleton instance of the topcomponent */
     private static IncomeExpensesTopComponent instance;
-    /** path to the icon used by the component and its open action */
-    static final String ICON_PATH = "gg/resources/icons/IncomeExpenses.png";
+    /** Path to the icon used by the component and its open action */
+    private static final String ICON_PATH = "gg/resources/icons/IncomeExpenses.png";
+    /** ID of the component */
     private static final String PREFERRED_ID = "IncomeExpensesTopComponent";
 
+    /** Creates a new instance of IncomeExpensesTopComponent */
     private IncomeExpensesTopComponent() {
         initComponents();
         setName(NbBundle.getMessage(IncomeExpensesTopComponent.class, "CTL_IncomeExpensesTopComponent"));
@@ -93,6 +116,7 @@ public final class IncomeExpensesTopComponent extends TopComponent {
      * Gets default instance. Do not use directly: reserved for *.settings files only,
      * i.e. deserialization routines; otherwise you could get a non-deserialized instance.
      * To obtain the singleton instance, use {@link #findInstance}.
+     * @return Default instance
      */
     public static synchronized IncomeExpensesTopComponent getDefault() {
         if (instance == null) {
@@ -103,6 +127,7 @@ public final class IncomeExpensesTopComponent extends TopComponent {
 
     /**
      * Obtain the IncomeExpensesTopComponent instance. Never call {@link #getDefault} directly!
+     * @return IncomeExpensesTopComponent instance
      */
     public static synchronized IncomeExpensesTopComponent findInstance() {
         TopComponent win = WindowManager.getDefault().findTopComponent(PREFERRED_ID);
@@ -120,15 +145,57 @@ public final class IncomeExpensesTopComponent extends TopComponent {
         return getDefault();
     }
 
+    /**
+     * Gets the persistence type
+     * @return Persistence type
+     */
     @Override
     public int getPersistenceType() {
         return TopComponent.PERSISTENCE_ALWAYS;
     }
 
+    /**
+     * Saves properties
+     * @param p Properties to save
+     */
+    public void writeProperties(Properties p) {
+        p.setProperty("version", "1.0");
+    }
+
+    /**
+     * Reads properties
+     * @param p properties to save
+     * @return TopComponent with loaded properties
+     */
+    public Object readProperties(Properties p) {
+        IncomeExpensesTopComponent singleton = IncomeExpensesTopComponent.getDefault();
+        singleton.readPropertiesImpl(p);
+        return singleton;
+    }
+
+    /**
+     * Reads properties
+     * @param p Properties to read
+     */
+    private void readPropertiesImpl(Properties p) {
+        String version = p.getProperty("version");
+    }
+
+    /**
+     * Gets the topcomponent's ID
+     * @return Topcomponent's ID
+     */
+    @Override
+    protected String preferredID() {
+        return PREFERRED_ID;
+    }
+
+    /** Displays the total income vs expenses for the current month */
     public void displayData() {
+        // Display hourglass cursor
         Utilities.changeCursorWaitStatus(true);
 
-        // Create a dataset (the dataset will contain the values)
+        // Create a dataset (the dataset will contain the plotted values)
         DefaultCategoryDataset dataset = new DefaultCategoryDataset();
 
         // Create an empty chart
@@ -166,23 +233,28 @@ public final class IncomeExpensesTopComponent extends TopComponent {
                 0.0f, 0.0f, Color.LIGHT_GRAY);
         renderer.setSeriesPaint(0, gradientPaint);
 
-        // Fill the dataset
+        // Create a period for the current month
         LocalDate today = new LocalDate();
         Period currentMonth = new Period(
                 Periods.getAdjustedStartDate(today, PeriodType.MONTH),
                 Periods.getAdjustedEndDate(today, PeriodType.MONTH),
                 PeriodType.MONTH);
 
+        // Fill the dataset
         List<Currency> currencies = Wallet.getInstance().getActiveCurrencies();
         for (Currency currency : currencies) {
+            // Filter on the currency and on the current month
             SearchFilter searchFilter = new SearchFilter(currency, null, currentMonth, null, null, null, false);
 
+            // Get income
             BigDecimal currencyIncome = Datamodel.getIncome(searchFilter);
             currencyIncome = currencyIncome.setScale(2, RoundingMode.HALF_EVEN);
 
+            // Get expenses
             BigDecimal currencyExpenses = Datamodel.getExpenses(searchFilter).abs();
             currencyExpenses = currencyExpenses.setScale(2, RoundingMode.HALF_EVEN);
 
+            // Plot income and expenses for the current month and for the current currency on the chart
             dataset.addValue(currencyIncome, currency.getName(), "Income (" + currency + ")");
             dataset.addValue(currencyExpenses, currency.getName(), "Expenses (" + currency + ")");
         }
@@ -194,26 +266,7 @@ public final class IncomeExpensesTopComponent extends TopComponent {
         jPanelIncomeExpenses.removeAll();
         jPanelIncomeExpenses.add(chartPanel, BorderLayout.CENTER);
 
+        // Display the normal cursor
         Utilities.changeCursorWaitStatus(false);
-    }
-
-    /** replaces this in object stream */
-    @Override
-    public Object writeReplace() {
-        return new ResolvableHelper();
-    }
-
-    @Override
-    protected String preferredID() {
-        return PREFERRED_ID;
-    }
-
-    final static class ResolvableHelper implements Serializable {
-
-        private static final long serialVersionUID = 1L;
-
-        public Object readResolve() {
-            return IncomeExpensesTopComponent.getDefault();
-        }
     }
 }

@@ -30,12 +30,17 @@ import org.openide.windows.WindowManager;
  */
 public class Installer extends ModuleInstall {
 
+    /** Sets the application version when the module is installed */
     @Override
     public void restored() {
         // Set the version of the program when the application is started
         System.setProperty("netbeans.buildnumber", Constants.VERSION);
     }
 
+    /**
+     * Activates the first editor topcomponent when the application is closed
+     * @return true if the application can be closed
+     */
     @Override
     public boolean closing() {
         // When the application is closed: activate the first editor TopComponent

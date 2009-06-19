@@ -1,6 +1,23 @@
 /*
- * To change this template, choose Tools | Templates
- * and open the template in the editor.
+ * AccountsBalancesTopComponent.java
+ *
+ * Copyright (C) 2009 Francois Duchemin
+ *
+ * This file is part of GrisbiGraphs.
+ *
+ * GrisbiGraphs is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation; either version 2 of the License, or
+ * (at your option) any later version.
+ *
+ * GrisbiGraphs is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with GrisbiGraphs; if not, write to the Free Software
+ * Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
  */
 package gg.view.accountsbalances;
 
@@ -13,18 +30,19 @@ import gg.db.entities.MoneyContainer;
 import gg.options.Options;
 import gg.utilities.Utilities;
 import gg.wallet.Wallet;
-import java.io.Serializable;
 import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Properties;
 import java.util.logging.Logger;
 import javax.swing.ListSelectionModel;
 import javax.swing.tree.DefaultMutableTreeNode;
 import javax.swing.tree.DefaultTreeModel;
 import javax.swing.tree.TreePath;
+import org.netbeans.api.settings.ConvertAsProperties;
 import org.netbeans.swing.outline.DefaultOutlineModel;
 import org.netbeans.swing.outline.OutlineModel;
 import org.netbeans.swing.outline.RowModel;
@@ -40,19 +58,27 @@ import org.openide.windows.WindowManager;
 import org.openide.windows.TopComponentGroup;
 
 /**
- * Top component which displays something.
+ * Top component which displays the accounts' balances evolution over time.
  */
+@ConvertAsProperties(dtd = "-//gg.view.categoriesbalances//CategoriesBalances//EN", autostore = false)
 public final class AccountsBalancesTopComponent extends TopComponent implements LookupListener {
 
+    /** Singleton instance of the topcomponent */
     private static AccountsBalancesTopComponent instance;
-    /** path to the icon used by the component and its open action */
-    static final String ICON_PATH = "gg/resources/icons/AccountsBalances.png";
+    /** Path to the icon used by the component and its open action */
+    private static final String ICON_PATH = "gg/resources/icons/AccountsBalances.png";
+    /** ID of the component */
     private static final String PREFERRED_ID = "AccountsBalancesTopComponent";
+    /** Content available in the lookup of the topcomponent */
     private InstanceContent content = new InstanceContent();
+    /** Result for the lookup listener */
     private Lookup.Result<SearchFilter> result = null;
+    /** Currently displayed search filters */
     private List<SearchFilter> displayedSearchFilters = new ArrayList<SearchFilter>();
+    /** Defines which filters are supported by this view */
     private FieldsVisibility fieldsVisibility = new FieldsVisibility();
 
+    /** Creates a new instance of AccountsBalancesTopComponent */
     private AccountsBalancesTopComponent() {
         initComponents();
         setName(NbBundle.getMessage(AccountsBalancesTopComponent.class, "CTL_AccountsBalancesTopComponent"));
@@ -61,19 +87,21 @@ public final class AccountsBalancesTopComponent extends TopComponent implements 
         putClientProperty(TopComponent.PROP_DRAGGING_DISABLED, Boolean.TRUE);
         putClientProperty(TopComponent.PROP_UNDOCKING_DISABLED, Boolean.TRUE);
 
-        // Treetable settings
+        // Outline settings
         outlineAccountsBalances.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
         outlineAccountsBalances.setRootVisible(false);
         outlineAccountsBalances.setPopupUsedFromTheCorner(false);
         outlineAccountsBalances.setColumnHidingAllowed(false);
 
-        // Set the supported fields from the search filter
+        // Set the supported filters
         fieldsVisibility.setFromVisible(true);
         fieldsVisibility.setToVisible(true);
         fieldsVisibility.setByVisible(true);
         fieldsVisibility.setCurrencyVisible(true);
         fieldsVisibility.setAccountsVisible(true);
         content.set(Collections.singleton(fieldsVisibility), null);
+
+        // Initialize the topcomponent's lookup
         associateLookup(new AbstractLookup(content));
     }
 
@@ -116,6 +144,7 @@ public final class AccountsBalancesTopComponent extends TopComponent implements 
      * Gets default instance. Do not use directly: reserved for *.settings files only,
      * i.e. deserialization routines; otherwise you could get a non-deserialized instance.
      * To obtain the singleton instance, use {@link #findInstance}.
+     * @return Default instance
      */
     public static synchronized AccountsBalancesTopComponent getDefault() {
         if (instance == null) {
@@ -126,6 +155,7 @@ public final class AccountsBalancesTopComponent extends TopComponent implements 
 
     /**
      * Obtain the AccountsBalancesTopComponent instance. Never call {@link #getDefault} directly!
+     * @return AccountsBalancesTopComponent instance
      */
     public static synchronized AccountsBalancesTopComponent findInstance() {
         TopComponent win = WindowManager.getDefault().findTopComponent(PREFERRED_ID);
@@ -143,41 +173,79 @@ public final class AccountsBalancesTopComponent extends TopComponent implements 
         return getDefault();
     }
 
+    /**
+     * Gets the persistence type
+     * @return Persistence type
+     */
     @Override
     public int getPersistenceType() {
         return TopComponent.PERSISTENCE_ALWAYS;
     }
 
-    /** replaces this in object stream */
-    @Override
-    public Object writeReplace() {
-        return new ResolvableHelper();
+    /**
+     * Saves properties
+     * @param p Properties to save
+     */
+    public void writeProperties(Properties p) {
+        p.setProperty("version", "1.0");
     }
 
+    /**
+     * Reads properties
+     * @param p properties to save
+     * @return TopComponent with loaded properties
+     */
+    public Object readProperties(Properties p) {
+        AccountsBalancesTopComponent singleton = AccountsBalancesTopComponent.getDefault();
+        singleton.readPropertiesImpl(p);
+        return singleton;
+    }
+
+    /**
+     * Reads properties
+     * @param p Properties to read
+     */
+    private void readPropertiesImpl(Properties p) {
+        String version = p.getProperty("version");
+    }
+
+    /**
+     * Gets the topcomponent's ID
+     * @return Topcomponent's ID
+     */
     @Override
     protected String preferredID() {
         return PREFERRED_ID;
     }
 
+    /**
+     * Registers a lookup listener on the search filter and opens the accounts' balances group
+     * when the topcomponent is activated
+     */
     @Override
     protected void componentActivated() {
         super.componentActivated();
 
-        // Register lookup listener on the search filter top component
         if (result == null) {
+            // Register lookup listener on the search filter top component
             result = WindowManager.getDefault().findTopComponent("SearchFilterTopComponent").getLookup().lookupResult(SearchFilter.class);
             result.addLookupListener(this);
             result.allInstances();
+
+            // Display the accounts' balances
             resultChanged(null);
         }
 
         TopComponentGroup accountsBalancesGroup = WindowManager.getDefault().findTopComponentGroup("AccountsBalancesGroup");
-        if (accountsBalancesGroup == null) {
-            return;
+        if (accountsBalancesGroup != null) {
+            accountsBalancesGroup.open();
         }
-        accountsBalancesGroup.open();
     }
 
+    /**
+     * Unregisters the lookup listener and close the accounts' balances group
+     * when the topcomponent is hidden
+     */
     @Override
     protected void componentHidden() {
         super.componentHidden();
@@ -187,41 +255,46 @@ public final class AccountsBalancesTopComponent extends TopComponent implements 
         result = null;
 
         TopComponentGroup accountsBalancesGroup = WindowManager.getDefault().findTopComponentGroup("AccountsBalancesGroup");
-        if (accountsBalancesGroup == null) {
-            return;
+        if (accountsBalancesGroup != null) {
+            accountsBalancesGroup.close();
         }
-        accountsBalancesGroup.close();
     }
 
+    /** Called when the lookup content is changed (button Search clicked in Search Filter tc) */
     @Override
     public void resultChanged(LookupEvent ev) {
         @SuppressWarnings("unchecked")
         List<SearchFilter> searchFilters = (List<SearchFilter>) result.allInstances();
+
+        // If the search filter objects to display are different from the already displayed search filter objects
         if (!searchFilters.isEmpty() && !searchFilters.equals(displayedSearchFilters)) {
             displayData(searchFilters);
         }
     }
 
+    /**
+     * Displays the currency/accounts' balances by period
+     * @param searchFilters Search filter objects (one per period) for which the balances are wanted
+     */
     private void displayData(List<SearchFilter> searchFilters) {
+        // Display hourglass cursor
         Utilities.changeCursorWaitStatus(true);
-        long start = System.currentTimeMillis();
 
-        // (Account ID --> Account)
-        Map<Long, Account> accountsMap = Wallet.getInstance().getAccountsWithId();
-        // (Currency --> List of accounts)
-        Map<Currency, List<Account>> currencyAccountsMap = new HashMap<Currency, List<Account>>();
+        // Map of accounts: the key is the account ID, the value is the account itself
+        Map<Long, Account> accountsWithId = Wallet.getInstance().getAccountsWithId();
+
+        // Active currencies
         List<Currency> currencies = Wallet.getInstance().getActiveCurrencies();
-        for (Currency currency : currencies) {
-            List<Account> currencyAccounts = Wallet.getInstance().getActiveAccountsWithCurrency().get(currency);
-            currencyAccountsMap.put(currency, currencyAccounts);
-        }
 
-        // Map that contains the accounts' balances by currency/account and search filter
+        // Map of active accounts: the key is the currency, the value is the list of active accounts that belong to the currency
+        Map<Currency, List<Account>> accountsWithCurrency = Wallet.getInstance().getActiveAccountsWithCurrency();
+
+        // Map containing the balances by currency/account and by search filter
         // ((Currency/Account) --> (SearchFilter --> Currency/Account balance))
         Map<MoneyContainer, Map<SearchFilter, BigDecimal>> moneyContainerBalancesMap =
                 new HashMap<MoneyContainer, Map<SearchFilter, BigDecimal>>();
 
-        // Compute the accounts' balances for each search filter
+        // Compute the accounts' balances for each search filter (each period)
         for (SearchFilter searchFilter : searchFilters) {
             // Get all accounts' balances for the current search filter
             List accountsBalancesForCurrentSearchFilter = Datamodel.getAccountsBalancesUntil(searchFilter);
@@ -230,7 +303,8 @@ public final class AccountsBalancesTopComponent extends TopComponent implements 
             for (Object rowAccountBalanceObject : accountsBalancesForCurrentSearchFilter) {
                 Object[] rowAccountBalance = (Object[]) rowAccountBalanceObject;
                 Long accountId = (Long) rowAccountBalance[0];
-                Account account = accountsMap.get(accountId);
+                assert (accountId != null);
+                Account account = accountsWithId.get(accountId);
                 assert (account != null);
                 BigDecimal accountBalance = (BigDecimal) rowAccountBalance[1];
                 assert (accountBalance != null);
@@ -256,13 +330,15 @@ public final class AccountsBalancesTopComponent extends TopComponent implements 
             for (Currency currency : currencies) {
                 BigDecimal currencyBalance = new BigDecimal(0);
 
-                for (Account account : currencyAccountsMap.get(currency)) {
+                // For each active account that belong to the currency
+                for (Account account : accountsWithCurrency.get(currency)) {
                     if (!searchFilters.get(0).hasAccountsFilter() ||
                             searchFilters.get(0).getAccounts().contains(account)) {
+                        // Map that contains the current account's balances
                         Map<SearchFilter, BigDecimal> accountBalanceForCurrentSearchFilterMap =
                                 moneyContainerBalancesMap.get(account);
                         if (accountBalanceForCurrentSearchFilterMap != null) {
-                            // Get the balance of the accountfor the current search filter
+                            // Get the balance of the account for the current search filter
                             BigDecimal accountBalance = accountBalanceForCurrentSearchFilterMap.get(searchFilter);
 
                             // Add it to the currency's balance
@@ -275,8 +351,7 @@ public final class AccountsBalancesTopComponent extends TopComponent implements 
 
                 // Map that contains the currency's balance for the current search filter
                 // (Search filter --> Currency's balance)
-                Map<SearchFilter, BigDecimal> currencyBalancesMap =
-                        new HashMap<SearchFilter, BigDecimal>();
+                Map<SearchFilter, BigDecimal> currencyBalancesMap = new HashMap<SearchFilter, BigDecimal>();
                 // If currency' balances have already been added for other SearchFilters
                 if (moneyContainerBalancesMap.get(currency) != null) {
                     currencyBalancesMap.putAll(moneyContainerBalancesMap.get(currency));
@@ -284,12 +359,11 @@ public final class AccountsBalancesTopComponent extends TopComponent implements 
                 // Add the balance of the currency
                 currencyBalancesMap.put(searchFilter, currencyBalance);
 
-                // Add (SearchFilter, Currency balance> to the current currency
+                // Add (SearchFilter, Currency balance) to the current currency
                 moneyContainerBalancesMap.put(currency, currencyBalancesMap);
             }
         }
 
-        // Prepare treetable
         DefaultMutableTreeNode rootNode = new DefaultMutableTreeNode(); // Root (Not displayed)
 
         // Add the currencies and the accounts into the tree
@@ -304,7 +378,7 @@ public final class AccountsBalancesTopComponent extends TopComponent implements 
                 rootNode.add(currencyNode);
 
                 // Add the accounts of <currency> into the tree
-                for (Account account : currencyAccountsMap.get(currency)) {
+                for (Account account : accountsWithCurrency.get(currency)) {
                     // Add the account <account> if:
                     // - the user didn't select any account in the search filter or
                     // - <account> has been selected in the search filter
@@ -318,10 +392,8 @@ public final class AccountsBalancesTopComponent extends TopComponent implements 
             }
         }
 
-        // Create the tree model based on the root
+        // Create the outline based on the model
         DefaultTreeModel treeModel = new DefaultTreeModel(rootNode);
-
-        // Create the outline model based on the tree model
         OutlineModel outlineModel = DefaultOutlineModel.createOutlineModel(
                 treeModel,
                 new AccountsBalancesRowModel(searchFilters, moneyContainerBalancesMap),
@@ -329,7 +401,7 @@ public final class AccountsBalancesTopComponent extends TopComponent implements 
                 "Account");
         outlineAccountsBalances.setModel(outlineModel);
 
-        // Expand the tree
+        // Expand all nodes of the outline
         for (int i = 0; i < rootNode.getChildCount(); i++) {
             outlineAccountsBalances.expandPath(new TreePath(((DefaultMutableTreeNode) rootNode.getChildAt(i)).getPath()));
         }
@@ -337,19 +409,27 @@ public final class AccountsBalancesTopComponent extends TopComponent implements 
         // Save the currently displayed list of search filters
         this.displayedSearchFilters = searchFilters;
 
+        // Put the balances map so that it can be displayed as a chart by another topcomponent
         content.set(Collections.singleton(moneyContainerBalancesMap), null);
-        content.add(fieldsVisibility);
+        content.add(fieldsVisibility); // Add a description of the supported filters for the search filter topcomponent
 
-        long end = System.currentTimeMillis();
-        System.out.println("duration=" + (end - start));
+        // Display normal cursor
         Utilities.changeCursorWaitStatus(false);
     }
 
+    /** Row model for the Accounts' Balances outline */
     private class AccountsBalancesRowModel implements RowModel {
 
+        /** Search filters (periods) to display */
         private List<SearchFilter> searchFilters;
+        /** Currency/Account balances by search filter */
         private Map<MoneyContainer, Map<SearchFilter, BigDecimal>> balances;
 
+        /**
+         * Creates a new instance of AccountsBalancesRowModel
+         * @param searchFilters Search filters to display (one per period)
+         * @param balances Currency/Account balances by search filter
+         */
         public AccountsBalancesRowModel(List<SearchFilter> searchFilters, Map<MoneyContainer, Map<SearchFilter, BigDecimal>> balances) {
             if (searchFilters == null) {
                 throw new IllegalArgumentException("The parameter 'searchFilters' is null");
@@ -361,21 +441,41 @@ public final class AccountsBalancesTopComponent extends TopComponent implements 
             this.balances = balances;
         }
 
+        /**
+         * Gets the type of a column
+         * @param column Column position
+         * @return Type of the column
+         */
         @Override
         public Class getColumnClass(int column) {
             return String.class;
         }
 
+        /**
+         * Gets the number of columns
+         * @return Number of columns
+         */
         @Override
         public int getColumnCount() {
             return searchFilters.size();
         }
 
+        /**
+         * Gets the name of a column
+         * @param column Column position
+         * @return Column name
+         */
         @Override
         public String getColumnName(int column) {
             return searchFilters.get(column).getPeriod().toString();
         }
 
+        /**
+         * Gets the value of a cell
+         * @param node Node
+         * @param column Column position
+         * @return Cell value
+         */
         @Override
         public Object getValueFor(Object node, int column) {
             // Value to display in the current cell
@@ -394,35 +494,38 @@ public final class AccountsBalancesTopComponent extends TopComponent implements 
             if (moneyContainer instanceof Account || Options.calculateSums()) {
                 SearchFilter searchFilter = searchFilters.get(column);
                 Map<SearchFilter, BigDecimal> moneyContainerBalances = balances.get(moneyContainer);
-                if (moneyContainerBalances != null) {
-                    BigDecimal moneyContainerBalanceSearchFilter = moneyContainerBalances.get(searchFilter);
-                    assert (moneyContainerBalanceSearchFilter != null);
-                    if (moneyContainerBalanceSearchFilter.compareTo(BigDecimal.ZERO) != 0 ||
-                            Options.displayZero()) {
-                        value = Utilities.getBalance(moneyContainerBalanceSearchFilter);
-                    }
+                assert (moneyContainerBalances != null);
+                BigDecimal moneyContainerBalanceSearchFilter = moneyContainerBalances.get(searchFilter);
+                assert (moneyContainerBalanceSearchFilter != null);
+                if (moneyContainerBalanceSearchFilter.compareTo(BigDecimal.ZERO) != 0 ||
+                        Options.displayZero()) {
+                    value = Utilities.getBalance(moneyContainerBalanceSearchFilter);
                 }
             }
 
             return value;
         }
 
+        /**
+         * Is a cell editable?
+         * @param node Node
+         * @param column Column position
+         * @return true if the cell can be edited
+         */
         @Override
         public boolean isCellEditable(Object node, int column) {
             return false;
         }
 
+        /**
+         * Sets a value for a cell
+         * @param node Node
+         * @param column Column position
+         * @param value New cell value
+         */
         @Override
         public void setValueFor(Object node, int column, Object value) {
-        }
-    }
-
-    final static class ResolvableHelper implements Serializable {
-
-        private static final long serialVersionUID = 1L;
-
-        public Object readResolve() {
-            return AccountsBalancesTopComponent.getDefault();
+            // Not needed
         }
     }
 }

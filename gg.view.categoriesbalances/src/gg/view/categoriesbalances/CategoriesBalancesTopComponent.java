@@ -1,6 +1,23 @@
 /*
- * To change this template, choose Tools | Templates
- * and open the template in the editor.
+ * CategoriesBalancesTopComponent.java
+ *
+ * Copyright (C) 2009 Francois Duchemin
+ *
+ * This file is part of GrisbiGraphs.
+ *
+ * GrisbiGraphs is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation; either version 2 of the License, or
+ * (at your option) any later version.
+ *
+ * GrisbiGraphs is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with GrisbiGraphs; if not, write to the Free Software
+ * Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
  */
 package gg.view.categoriesbalances;
 
@@ -38,21 +55,27 @@ import org.openide.util.lookup.InstanceContent;
 import org.openide.windows.TopComponentGroup;
 
 /**
- * Top component which displays something.
+ * Top component which displays the balances' evolution by categories/sub-categories and by period.
  */
-@ConvertAsProperties(dtd = "-//gg.view.categoriesbalances//CategoriesBalances//EN",
-autostore = false)
+@ConvertAsProperties(dtd = "-//gg.view.categoriesbalances//CategoriesBalances//EN", autostore = false)
 public final class CategoriesBalancesTopComponent extends TopComponent implements LookupListener {
 
+    /** Singleton instance of the topcomponent */
     private static CategoriesBalancesTopComponent instance;
     /** path to the icon used by the component and its open action */
-    static final String ICON_PATH = "gg/resources/icons/CategoriesBalances.png";
+    private static final String ICON_PATH = "gg/resources/icons/CategoriesBalances.png";
+    /** ID of the component */
     private static final String PREFERRED_ID = "CategoriesBalancesTopComponent";
+    /** Content available in the lookup of the topcomponent */
     private InstanceContent content = new InstanceContent();
+    /** Result for the lookup listener */
     private Lookup.Result<SearchFilter> result = null;
+    /** Currently displayed search filters */
     private List<SearchFilter> displayedSearchFilters = new ArrayList<SearchFilter>();
+    /** Defines which filters are supported by this view */
     private FieldsVisibility fieldsVisibility = new FieldsVisibility();
 
+    /** Creates a new instance of CategoriesBalancesTopComponent */
     public CategoriesBalancesTopComponent() {
         initComponents();
         setName(NbBundle.getMessage(CategoriesBalancesTopComponent.class, "CTL_CategoriesBalancesTopComponent"));
@@ -61,13 +84,13 @@ public final class CategoriesBalancesTopComponent extends TopComponent implement
         putClientProperty(TopComponent.PROP_DRAGGING_DISABLED, Boolean.TRUE);
         putClientProperty(TopComponent.PROP_UNDOCKING_DISABLED, Boolean.TRUE);
 
-        // Treetable settings
+        // Outline settings
         outlineCategoriesBalances.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
         outlineCategoriesBalances.setRootVisible(false);
         outlineCategoriesBalances.setPopupUsedFromTheCorner(false);
         outlineCategoriesBalances.setColumnHidingAllowed(false);
 
-        // Set the supported fields from the search filter
+        // Set the supported filters
         fieldsVisibility.setFromVisible(true);
         fieldsVisibility.setToVisible(true);
         fieldsVisibility.setByVisible(true);
@@ -75,6 +98,8 @@ public final class CategoriesBalancesTopComponent extends TopComponent implement
         fieldsVisibility.setAccountsVisible(true);
         fieldsVisibility.setCategoriesVisible(true);
         content.set(Collections.singleton(fieldsVisibility), null);
+
+        // Initialize the topcomponent's lookup
         associateLookup(new AbstractLookup(content));
     }
 
@@ -117,6 +142,7 @@ public final class CategoriesBalancesTopComponent extends TopComponent implement
      * Gets default instance. Do not use directly: reserved for *.settings files only,
      * i.e. deserialization routines; otherwise you could get a non-deserialized instance.
      * To obtain the singleton instance, use {@link #findInstance}.
+     * @return Default instance
      */
     public static synchronized CategoriesBalancesTopComponent getDefault() {
         if (instance == null) {
@@ -127,6 +153,7 @@ public final class CategoriesBalancesTopComponent extends TopComponent implement
 
     /**
      * Obtain the CategoriesBalancesTopComponent instance. Never call {@link #getDefault} directly!
+     * @return CategoriesBalancesTopComponent instance
      */
     public static synchronized CategoriesBalancesTopComponent findInstance() {
         TopComponent win = WindowManager.getDefault().findTopComponent(PREFERRED_ID);
@@ -144,49 +171,79 @@ public final class CategoriesBalancesTopComponent extends TopComponent implement
         return getDefault();
     }
 
+    /**
+     * Gets the persistence type
+     * @return Persistence type
+     */
     @Override
     public int getPersistenceType() {
         return TopComponent.PERSISTENCE_ALWAYS;
     }
 
+    /**
+     * Saves properties
+     * @param p Properties to save
+     */
     public void writeProperties(java.util.Properties p) {
         p.setProperty("version", "1.0");
     }
 
+    /**
+     * Reads properties
+     * @param p properties to save
+     * @return TopComponent with loaded properties
+     */
     public Object readProperties(java.util.Properties p) {
         CategoriesBalancesTopComponent singleton = CategoriesBalancesTopComponent.getDefault();
         singleton.readPropertiesImpl(p);
         return singleton;
     }
 
+    /**
+     * Reads properties
+     * @param p Properties to read
+     */
     private void readPropertiesImpl(java.util.Properties p) {
         String version = p.getProperty("version");
     }
 
+    /**
+     * Gets the topcomponent's ID
+     * @return Topcomponent's ID
+     */
     @Override
     protected String preferredID() {
         return PREFERRED_ID;
     }
 
+    /**
+     * Registers a lookup listener on the search filter and opens the categories' balances group
+     * when the topcomponent is activated
+     */
     @Override
     protected void componentActivated() {
         super.componentActivated();
 
-        // Register lookup listener on the search filter top component
         if (result == null) {
+            // Register lookup listener on the search filter top component
             result = WindowManager.getDefault().findTopComponent("SearchFilterTopComponent").getLookup().lookupResult(SearchFilter.class);
             result.addLookupListener(this);
             result.allInstances();
+
+            // Display the movements' balances
             resultChanged(null);
         }
 
         TopComponentGroup categoriesBalancesGroup = WindowManager.getDefault().findTopComponentGroup("CategoriesBalancesGroup");
-        if (categoriesBalancesGroup == null) {
-            return;
+        if (categoriesBalancesGroup != null) {
+            categoriesBalancesGroup.open();
         }
-        categoriesBalancesGroup.open();
     }
 
+    /**
+     * Unregisters the lookup listener and close the categories' balances group
+     * when the topcomponent is hidden
+     */
     @Override
     protected void componentHidden() {
         super.componentHidden();
@@ -196,12 +253,12 @@ public final class CategoriesBalancesTopComponent extends TopComponent implement
         result = null;
 
         TopComponentGroup categoriesBalancesGroup = WindowManager.getDefault().findTopComponentGroup("CategoriesBalancesGroup");
-        if (categoriesBalancesGroup == null) {
-            return;
+        if (categoriesBalancesGroup != null) {
+            categoriesBalancesGroup.close();
         }
-        categoriesBalancesGroup.close();
     }
 
+    /** Called when the lookup content is changed (button Search clicked in Search Filter tc) */
     @Override
     public void resultChanged(LookupEvent ev) {
         @SuppressWarnings("unchecked")
@@ -243,17 +300,22 @@ public final class CategoriesBalancesTopComponent extends TopComponent implement
         return false;
     }
 
+    /**
+     * Displays the categories/sub-categories balances by period
+     * @param searchFilters Search filter objects (one per period) for which the balances are wanted
+     */
     private void displayData(List<SearchFilter> searchFilters) {
+        // Display hourglass cursor
         Utilities.changeCursorWaitStatus(true);
 
-        // Map that contains the categories' balances by category ID and search filter
+        // Map containing the categories' balances by category ID and search filter
         // ((Category ID) --> (SearchFilter --> Category balance))
         Map<Long, Map<SearchFilter, BigDecimal>> categoriesBalancesMap =
                 new HashMap<Long, Map<SearchFilter, BigDecimal>>();
 
         // Compute the sub-categories' balances (categories have always a balance of 0)
         for (SearchFilter searchFilter : searchFilters) {
-            // Get all categories' balances for the current search filter
+            // Get all categories' (categories and sub-categories) balances for the current search filter
             List categoriesBalancesForCurrentSearchFilter = Datamodel.getCategoriesBalances(searchFilter);
 
             // For each category, add (SearchFilter --> Category balance)
@@ -264,7 +326,7 @@ public final class CategoriesBalancesTopComponent extends TopComponent implement
                 BigDecimal categoryBalance = (BigDecimal) rowCategoryBalance[1];
                 assert (categoryBalance != null);
 
-                // Map that contains the category's balance for the current search filter
+                // Map containing the category's balance for the current search filter
                 // (SearchFilter --> Category balance)
                 Map<SearchFilter, BigDecimal> categoryBalanceForCurrentSearchFilterMap =
                         new HashMap<SearchFilter, BigDecimal>();
@@ -280,7 +342,7 @@ public final class CategoriesBalancesTopComponent extends TopComponent implement
                 categoriesBalancesMap.put(categoryId, categoryBalanceForCurrentSearchFilterMap);
             }
 
-            // Compute the categories' balances
+            // Compute the top-categories' balances
             for (Category topCategory : Wallet.getInstance().getTopCategories()) {
                 // Initialize the category's balance
                 BigDecimal topCategoryBalance = new BigDecimal(0);
@@ -300,9 +362,9 @@ public final class CategoriesBalancesTopComponent extends TopComponent implement
                             BigDecimal subCategoryBalance = subCategoryBalanceForCurrentSearchFilterMap.get(searchFilter);
 
                             // Add it to the category's balance
-                            if (subCategoryBalance != null) {
+                            if (subCategoryBalance != null) { // Add the sub-category's balance
                                 topCategoryBalance = topCategoryBalance.add(subCategoryBalance);
-                            } else {
+                            } else { // Put the balance 0 in the sub-category's map
                                 subCategoryBalanceForCurrentSearchFilterMap.put(searchFilter, new BigDecimal(0));
                             }
                         } else {
@@ -371,10 +433,8 @@ public final class CategoriesBalancesTopComponent extends TopComponent implement
             }
         }
 
-        // Create the tree model based on the root
+        // Create the outline based on the model
         DefaultTreeModel treeModel = new DefaultTreeModel(rootNode);
-
-        // Create the outline model based on the tree model
         OutlineModel outlineModel = DefaultOutlineModel.createOutlineModel(
                 treeModel,
                 new CategoriesBalancesRowModel(searchFilters, categoriesBalancesMap),
@@ -382,7 +442,7 @@ public final class CategoriesBalancesTopComponent extends TopComponent implement
                 "Category");
         outlineCategoriesBalances.setModel(outlineModel);
 
-        // Expand the tree
+        // Expand all nodes of the outline
         for (int i = 0; i < rootNode.getChildCount(); i++) {
             outlineCategoriesBalances.expandPath(new TreePath(((DefaultMutableTreeNode) rootNode.getChildAt(i)).getPath()));
         }
@@ -390,17 +450,27 @@ public final class CategoriesBalancesTopComponent extends TopComponent implement
         // Save the currently displayed list of search filters
         this.displayedSearchFilters = searchFilters;
 
+        // Put the balances map in the lookup so that it can be displayed as a chart by another topcomponent
         content.set(Collections.singleton(categoriesBalancesMap), null);
-        content.add(fieldsVisibility);
+        content.add(fieldsVisibility); // Add a description of the supported filters for the search filter topcomponent
 
+        // Display normal cursor
         Utilities.changeCursorWaitStatus(false);
     }
 
+    /** Row model for the Categories' balances outline */
     private class CategoriesBalancesRowModel implements RowModel {
 
+        /** Search filters (periods) to display */
         private List<SearchFilter> searchFilters;
+        /** Categories/Sub-categories balances by search filter */
         private Map<Long, Map<SearchFilter, BigDecimal>> balances;
 
+        /**
+         * Creates a new instance of CategoriesBalancesRowModel
+         * @param searchFilters Search filters to display (one per period)
+         * @param balances Category/Sub-category balances by search filter
+         */
         public CategoriesBalancesRowModel(List<SearchFilter> searchFilters, Map<Long, Map<SearchFilter, BigDecimal>> balances) {
             if (searchFilters == null) {
                 throw new IllegalArgumentException("The parameter 'searchFilters' is null");
@@ -412,21 +482,41 @@ public final class CategoriesBalancesTopComponent extends TopComponent implement
             this.balances = balances;
         }
 
+        /**
+         * Gets the type of a column
+         * @param column Column position
+         * @return Type of the column
+         */
         @Override
         public Class getColumnClass(int column) {
             return String.class;
         }
 
+        /**
+         * Gets the number of columns
+         * @return Number of columns
+         */
         @Override
         public int getColumnCount() {
             return searchFilters.size();
         }
 
+        /**
+         * Gets the name of a column
+         * @param column Column position
+         * @return Column name
+         */
         @Override
         public String getColumnName(int column) {
             return searchFilters.get(column).getPeriod().toString();
         }
 
+        /**
+         * Gets the value of a cell
+         * @param node Node
+         * @param column Column position
+         * @return Cell value
+         */
         @Override
         public Object getValueFor(Object node, int column) {
             // Value to display in the current cell
@@ -457,13 +547,26 @@ public final class CategoriesBalancesTopComponent extends TopComponent implement
             return value;
         }
 
+        /**
+         * Is a cell editable?
+         * @param node Node
+         * @param column Column position
+         * @return true if the cell can be edited
+         */
         @Override
         public boolean isCellEditable(Object node, int column) {
             return false;
         }
 
+        /**
+         * Sets a value for a cell
+         * @param node Node
+         * @param column Column position
+         * @param value New cell value
+         */
         @Override
         public void setValueFor(Object node, int column, Object value) {
+            // Not needed
         }
     }
 }

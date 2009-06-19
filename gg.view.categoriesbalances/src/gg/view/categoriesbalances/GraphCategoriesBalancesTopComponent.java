@@ -1,6 +1,23 @@
 /*
- * To change this template, choose Tools | Templates
- * and open the template in the editor.
+ * GraphCategoriesBalancesTopComponent.java
+ *
+ * Copyright (C) 2009 Francois Duchemin
+ *
+ * This file is part of GrisbiGraphs.
+ *
+ * GrisbiGraphs is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation; either version 2 of the License, or
+ * (at your option) any later version.
+ *
+ * GrisbiGraphs is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with GrisbiGraphs; if not, write to the Free Software
+ * Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
  */
 package gg.view.categoriesbalances;
 
@@ -38,18 +55,21 @@ import org.openide.util.Lookup;
 import org.openide.util.LookupListener;
 
 /**
- * Top component which displays something.
+ * Top component which displays a graph showing the categories/sub-categories balances evolution over time.
  */
-@ConvertAsProperties(dtd = "-//gg.view.categoriesbalances//GraphCategoriesBalances//EN",
-autostore = false)
+@ConvertAsProperties(dtd = "-//gg.view.categoriesbalances//GraphCategoriesBalances//EN", autostore = false)
 public final class GraphCategoriesBalancesTopComponent extends TopComponent implements LookupListener {
 
+    /** Singleton instance of the topcomponent */
     private static GraphCategoriesBalancesTopComponent instance;
-    /** path to the icon used by the component and its open action */
-    static final String ICON_PATH = "gg/resources/icons/GraphCategoriesBalances.png";
-    private Lookup.Result result = null;
+    /** Path to the icon used by the component and its open action */
+    private static final String ICON_PATH = "gg/resources/icons/GraphCategoriesBalances.png";
+    /** ID of the component */
     private static final String PREFERRED_ID = "GraphCategoriesBalancesTopComponent";
+    /** Result for the lookup listener */
+    private Lookup.Result result = null;
 
+    /** Creates a new instance of GraphCategoriesBalancesTopComponent */
     public GraphCategoriesBalancesTopComponent() {
         initComponents();
         setName(NbBundle.getMessage(GraphCategoriesBalancesTopComponent.class, "CTL_GraphCategoriesBalancesTopComponent"));
@@ -58,7 +78,6 @@ public final class GraphCategoriesBalancesTopComponent extends TopComponent impl
         putClientProperty(TopComponent.PROP_CLOSING_DISABLED, Boolean.TRUE);
         putClientProperty(TopComponent.PROP_DRAGGING_DISABLED, Boolean.TRUE);
         putClientProperty(TopComponent.PROP_UNDOCKING_DISABLED, Boolean.TRUE);
-
     }
 
     /** This method is called from within the constructor to
@@ -92,6 +111,7 @@ public final class GraphCategoriesBalancesTopComponent extends TopComponent impl
      * Gets default instance. Do not use directly: reserved for *.settings files only,
      * i.e. deserialization routines; otherwise you could get a non-deserialized instance.
      * To obtain the singleton instance, use {@link #findInstance}.
+     * @return Default instance
      */
     public static synchronized GraphCategoriesBalancesTopComponent getDefault() {
         if (instance == null) {
@@ -102,6 +122,7 @@ public final class GraphCategoriesBalancesTopComponent extends TopComponent impl
 
     /**
      * Obtain the GraphCategoriesBalancesTopComponent instance. Never call {@link #getDefault} directly!
+     * @return GraphCategoriesBalancesTopComponent instance
      */
     public static synchronized GraphCategoriesBalancesTopComponent findInstance() {
         TopComponent win = WindowManager.getDefault().findTopComponent(PREFERRED_ID);
@@ -119,49 +140,77 @@ public final class GraphCategoriesBalancesTopComponent extends TopComponent impl
         return getDefault();
     }
 
+    /**
+     * Gets the persistence type
+     * @return Persistence type
+     */
     @Override
     public int getPersistenceType() {
         return TopComponent.PERSISTENCE_ALWAYS;
     }
 
-    @Override
-    public void componentOpened() {
-        // Register lookup listener on the accounts' balance table top component
-        if (result == null) {
-            result = WindowManager.getDefault().findTopComponent("CategoriesBalancesTopComponent").
-                    getLookup().lookupResult(Map.class);
-            result.addLookupListener(this);
-            result.allInstances();
-        }
-
-        resultChanged(null);
-    }
-
-    @Override
-    public void componentClosed() {
-        result.removeLookupListener(this);
-        result = null;
-    }
-
+    /**
+     * Saves properties
+     * @param p Properties to save
+     */
     public void writeProperties(java.util.Properties p) {
         p.setProperty("version", "1.0");
     }
 
+    /**
+     * Reads properties
+     * @param p properties to save
+     * @return TopComponent with loaded properties
+     */
     public Object readProperties(java.util.Properties p) {
         GraphCategoriesBalancesTopComponent singleton = GraphCategoriesBalancesTopComponent.getDefault();
         singleton.readPropertiesImpl(p);
         return singleton;
     }
 
+    /**
+     * Reads properties
+     * @param p Properties to read
+     */
     private void readPropertiesImpl(java.util.Properties p) {
         String version = p.getProperty("version");
     }
 
+    /**
+     * Gets the topcomponent's ID
+     * @return Topcomponent's ID
+     */
     @Override
     protected String preferredID() {
         return PREFERRED_ID;
     }
 
+    /**
+     * Registers a lookup listener on the Categories' balances table topcomponent
+     * when the topcomponent is activated so the updating the table automatically updates the graph
+     */
+    @Override
+    public void componentOpened() {
+        if (result == null) {
+            // Register lookup listener on the categories' balance table top component
+            result = WindowManager.getDefault().findTopComponent("CategoriesBalancesTopComponent").
+                    getLookup().lookupResult(Map.class);
+            result.addLookupListener(this);
+            result.allInstances();
+
+            // Display the graph
+            resultChanged(null);
+        }
+    }
+
+    /** Unregisters the lookup listener when the topcomponent is closed */
+    @Override
+    public void componentClosed() {
+        result.removeLookupListener(this);
+        result = null;
+    }
+
+    /** Called when the lookup content is changed (content of table changed)*/
     @Override
     public void resultChanged(LookupEvent ev) {
         Collection instances = result.allInstances();
@@ -173,30 +222,15 @@ public final class GraphCategoriesBalancesTopComponent extends TopComponent impl
         }
     }
 
-    private boolean isCategoryToDisplay(List<Category> selectedCategories, Category category) {
-        if (selectedCategories.contains(category)) {
-            // If <category> has been selected in the search filter window
-            return true;
-        }
-
-        for (Category selectedCategory : selectedCategories) {
-            if (selectedCategory.isTopCategory() && Wallet.getInstance().getSubCategoriesWithParentCategory().get(selectedCategory).contains(category)) {
-                // If a sub-category of <category> has been selected in the search filter window
-                return true;
-            } else if (!selectedCategory.isTopCategory() &&
-                    selectedCategory.getParentCategory().getId().compareTo(category.getId()) == 0) {
-                // If the parent category of <category> has been selected in the search filter window
-                return true;
-            }
-        }
-
-        return false;
-    }
-
+    /**
+     * Displays the categories/sub-categories' balances by period
+     * @param searchFilters Search filter objects (one per period) for which the balances are wanted
+     */
     private void displayData(Map<Long, Map<SearchFilter, BigDecimal>> balances) {
+        // Display hourglass cursor
         Utilities.changeCursorWaitStatus(true);
 
-        // Create the dataset (that will contain the categories' balances)
+        // Create the dataset (that will contain the categories/sub-categories' balances)
         DefaultCategoryDataset dataset = new DefaultCategoryDataset();
 
         // Create an empty chart
@@ -226,7 +260,7 @@ public final class GraphCategoriesBalancesTopComponent extends TopComponent impl
         CategoryAxis domainAxis = plot.getDomainAxis();
         domainAxis.setCategoryLabelPositions(CategoryLabelPositions.UP_45);
 
-        // Add the series on the chart
+        // Add the series on the chart for each category/sub-category displayed in the table
         for (Long categoryId : balances.keySet()) {
             Category category = Wallet.getInstance().getCategoriesWithId().get(categoryId);
             assert (category != null);
@@ -249,7 +283,6 @@ public final class GraphCategoriesBalancesTopComponent extends TopComponent impl
                             searchFilter.getPeriod());
                 }
             }
-
         }
 
         // Series' shapes
@@ -272,6 +305,7 @@ public final class GraphCategoriesBalancesTopComponent extends TopComponent impl
         jPanelCategoriesBalances.add(chartPanel, BorderLayout.CENTER);
         jPanelCategoriesBalances.updateUI();
 
+        // Display normal cursor
         Utilities.changeCursorWaitStatus(false);
     }
 }

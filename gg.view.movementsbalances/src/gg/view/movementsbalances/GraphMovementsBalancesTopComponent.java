@@ -1,6 +1,23 @@
 /*
- * To change this template, choose Tools | Templates
- * and open the template in the editor.
+ * GraphMovementsBalancesTopComponent.java
+ *
+ * Copyright (C) 2009 Francois Duchemin
+ *
+ * This file is part of GrisbiGraphs.
+ *
+ * GrisbiGraphs is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation; either version 2 of the License, or
+ * (at your option) any later version.
+ *
+ * GrisbiGraphs is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with GrisbiGraphs; if not, write to the Free Software
+ * Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
  */
 package gg.view.movementsbalances;
 
@@ -38,18 +55,21 @@ import org.openide.util.LookupEvent;
 import org.openide.util.LookupListener;
 
 /**
- * Top component which displays something.
+ * Top component which displays a graph showing the accounts' movements evolution over time.
  */
-@ConvertAsProperties(dtd = "-//gg.view.movementsbalances//GraphMovementsBalances//EN",
-autostore = false)
+@ConvertAsProperties(dtd = "-//gg.view.movementsbalances//GraphMovementsBalances//EN", autostore = false)
 public final class GraphMovementsBalancesTopComponent extends TopComponent implements LookupListener {
 
+    /** Singleton instance of the topcomponent */
     private static GraphMovementsBalancesTopComponent instance;
-    /** path to the icon used by the component and its open action */
-    static final String ICON_PATH = "gg/resources/icons/GraphMovementsBalances.png";
-    private Lookup.Result result = null;
+    /** Path to the icon used by the component and its open action */
+    private static final String ICON_PATH = "gg/resources/icons/GraphMovementsBalances.png";
+    /** ID of the component */
     private static final String PREFERRED_ID = "GraphMovementsBalancesTopComponent";
+    /** Result for the lookup listener */
+    private Lookup.Result result = null;
 
+    /** Creates a new instance of GraphMovementsBalancesTopComponent */
     public GraphMovementsBalancesTopComponent() {
         initComponents();
         setName(NbBundle.getMessage(GraphMovementsBalancesTopComponent.class, "CTL_GraphMovementsBalancesTopComponent"));
@@ -97,6 +117,7 @@ public final class GraphMovementsBalancesTopComponent extends TopComponent imple
      * Gets default instance. Do not use directly: reserved for *.settings files only,
      * i.e. deserialization routines; otherwise you could get a non-deserialized instance.
      * To obtain the singleton instance, use {@link #findInstance}.
+     * @return Default instance
      */
     public static synchronized GraphMovementsBalancesTopComponent getDefault() {
         if (instance == null) {
@@ -107,6 +128,7 @@ public final class GraphMovementsBalancesTopComponent extends TopComponent imple
 
     /**
      * Obtain the GraphMovementsBalancesTopComponent instance. Never call {@link #getDefault} directly!
+     * @return GraphMovementsBalancesTopComponent instance
      */
     public static synchronized GraphMovementsBalancesTopComponent findInstance() {
         TopComponent win = WindowManager.getDefault().findTopComponent(PREFERRED_ID);
@@ -124,41 +146,97 @@ public final class GraphMovementsBalancesTopComponent extends TopComponent imple
         return getDefault();
     }
 
+    /**
+     * Gets the persistence type
+     * @return Persistence type
+     */
     @Override
     public int getPersistenceType() {
         return TopComponent.PERSISTENCE_ALWAYS;
     }
 
+    /**
+     * Saves properties
+     * @param p Properties to save
+     */
+    public void writeProperties(java.util.Properties p) {
+        p.setProperty("version", "1.0");
+    }
+
+    /**
+     * Reads properties
+     * @param p properties to save
+     * @return TopComponent with loaded properties
+     */
+    public Object readProperties(java.util.Properties p) {
+        GraphMovementsBalancesTopComponent singleton = GraphMovementsBalancesTopComponent.getDefault();
+        singleton.readPropertiesImpl(p);
+        return singleton;
+    }
+
+    /**
+     * Reads properties
+     * @param p Properties to read
+     */
+    private void readPropertiesImpl(java.util.Properties p) {
+        String version = p.getProperty("version");
+    }
+
+    /**
+     * Gets the topcomponent's ID
+     * @return Topcomponent's ID
+     */
+    @Override
+    protected String preferredID() {
+        return PREFERRED_ID;
+    }
+
+    /**
+     * Registers a lookup listener on the Movements' balances table topcomponent
+     * when the topcomponent is activated so the updating the table automatically updates the graph
+     */
     @Override
     public void componentOpened() {
-        // Register lookup listener on the movements' balances table top component
         if (result == null) {
+            // Register lookup listener on the movements' balances table top component
             result = WindowManager.getDefault().findTopComponent("MovementsBalancesTopComponent").
                     getLookup().lookupResult(Map.class);
             result.addLookupListener(this);
             result.allInstances();
+
+            // Display the graph
             resultChanged(null);
         }
     }
 
+    /** Unregisters the lookup listener when the topcomponent is closed */
     @Override
     public void componentClosed() {
         result.removeLookupListener(this);
         result = null;
     }
 
+    /** Called when the lookup content is changed (content of table changed)*/
     @Override
     public void resultChanged(LookupEvent ev) {
         Collection instances = result.allInstances();
         if (!instances.isEmpty()) {
+            // Get the currency/account movements balances by search filter
             @SuppressWarnings("unchecked")
             Map<MoneyContainer, Map<SearchFilter, BigDecimal>> balances =
                     (Map<MoneyContainer, Map<SearchFilter, BigDecimal>>) instances.iterator().next();
+
+            // Display the content of the table in the graph
             displayData(balances);
         }
     }
 
+    /**
+     * Displays the accounts' movements balances by period
+     * @param searchFilters Search filter objects (one per period) for which the movements balances are wanted
+     */
     private void displayData(Map<MoneyContainer, Map<SearchFilter, BigDecimal>> balances) {
+        // Display hourglass cursor
         Utilities.changeCursorWaitStatus(true);
 
         // Create the dataset (that will contain the movements' balances)
@@ -231,25 +309,7 @@ public final class GraphMovementsBalancesTopComponent extends TopComponent imple
         jPanelMovementsBalances.add(chartPanel, BorderLayout.CENTER);
         jPanelMovementsBalances.updateUI();
 
+        // Display normal cursor
         Utilities.changeCursorWaitStatus(false);
-    }
-
-    public void writeProperties(java.util.Properties p) {
-        p.setProperty("version", "1.0");
-    }
-
-    public Object readProperties(java.util.Properties p) {
-        GraphMovementsBalancesTopComponent singleton = GraphMovementsBalancesTopComponent.getDefault();
-        singleton.readPropertiesImpl(p);
-        return singleton;
-    }
-
-    private void readPropertiesImpl(java.util.Properties p) {
-        String version = p.getProperty("version");
-    }
-
-    @Override
-    protected String preferredID() {
-        return PREFERRED_ID;
     }
 }

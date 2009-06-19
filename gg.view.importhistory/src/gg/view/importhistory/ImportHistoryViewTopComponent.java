@@ -23,15 +23,17 @@ package gg.view.importhistory;
 
 import gg.searchfilter.FieldsVisibility;
 import gg.db.entities.FileImport;
+import gg.utilities.Utilities;
 import gg.wallet.Wallet;
-import java.io.Serializable;
 import java.util.List;
+import java.util.Properties;
 import java.util.logging.Logger;
 import javax.swing.JLabel;
 import javax.swing.ListSelectionModel;
 import javax.swing.table.DefaultTableCellRenderer;
 import javax.swing.table.DefaultTableModel;
 import org.joda.time.DateTime;
+import org.netbeans.api.settings.ConvertAsProperties;
 import org.openide.util.ImageUtilities;
 import org.openide.util.NbBundle;
 import org.openide.util.lookup.Lookups;
@@ -41,17 +43,25 @@ import org.openide.windows.WindowManager;
 /**
  * Top component which displays the history of the Grisbi file imports.
  */
-final class ImportHistoryViewTopComponent extends TopComponent {
+@ConvertAsProperties(dtd = "-//gg.view.categoriesbalances//CategoriesBalances//EN", autostore = false)
+public final class ImportHistoryViewTopComponent extends TopComponent {
 
+    /** Singleton instance of the topcomponent */
     private static ImportHistoryViewTopComponent instance;
-    /** path to the icon used by the component and its open action */
-    static final String ICON_PATH = "gg/resources/icons/ImportHistoryView.png";
+    /** Path to the icon used by the component and its open action */
+    private static final String ICON_PATH = "gg/resources/icons/ImportHistoryView.png";
+    /** ID of the component */
     private static final String PREFERRED_ID = "ImportHistoryViewTopComponent";
+    /** Position of 'Imported on' in the model */
     private static final byte COLUMN_IMPORTED_ON = 0;
+    /** Position of 'File path' in the model */
     private static final byte COLUMN_FILE_PATH = 1;
+    /** Position of 'duration' in the model */
     private static final byte COLUMN_DURATION = 2;
+    /** Position of 'success' in the model */
     private static final byte COLUMN_SUCCESS = 3;
 
+    /** Creates a new instance of ImportHistoryViewTopComponent */
     private ImportHistoryViewTopComponent() {
         initComponents();
         setName(NbBundle.getMessage(ImportHistoryViewTopComponent.class, "CTL_ImportHistoryViewTopComponent"));
@@ -60,6 +70,7 @@ final class ImportHistoryViewTopComponent extends TopComponent {
         putClientProperty(TopComponent.PROP_DRAGGING_DISABLED, Boolean.TRUE);
         putClientProperty(TopComponent.PROP_UNDOCKING_DISABLED, Boolean.TRUE);
 
+        // Initialize the table that shows the file imports
         eTableImportHistory.setModel(new DefaultTableModel(
                 new Object[][]{},
                 new String[]{
@@ -104,15 +115,18 @@ final class ImportHistoryViewTopComponent extends TopComponent {
                 }
             }
         });
-        
+
+        // Set the properties of the table that shows the file imports
         eTableImportHistory.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
         eTableImportHistory.setColumnHidingAllowed(false);
         eTableImportHistory.setPopupUsedFromTheCorner(false);
 
+        // Left align the durations
         DefaultTableCellRenderer leftRenderer = new DefaultTableCellRenderer();
         leftRenderer.setHorizontalAlignment(JLabel.LEFT);
         eTableImportHistory.getColumnModel().getColumn(COLUMN_DURATION).setCellRenderer(leftRenderer);
 
+        // No filter can be applied to this view
         FieldsVisibility fieldsVisibility = new FieldsVisibility();
         associateLookup(Lookups.singleton(fieldsVisibility));
     }
@@ -156,6 +170,7 @@ final class ImportHistoryViewTopComponent extends TopComponent {
      * Gets default instance. Do not use directly: reserved for *.settings files only,
      * i.e. deserialization routines; otherwise you could get a non-deserialized instance.
      * To obtain the singleton instance, use {@link #findInstance}.
+     * @return Default instance
      */
     public static synchronized ImportHistoryViewTopComponent getDefault() {
         if (instance == null) {
@@ -166,6 +181,7 @@ final class ImportHistoryViewTopComponent extends TopComponent {
 
     /**
      * Obtain the ImportHistoryViewTopComponent instance. Never call {@link #getDefault} directly!
+     * @return ImportHistoryViewTopComponent instance
      */
     public static synchronized ImportHistoryViewTopComponent findInstance() {
         TopComponent win = WindowManager.getDefault().findTopComponent(PREFERRED_ID);
@@ -183,18 +199,59 @@ final class ImportHistoryViewTopComponent extends TopComponent {
         return getDefault();
     }
 
+    /**
+     * Gets the persistence type
+     * @return Persistence type
+     */
     @Override
     public int getPersistenceType() {
         return TopComponent.PERSISTENCE_ALWAYS;
     }
 
+    /**
+     * Saves properties
+     * @param p Properties to save
+     */
+    public void writeProperties(Properties p) {
+        p.setProperty("version", "1.0");
+    }
+
+    /**
+     * Reads properties
+     * @param p properties to save
+     * @return TopComponent with loaded properties
+     */
+    public Object readProperties(Properties p) {
+        ImportHistoryViewTopComponent singleton = ImportHistoryViewTopComponent.getDefault();
+        singleton.readPropertiesImpl(p);
+        return singleton;
+    }
+
+    /**
+     * Reads properties
+     * @param p Properties to read
+     */
+    private void readPropertiesImpl(Properties p) {
+        String version = p.getProperty("version");
+    }
+
+    /**
+     * Gets the topcomponent's ID
+     * @return Topcomponent's ID
+     */
+    @Override
+    protected String preferredID() {
+        return PREFERRED_ID;
+    }
+
+    /** Fill the table with the file imports when the topcomponent is opened */
     @Override
     public void componentOpened() {
-        // ------------------------------------------------------
-        // Refill the table when the component is opened so that
-        // when a new Grisbi file is imported into the embedded DB,
-        //  the new row is displayed in the table
-        // ------------------------------------------------------
+        // Refill the table when the component is opened so that when a new Grisbi file is
+        // imported into the embedded DB, the new row is displayed in the table
+
+        // Display hourglass cursor
+        Utilities.changeCursorWaitStatus(true);
 
         // Empty the table
         for (int i = eTableImportHistory.getRowCount() - 1; i >= 0; i--) {
@@ -205,31 +262,13 @@ final class ImportHistoryViewTopComponent extends TopComponent {
         List<FileImport> fileImports = Wallet.getInstance().getFileImports();
         for (FileImport fileImport : fileImports) {
             ((DefaultTableModel) eTableImportHistory.getModel()).addRow(new Object[]{
-                        fileImport.getImportedOn(), fileImport.getFilePath(), fileImport.getImportDuration(), fileImport.getSuccess()});
+                        fileImport.getImportedOn(),
+                        fileImport.getFilePath(),
+                        fileImport.getImportDuration(),
+                        fileImport.getSuccess()});
         }
-    }
 
-    @Override
-    public void componentClosed() {
-    }
-
-    /** replaces this in object stream */
-    @Override
-    public Object writeReplace() {
-        return new ResolvableHelper();
-    }
-
-    @Override
-    protected String preferredID() {
-        return PREFERRED_ID;
-    }
-
-    final static class ResolvableHelper implements Serializable {
-
-        private static final long serialVersionUID = 1L;
-
-        public Object readResolve() {
-            return ImportHistoryViewTopComponent.getDefault();
-        }
+        // Display normal cursor
+        Utilities.changeCursorWaitStatus(true);
     }
 }

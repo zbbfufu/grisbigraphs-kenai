@@ -1,6 +1,23 @@
 /*
- * To change this template, choose Tools | Templates
- * and open the template in the editor.
+ * GraphAccountsBalancesTopComponent.java
+ *
+ * Copyright (C) 2009 Francois Duchemin
+ *
+ * This file is part of GrisbiGraphs.
+ *
+ * GrisbiGraphs is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation; either version 2 of the License, or
+ * (at your option) any later version.
+ *
+ * GrisbiGraphs is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with GrisbiGraphs; if not, write to the Free Software
+ * Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
  */
 package gg.view.accountsbalances;
 
@@ -10,10 +27,10 @@ import gg.db.entities.MoneyContainer;
 import gg.utilities.Utilities;
 import java.awt.BorderLayout;
 import java.awt.Color;
-import java.io.Serializable;
 import java.math.BigDecimal;
 import java.util.Collection;
 import java.util.Map;
+import java.util.Properties;
 import java.util.SortedSet;
 import java.util.TreeSet;
 import java.util.logging.Logger;
@@ -28,6 +45,7 @@ import org.jfree.chart.plot.PlotOrientation;
 import org.jfree.chart.renderer.category.LineAndShapeRenderer;
 import org.jfree.data.category.DefaultCategoryDataset;
 import org.jfree.util.ShapeUtilities;
+import org.netbeans.api.settings.ConvertAsProperties;
 import org.openide.util.ImageUtilities;
 import org.openide.util.Lookup;
 import org.openide.util.LookupEvent;
@@ -37,16 +55,21 @@ import org.openide.windows.TopComponent;
 import org.openide.windows.WindowManager;
 
 /**
- * Top component which displays something.
+ * Top component which displays a graph showing the accounts' balances evolution over time.
  */
-final class GraphAccountsBalancesTopComponent extends TopComponent implements LookupListener {
+@ConvertAsProperties(dtd = "-//gg.view.categoriesbalances//CategoriesBalances//EN", autostore = false)
+public final class GraphAccountsBalancesTopComponent extends TopComponent implements LookupListener {
 
+    /** Singleton instance of the topcomponent */
     private static GraphAccountsBalancesTopComponent instance;
-    /** path to the icon used by the component and its open action */
-    static final String ICON_PATH = "gg/resources/icons/GraphAccountsBalances.png";
+    /** Path to the icon used by the component and its open action */
+    private static final String ICON_PATH = "gg/resources/icons/GraphAccountsBalances.png";
+    /** ID of the component */
     private static final String PREFERRED_ID = "GraphAccountsBalancesTopComponent";
+    /** Result for the lookup listener */
     private Lookup.Result result = null;
 
+    /** Creates a new instance of GraphAccountsBalancesTopComponent */
     private GraphAccountsBalancesTopComponent() {
         initComponents();
         setName(NbBundle.getMessage(GraphAccountsBalancesTopComponent.class, "CTL_GraphAccountsBalancesTopComponent"));
@@ -94,6 +117,7 @@ final class GraphAccountsBalancesTopComponent extends TopComponent implements Lo
      * Gets default instance. Do not use directly: reserved for *.settings files only,
      * i.e. deserialization routines; otherwise you could get a non-deserialized instance.
      * To obtain the singleton instance, use {@link #findInstance}.
+     * @return Default instance
      */
     public static synchronized GraphAccountsBalancesTopComponent getDefault() {
         if (instance == null) {
@@ -104,6 +128,7 @@ final class GraphAccountsBalancesTopComponent extends TopComponent implements Lo
 
     /**
      * Obtain the GraphAccountsBalancesTopComponent instance. Never call {@link #getDefault} directly!
+     * @return GraphAccountsBalancesTopComponent instance
      */
     public static synchronized GraphAccountsBalancesTopComponent findInstance() {
         TopComponent win = WindowManager.getDefault().findTopComponent(PREFERRED_ID);
@@ -121,53 +146,97 @@ final class GraphAccountsBalancesTopComponent extends TopComponent implements Lo
         return getDefault();
     }
 
+    /**
+     * Gets the persistence type
+     * @return Persistence type
+     */
     @Override
     public int getPersistenceType() {
         return TopComponent.PERSISTENCE_ALWAYS;
     }
 
+    /**
+     * Saves properties
+     * @param p Properties to save
+     */
+    public void writeProperties(Properties p) {
+        p.setProperty("version", "1.0");
+    }
+
+    /**
+     * Reads properties
+     * @param p properties to save
+     * @return TopComponent with loaded properties
+     */
+    public Object readProperties(Properties p) {
+        GraphAccountsBalancesTopComponent singleton = GraphAccountsBalancesTopComponent.getDefault();
+        singleton.readPropertiesImpl(p);
+        return singleton;
+    }
+
+    /**
+     * Reads properties
+     * @param p Properties to read
+     */
+    private void readPropertiesImpl(Properties p) {
+        String version = p.getProperty("version");
+    }
+
+    /**
+     * Gets the topcomponent's ID
+     * @return Topcomponent's ID
+     */
+    @Override
+    protected String preferredID() {
+        return PREFERRED_ID;
+    }
+
+    /**
+     * Registers a lookup listener on the Accounts' balances table topcomponent
+     * when the topcomponent is activated so the updating the table automatically updates the graph
+     */
     @Override
     public void componentOpened() {
-        // Register lookup listener on the accounts' balance table top component
         if (result == null) {
+            // Register lookup listener on the accounts' balance table top component
             result = WindowManager.getDefault().findTopComponent("AccountsBalancesTopComponent").
                     getLookup().lookupResult(Map.class);
             result.addLookupListener(this);
             result.allInstances();
-        }
 
-        resultChanged(null);
+            // Display the graph
+            resultChanged(null);
+        }
     }
 
+    /** Unregisters the lookup listener when the topcomponent is closed */
     @Override
     public void componentClosed() {
         result.removeLookupListener(this);
         result = null;
     }
 
-    /** replaces this in object stream */
-    @Override
-    public Object writeReplace() {
-        return new ResolvableHelper();
-    }
-
-    @Override
-    protected String preferredID() {
-        return PREFERRED_ID;
-    }
-
+    /** Called when the lookup content is changed (content of table changed)*/
     @Override
     public void resultChanged(LookupEvent ev) {
         Collection instances = result.allInstances();
         if (!instances.isEmpty()) {
+            // Get the currency/account balances by search filter
             @SuppressWarnings("unchecked")
             Map<MoneyContainer, Map<SearchFilter, BigDecimal>> balances =
                     (Map<MoneyContainer, Map<SearchFilter, BigDecimal>>) instances.iterator().next();
+
+            // Display the content of the table in the graph
             displayData(balances);
         }
     }
 
+    /**
+     * Displays the accounts' balances by period
+     * @param searchFilters Search filter objects (one per period) for which the balances are wanted
+     */
     private void displayData(Map<MoneyContainer, Map<SearchFilter, BigDecimal>> balances) {
+        // Display hourglass cursor
         Utilities.changeCursorWaitStatus(true);
 
         // Create the dataset (that will contain the accounts' balances)
@@ -200,7 +269,7 @@ final class GraphAccountsBalancesTopComponent extends TopComponent implements Lo
         CategoryAxis domainAxis = plot.getDomainAxis();
         domainAxis.setCategoryLabelPositions(CategoryLabelPositions.UP_45);
 
-        // Add the series on the chart
+        // Add the series on the chart for each account displayed in the table
         for (MoneyContainer moneyContainer : balances.keySet()) {
 
             if (moneyContainer instanceof Account) {
@@ -209,7 +278,6 @@ final class GraphAccountsBalancesTopComponent extends TopComponent implements Lo
                         balances.get(account).keySet());
 
                 for (SearchFilter searchFilter : sortedSearchFilters) {
-
                     if (!searchFilter.hasAccountsFilter() ||
                             searchFilter.getAccounts().contains(account)) {
 
@@ -244,15 +312,7 @@ final class GraphAccountsBalancesTopComponent extends TopComponent implements Lo
         jPanelAccountsBalances.add(chartPanel, BorderLayout.CENTER);
         jPanelAccountsBalances.updateUI();
 
+        // Display normal cursor
         Utilities.changeCursorWaitStatus(false);
-    }
-
-    final static class ResolvableHelper implements Serializable {
-
-        private static final long serialVersionUID = 1L;
-
-        public Object readResolve() {
-            return GraphAccountsBalancesTopComponent.getDefault();
-        }
     }
 }

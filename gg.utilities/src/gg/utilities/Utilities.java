@@ -30,7 +30,7 @@ import org.openide.util.Mutex;
 import org.openide.windows.WindowManager;
 
 /**
- * Some static utility methods
+ * Static utility methods
  * @author Francois Duchemin
  */
 public class Utilities {
@@ -54,10 +54,19 @@ public class Utilities {
         return signedBalance;
     }
 
+    /**
+     * Rounds a balance with 2 digits
+     * @param balance Balance to round
+     * @return Rounded balance
+     */
     public static String getBalance(BigDecimal balance) {
         return balance.setScale(2, RoundingMode.HALF_EVEN).toString();
     }
 
+    /**
+     * Displays or hides the wait status cursor
+     * @param isWaiting Should the hourglass cursor be displayed?
+     */
     public static void changeCursorWaitStatus(final boolean isWaiting) {
         Mutex.EVENT.writeAccess(new Runnable() {
 
@@ -69,11 +78,10 @@ public class Utilities {
                     Component glassPane = mainFrame.getGlassPane();
                     if (isWaiting) {
                         glassPane.setVisible(true);
-
                         glassPane.setCursor(Cursor.getPredefinedCursor(Cursor.WAIT_CURSOR));
+
                     } else {
                         glassPane.setVisible(false);
-
                         glassPane.setCursor(Cursor.getPredefinedCursor(Cursor.DEFAULT_CURSOR));
                     }
                 } catch (Exception e) {

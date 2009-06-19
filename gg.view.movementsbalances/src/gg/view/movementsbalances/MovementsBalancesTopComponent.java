@@ -1,6 +1,23 @@
 /*
- * To change this template, choose Tools | Templates
- * and open the template in the editor.
+ * MovementsBalancesTopComponent.java
+ *
+ * Copyright (C) 2009 Francois Duchemin
+ *
+ * This file is part of GrisbiGraphs.
+ *
+ * GrisbiGraphs is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation; either version 2 of the License, or
+ * (at your option) any later version.
+ *
+ * GrisbiGraphs is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with GrisbiGraphs; if not, write to the Free Software
+ * Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
  */
 package gg.view.movementsbalances;
 
@@ -40,21 +57,27 @@ import org.openide.util.lookup.InstanceContent;
 import org.openide.windows.TopComponentGroup;
 
 /**
- * Top component which displays something.
+ * Top component which displays the movements' balances evolution over time.
  */
-@ConvertAsProperties(dtd = "-//gg.view.movementsbalances//MovementsBalances//EN",
-autostore = false)
+@ConvertAsProperties(dtd = "-//gg.view.movementsbalances//MovementsBalances//EN", autostore = false)
 public final class MovementsBalancesTopComponent extends TopComponent implements LookupListener {
 
+    /** Singleton instance of the topcomponent */
     private static MovementsBalancesTopComponent instance;
-    /** path to the icon used by the component and its open action */
-    static final String ICON_PATH = "gg/resources/icons/MovementsBalances.png";
+    /** Path to the icon used by the component and its open action */
+    private static final String ICON_PATH = "gg/resources/icons/MovementsBalances.png";
+    /** ID of the component */
     private static final String PREFERRED_ID = "MovementsBalancesTopComponent";
+    /** Content available in the lookup of the topcomponent */
     private InstanceContent content = new InstanceContent();
+    /** Result for the lookup listener */
     private Lookup.Result result = null;
+    /** Currently displayed search filters */
     private List<SearchFilter> displayedSearchFilters = new ArrayList<SearchFilter>();
+    /** Defines which filters are supported by this view */
     private FieldsVisibility fieldsVisibility = new FieldsVisibility();
 
+    /** Creates a new instance of MovementsBalancesTopComponent */
     public MovementsBalancesTopComponent() {
         initComponents();
         setName(NbBundle.getMessage(MovementsBalancesTopComponent.class, "CTL_MovementsBalancesTopComponent"));
@@ -63,22 +86,22 @@ public final class MovementsBalancesTopComponent extends TopComponent implements
         putClientProperty(TopComponent.PROP_DRAGGING_DISABLED, Boolean.TRUE);
         putClientProperty(TopComponent.PROP_UNDOCKING_DISABLED, Boolean.TRUE);
 
-        associateLookup(new AbstractLookup(content));
-
-        // Treetable settings
+        // Outline settings
         outlineMovementsBalances.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
         outlineMovementsBalances.setRootVisible(false);
         outlineMovementsBalances.setPopupUsedFromTheCorner(false);
         outlineMovementsBalances.setColumnHidingAllowed(false);
 
-        // Set the supported fields from the search filter
+        // Set the supported filters
         fieldsVisibility.setFromVisible(true);
         fieldsVisibility.setToVisible(true);
         fieldsVisibility.setByVisible(true);
         fieldsVisibility.setCurrencyVisible(true);
         fieldsVisibility.setAccountsVisible(true);
-
         content.set(Collections.singleton(fieldsVisibility), null);
+
+        // Initialize the topcomponent's lookup
+        associateLookup(new AbstractLookup(content));
     }
 
     /** This method is called from within the constructor to
@@ -120,6 +143,7 @@ public final class MovementsBalancesTopComponent extends TopComponent implements
      * Gets default instance. Do not use directly: reserved for *.settings files only,
      * i.e. deserialization routines; otherwise you could get a non-deserialized instance.
      * To obtain the singleton instance, use {@link #findInstance}.
+     * @return Default instance
      */
     public static synchronized MovementsBalancesTopComponent getDefault() {
         if (instance == null) {
@@ -130,6 +154,7 @@ public final class MovementsBalancesTopComponent extends TopComponent implements
 
     /**
      * Obtain the MovementsBalancesTopComponent instance. Never call {@link #getDefault} directly!
+     * @return MovementsBalancesTopComponent instance
      */
     public static synchronized MovementsBalancesTopComponent findInstance() {
         TopComponent win = WindowManager.getDefault().findTopComponent(PREFERRED_ID);
@@ -147,30 +172,79 @@ public final class MovementsBalancesTopComponent extends TopComponent implements
         return getDefault();
     }
 
+    /**
+     * Gets the persistence type
+     * @return Persistence type
+     */
     @Override
     public int getPersistenceType() {
         return TopComponent.PERSISTENCE_ALWAYS;
     }
 
+    /**
+     * Saves properties
+     * @param p Properties to save
+     */
+    public void writeProperties(java.util.Properties p) {
+        p.setProperty("version", "1.0");
+    }
+
+    /**
+     * Reads properties
+     * @param p properties to save
+     * @return TopComponent with loaded properties
+     */
+    public Object readProperties(java.util.Properties p) {
+        MovementsBalancesTopComponent singleton = MovementsBalancesTopComponent.getDefault();
+        singleton.readPropertiesImpl(p);
+        return singleton;
+    }
+
+    /**
+     * Reads properties
+     * @param p Properties to read
+     */
+    private void readPropertiesImpl(java.util.Properties p) {
+        String version = p.getProperty("version");
+    }
+
+    /**
+     * Gets the topcomponent's ID
+     * @return Topcomponent's ID
+     */
+    @Override
+    protected String preferredID() {
+        return PREFERRED_ID;
+    }
+
+    /**
+     * Registers a lookup listener on the search filter and opens the movements' balances group
+     * when the topcomponent is activated
+     */
     @Override
     protected void componentActivated() {
         super.componentActivated();
 
-        // Register lookup listener on the search filter top component
         if (result == null) {
+            // Register lookup listener on the search filter top component
             result = WindowManager.getDefault().findTopComponent("SearchFilterTopComponent").getLookup().lookupResult(SearchFilter.class);
             result.addLookupListener(this);
             result.allInstances();
+
+            // Display the movements' balances
             resultChanged(null);
         }
 
         TopComponentGroup movementsBalancesGroup = WindowManager.getDefault().findTopComponentGroup("MovementsBalancesGroup");
-        if (movementsBalancesGroup == null) {
-            return;
+        if (movementsBalancesGroup != null) {
+            movementsBalancesGroup.open();
         }
-        movementsBalancesGroup.open();
     }
 
+    /**
+     * Unregisters the lookup listener and close the movements' balances group
+     * when the topcomponent is hidden
+     */
     @Override
     protected void componentHidden() {
         super.componentHidden();
@@ -180,12 +254,12 @@ public final class MovementsBalancesTopComponent extends TopComponent implements
         result = null;
 
         TopComponentGroup movementsBalancesGroup = WindowManager.getDefault().findTopComponentGroup("MovementsBalancesGroup");
-        if (movementsBalancesGroup == null) {
-            return;
+        if (movementsBalancesGroup != null) {
+            movementsBalancesGroup.close();
         }
-        movementsBalancesGroup.close();
     }
 
+    /** Called when the lookup content is changed (button Search clicked in Search Filter tc) */
     @Override
     public void resultChanged(LookupEvent ev) {
         @SuppressWarnings("unchecked")
@@ -195,15 +269,23 @@ public final class MovementsBalancesTopComponent extends TopComponent implements
         }
     }
 
+    /**
+     * Displays the currency/accounts' movements by period
+     * @param searchFilters Search filter objects (one per period) for which the movements are wanted
+     */
     private void displayData(List<SearchFilter> searchFilters) {
+        // Display hourglass cursor
         Utilities.changeCursorWaitStatus(true);
-        long start = System.currentTimeMillis();
 
         // Prepare treetable
         DefaultMutableTreeNode rootNode = new DefaultMutableTreeNode(); // Root (Not displayed)
-        Map<MoneyContainer, Map<SearchFilter, BigDecimal>> balances =
-                new HashMap<MoneyContainer, Map<SearchFilter, BigDecimal>>(); // Map of currency/account and corresponding movement's balance
 
+        // Map containing the movements' balances by currency/account and by search filter
+        // ((Currency/Account) --> (SearchFilter --> Currency/Account movement balance))
+        Map<MoneyContainer, Map<SearchFilter, BigDecimal>> balances =
+                new HashMap<MoneyContainer, Map<SearchFilter, BigDecimal>>();
+
+        // Add the currencies into the table
         for (Currency currency : Wallet.getInstance().getActiveCurrencies()) {
             if (!searchFilters.get(0).hasCurrencyFilter() ||
                     (searchFilters.get(0).hasCurrencyFilter() && searchFilters.get(0).getCurrency().compareTo(currency) == 0)) {
@@ -211,7 +293,7 @@ public final class MovementsBalancesTopComponent extends TopComponent implements
                 DefaultMutableTreeNode currencyNode = new DefaultMutableTreeNode(currency);
                 rootNode.add(currencyNode);
 
-                // Currency movements' for each search filter
+                // Map containing the currency's movements by search filter
                 Map<SearchFilter, BigDecimal> currencyBalances = new HashMap<SearchFilter, BigDecimal>();
                 for (SearchFilter searchFilter : searchFilters) {
                     currencyBalances.put(searchFilter, new BigDecimal(0));
@@ -225,7 +307,7 @@ public final class MovementsBalancesTopComponent extends TopComponent implements
                         DefaultMutableTreeNode accountNode = new DefaultMutableTreeNode(account);
                         currencyNode.add(accountNode);
 
-                        // Compute the accounts' balances for each search filter
+                        // Compute the accounts' movements for each search filter
                         Map<SearchFilter, BigDecimal> accountBalances = new HashMap<SearchFilter, BigDecimal>();
                         for (SearchFilter searchFilter : searchFilters) {
                             SearchFilter newSearchFilter = new SearchFilter();
@@ -249,8 +331,8 @@ public final class MovementsBalancesTopComponent extends TopComponent implements
             }
         }
 
+        // Create the outline based on the model
         DefaultTreeModel treeModel = new DefaultTreeModel(rootNode);
-
         OutlineModel outlineModel = DefaultOutlineModel.createOutlineModel(
                 treeModel,
                 new MovementsBalancesRowModel(searchFilters, balances),
@@ -258,45 +340,35 @@ public final class MovementsBalancesTopComponent extends TopComponent implements
                 "Account");
         outlineMovementsBalances.setModel(outlineModel);
 
+        // Expand all nodes of the outline
         for (int i = 0; i < rootNode.getChildCount(); i++) {
             outlineMovementsBalances.expandPath(new TreePath(((DefaultMutableTreeNode) rootNode.getChildAt(i)).getPath()));
         }
 
+        // Save the currently displayed list of search filters
         this.displayedSearchFilters = searchFilters;
 
-        // Put the balances in the lookup of the TC
+        // Put the balances map in the lookup so that it can be displayed as a chart by another topcomponent
         content.set(Collections.singleton(balances), null);
-        content.add(fieldsVisibility);
+        content.add(fieldsVisibility); // Add a description of the supported filters for the search filter topcomponent
 
-        long end = System.currentTimeMillis();
-        System.out.println("duration=" + (end - start));
+        // Display normal cursor
         Utilities.changeCursorWaitStatus(false);
     }
 
-    public void writeProperties(java.util.Properties p) {
-        p.setProperty("version", "1.0");
-    }
-
-    public Object readProperties(java.util.Properties p) {
-        MovementsBalancesTopComponent singleton = MovementsBalancesTopComponent.getDefault();
-        singleton.readPropertiesImpl(p);
-        return singleton;
-    }
-
-    private void readPropertiesImpl(java.util.Properties p) {
-        String version = p.getProperty("version");
-    }
-
-    @Override
-    protected String preferredID() {
-        return PREFERRED_ID;
-    }
-
+    /** Row model for the Movements' balances outline */
     private class MovementsBalancesRowModel implements RowModel {
 
+        /** Search filters (periods) to display */
         private List<SearchFilter> searchFilters;
+        /** Currency/Account balances by search filter */
         private Map<MoneyContainer, Map<SearchFilter, BigDecimal>> balances;
 
+        /**
+         * Creates a new instance of MovementsBalancesRowModel
+         * @param searchFilters Search filters to display (one per period)
+         * @param balances Currency/Account balances by search filter
+         */
         public MovementsBalancesRowModel(List<SearchFilter> searchFilters, Map<MoneyContainer, Map<SearchFilter, BigDecimal>> balances) {
             if (searchFilters == null) {
                 throw new IllegalArgumentException("The parameter 'searchFilters' is null");
@@ -308,21 +380,41 @@ public final class MovementsBalancesTopComponent extends TopComponent implements
             this.balances = balances;
         }
 
+        /**
+         * Gets the type of a column
+         * @param column Column position
+         * @return Type of the column
+         */
         @Override
         public Class getColumnClass(int column) {
             return String.class;
         }
 
+        /**
+         * Gets the number of columns
+         * @return Number of columns
+         */
         @Override
         public int getColumnCount() {
             return searchFilters.size();
         }
 
+        /**
+         * Gets the name of a column
+         * @param column Column position
+         * @return Column name
+         */
         @Override
         public String getColumnName(int column) {
             return searchFilters.get(column).getPeriod().toString();
         }
 
+        /**
+         * Gets the value of a cell
+         * @param node Node
+         * @param column Column position
+         * @return Cell value
+         */
         @Override
         public Object getValueFor(Object node, int column) {
             // Value to display in the current cell
@@ -352,13 +444,26 @@ public final class MovementsBalancesTopComponent extends TopComponent implements
             return value;
         }
 
+        /**
+         * Is a cell editable?
+         * @param node Node
+         * @param column Column position
+         * @return true if the cell can be edited
+         */
         @Override
         public boolean isCellEditable(Object node, int column) {
             return false;
         }
 
+        /**
+         * Sets a value for a cell
+         * @param node Node
+         * @param column Column position
+         * @param value New cell value
+         */
         @Override
         public void setValueFor(Object node, int column, Object value) {
+            // Not needed
         }
     }
 }

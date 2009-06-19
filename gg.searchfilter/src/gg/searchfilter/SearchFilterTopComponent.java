@@ -38,11 +38,11 @@ import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
-import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Date;
 import java.util.List;
+import java.util.Properties;
 import java.util.logging.Logger;
 import javax.swing.DefaultListModel;
 import javax.swing.JButton;
@@ -62,6 +62,7 @@ import org.joda.time.DateTime;
 import org.joda.time.LocalDate;
 import org.openide.DialogDisplayer;
 import org.openide.NotifyDescriptor;
+import org.netbeans.api.settings.ConvertAsProperties;
 import org.openide.util.ImageUtilities;
 import org.openide.util.Lookup;
 import org.openide.util.LookupEvent;
@@ -78,6 +79,7 @@ import org.openide.util.lookup.InstanceContent;
  * Top component which displays the fields that permit to filter the results on currencies,
  * accounts, period, categories, payees and payees.
  */
+@ConvertAsProperties(dtd = "-//gg.view.categoriesbalances//CategoriesBalances//EN", autostore = false)
 public final class SearchFilterTopComponent extends TopComponent implements LookupListener {
 
     /** Singleton instance of the topcomponent */
@@ -273,14 +275,50 @@ public final class SearchFilterTopComponent extends TopComponent implements Look
         setVisibility(fieldsVisibility);
     }
 
-    /** Loads the fields 'by', 'currency', 'categories' and 'payees' */
-    private void loadLists() {
-        // Combobox "By"
+    /** Loads default values for the fields 'from', 'to', 'by', 'currency', 'categories' and 'payees' */
+    private void loadDefaultValues() {
+        // Retrieve 'from' date (the date is saved between sessions)
+        long storedDateFromMillis = NbPreferences.forModule(SearchFilterTopComponent.class).getLong(
+                DATE_FROM_KEY,
+                new DateTime().minusMonths(1).getMillis());
+        jXDatePickerFrom.setDate(new Date(storedDateFromMillis));
+
+        // Retrieve 'to' date (the date is saved between sessions)
+        long storedDateToMillis = NbPreferences.forModule(SearchFilterTopComponent.class).getLong(
+                DATE_TO_KEY,
+                new DateTime().getMillis());
+        jXDatePickerTo.setDate(new Date(storedDateToMillis));
+
+        // Load values in combobox "By"
         jComboBoxBy.removeAllItems();
         jComboBoxBy.addItem(PeriodType.DAY);
         jComboBoxBy.addItem(PeriodType.WEEK);
         jComboBoxBy.addItem(PeriodType.MONTH);
         jComboBoxBy.addItem(PeriodType.YEAR);
+
+        // Retrieve 'by' (the type of period is saved between sessions)
+        String storedPeriodTypeString = NbPreferences.forModule(SearchFilterTopComponent.class).get(
+                PERIOD_TYPE_KEY,
+                PeriodType.WEEK.name());
+        assert (storedPeriodTypeString != null);
+        PeriodType storedPeriodType = PeriodType.valueOf(storedPeriodTypeString);
+        assert (storedPeriodType != null);
+
+        int i = 0;
+        int indexToSelect = 0;
+        boolean periodFound = false;
+        while (i < jComboBoxBy.getItemCount() && !periodFound) {
+            if (jComboBoxBy.getItemAt(i).equals(storedPeriodType)) {
+                indexToSelect = i;
+                periodFound = true;
+            }
+            i++;
+        }
+        jComboBoxBy.setSelectedIndex(indexToSelect);
+
+        assert (jXDatePickerFrom.getDate() != null);
+        assert (jXDatePickerTo.getDate() != null);
+        assert (jXDatePickerFrom.getDate().compareTo(jXDatePickerTo.getDate()) <= 0);
 
         // Combobox "currency"
         jComboBoxCurrency.removeAllItems();
@@ -342,7 +380,7 @@ public final class SearchFilterTopComponent extends TopComponent implements Look
         }
     }
 
-    /** Creates search filters objects and put them in the lookup */
+    /** When the button 'Search' is clicked, creates search filters objects and put them in the lookup */
     public void jButtonSearchActionPerformed() {
         if (jXDatePickerFrom.getDate() == null) {
             // 'from' date has not been entered
@@ -356,11 +394,11 @@ public final class SearchFilterTopComponent extends TopComponent implements Look
 
         if (jXDatePickerTo.getDate() == null) {
             // 'to' date has not been entered
-            NotifyDescriptor d = new NotifyDescriptor.Message(
+            NotifyDescriptor message = new NotifyDescriptor.Message(
                     "Please enter a date in the field 'to'",
                     NotifyDescriptor.WARNING_MESSAGE);
-            d.setTitle("Period invalid");
-            DialogDisplayer.getDefault().notify(d);
+            message.setTitle(Constants.APPLICATION_TITLE);
+            DialogDisplayer.getDefault().notify(message);
             return;
         }
 
@@ -370,32 +408,34 @@ public final class SearchFilterTopComponent extends TopComponent implements Look
 
         // Check that 'from' is before 'to'
         if (from.compareTo(to) > 0) {
-            NotifyDescriptor d = new NotifyDescriptor.Message(
-                    "The entered period is not valid.\n" +
+            NotifyDescriptor message = new NotifyDescriptor.Message(
+                    "The entered period is invalid.\n" +
                     "'From' should be before 'To'.",
                     NotifyDescriptor.WARNING_MESSAGE);
-            d.setTitle("Period invalid");
-            DialogDisplayer.getDefault().notify(d);
+            message.setTitle(Constants.APPLICATION_TITLE);
+            DialogDisplayer.getDefault().notify(message);
             return;
         }
 
-        // Get 'by' (day, week, month, year)
+        // Get 'by' (type of period: day, week, month, year)
         assert (jComboBoxBy.getSelectedIndex() != -1);
         PeriodType periodType = (PeriodType) jComboBoxBy.getSelectedItem();
         assert (periodType != null);
         Periods periods = new Periods(from, to, periodType);
+        assert (periods != null);
 
-        // Check the number of periods
-        int maxNumberPeriods = Options.getMaxPeriods();
+        // Check that the number of periods is not too big
+        int maxNumberPeriods = Options.getMaxPeriods(); // Get the max number of periods allowed in the options
         if (periods.getPeriods().size() > maxNumberPeriods) {
-            NotifyDescriptor d = new NotifyDescriptor.Message(
+            NotifyDescriptor message = new NotifyDescriptor.Message(
                     "Only " + maxNumberPeriods + " periods can be displayed: please enter new dates",
                     NotifyDescriptor.WARNING_MESSAGE);
-            d.setTitle("Period invalid");
-            DialogDisplayer.getDefault().notify(d);
+            message.setTitle(Constants.APPLICATION_TITLE);
+            DialogDisplayer.getDefault().notify(message);
             return;
         }
 
+        // Save 'from', 'to' and 'by' fields so that they will be loaded by default when the component will be opened
         NbPreferences.forModule(SearchFilterTopComponent.class).putLong(
                 DATE_FROM_KEY,
                 new DateTime(jXDatePickerFrom.getDate()).getMillis());
@@ -408,13 +448,17 @@ public final class SearchFilterTopComponent extends TopComponent implements Look
 
         // Get selected currency
         Object selectedCurrencyObject = jComboBoxCurrency.getSelectedItem();
+        assert (selectedCurrencyObject != null);
         Currency selectedCurrency = (Currency) selectedCurrencyObject;
+        assert (selectedCurrency != null);
 
         // Get selected accounts
         List<Account> selectedAccounts = new ArrayList<Account>();
         int[] selectedAccountsIndices = jListAccounts.getSelectedIndices();
         for (int i = 0; i < selectedAccountsIndices.length; i++) {
             Object selectedAccountObject = jListAccounts.getModel().getElementAt(selectedAccountsIndices[i]);
+            assert (selectedAccountObject != null);
+
             selectedAccounts.add((Account) selectedAccountObject);
         }
 
@@ -424,8 +468,12 @@ public final class SearchFilterTopComponent extends TopComponent implements Look
         if (paths != null) { // category selected
             for (TreePath path : paths) {
                 DefaultMutableTreeNode node = (DefaultMutableTreeNode) path.getLastPathComponent();
+                assert (node != null);
                 Object selectedCategoryObject = node.getUserObject();
+                assert (selectedCategoryObject != null);
                 Category category = (Category) selectedCategoryObject;
+                assert (category != null);
+
                 selectedCategories.add(category);
             }
         }
@@ -435,6 +483,8 @@ public final class SearchFilterTopComponent extends TopComponent implements Look
         int[] selectedPayeesIndices = jListPayees.getSelectedIndices();
         for (int i = 0; i < selectedPayeesIndices.length; i++) {
             Object selectedPayeeObject = jListPayees.getModel().getElementAt(selectedPayeesIndices[i]);
+            assert (selectedPayeeObject != null);
+
             selectedPayees.add((Payee) selectedPayeeObject);
         }
 
@@ -541,18 +591,22 @@ public final class SearchFilterTopComponent extends TopComponent implements Look
     }// </editor-fold>//GEN-END:initComponents
 
     private void jMenuItemSelectAllCategoriesActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jMenuItemSelectAllCategoriesActionPerformed
+        // Select all categories
         jTreeCategories.setSelectionInterval(0, jTreeCategories.getRowCount());
     }//GEN-LAST:event_jMenuItemSelectAllCategoriesActionPerformed
 
     private void jMenuItemDeselectAllCategoriesActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jMenuItemDeselectAllCategoriesActionPerformed
+        // Deselect all categories
         jTreeCategories.clearSelection();
     }//GEN-LAST:event_jMenuItemDeselectAllCategoriesActionPerformed
 
     private void jMenuItemSelectAllAccountsActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jMenuItemSelectAllAccountsActionPerformed
+        // Select all accounts
         jListAccounts.setSelectionInterval(0, jListAccounts.getModel().getSize() - 1);
     }//GEN-LAST:event_jMenuItemSelectAllAccountsActionPerformed
 
     private void jMenuItemDeselectAllAccountsActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jMenuItemDeselectAllAccountsActionPerformed
+        // Deselect all accounts
         jListAccounts.clearSelection();
     }//GEN-LAST:event_jMenuItemDeselectAllAccountsActionPerformed
     // Variables declaration - do not modify//GEN-BEGIN:variables
@@ -571,6 +625,7 @@ public final class SearchFilterTopComponent extends TopComponent implements Look
      * Gets default instance. Do not use directly: reserved for *.settings files only,
      * i.e. deserialization routines; otherwise you could get a non-deserialized instance.
      * To obtain the singleton instance, use {@link #findInstance}.
+     * @return Default instance
      */
     public static synchronized SearchFilterTopComponent getDefault() {
         if (instance == null) {
@@ -581,6 +636,7 @@ public final class SearchFilterTopComponent extends TopComponent implements Look
 
     /**
      * Obtain the SearchFilterTopComponent instance. Never call {@link #getDefault} directly!
+     * @return SearchFilterTopComponent instance
      */
     public static synchronized SearchFilterTopComponent findInstance() {
         TopComponent win = WindowManager.getDefault().findTopComponent(PREFERRED_ID);
@@ -598,76 +654,82 @@ public final class SearchFilterTopComponent extends TopComponent implements Look
         return getDefault();
     }
 
+    /**
+     * Gets the persistence type
+     * @return Persistence type
+     */
     @Override
     public int getPersistenceType() {
         return TopComponent.PERSISTENCE_ALWAYS;
     }
 
+    /**
+     * Saves properties
+     * @param p Properties to save
+     */
+    public void writeProperties(Properties p) {
+        p.setProperty("version", "1.0");
+    }
+
+    /**
+     * Reads properties
+     * @param p properties to save
+     * @return TopComponent with loaded properties
+     */
+    public Object readProperties(Properties p) {
+        SearchFilterTopComponent singleton = SearchFilterTopComponent.getDefault();
+        singleton.readPropertiesImpl(p);
+        return singleton;
+    }
+
+    /**
+     * Reads properties
+     * @param p Properties to read
+     */
+    private void readPropertiesImpl(Properties p) {
+        String version = p.getProperty("version");
+    }
+
+    /**
+     * Gets the topcomponent's ID
+     * @return Topcomponent's ID
+     */
+    @Override
+    protected String preferredID() {
+        return PREFERRED_ID;
+    }
+
+    /** Registers listener when the topcomponent is opened */
     @Override
     public void componentOpened() {
+        // Add a listener on the lookup of the global context (selected tc)
+        // - SearchFilterTopComponent listens to the class: FieldsVisibility
+        // - Depending on the value of the object, filters (from/to/by/currencies/accounts...)
+        // will be activated/deactivated
         if (result == null) {
             result = Utilities.actionsGlobalContext().lookupResult(FieldsVisibility.class);
             result.addLookupListener(this);
             result.allInstances();
+
+            // Load the default values in fields (from/to/by/currencies/accounts...)
+            loadDefaultValues();
+
+            // Search with the current selection
+            jButtonSearchActionPerformed();
         }
-
-        loadLists();
-
-        // Retrieve 'from' date
-        long storedDateFromMillis = NbPreferences.forModule(SearchFilterTopComponent.class).getLong(
-                DATE_FROM_KEY,
-                new DateTime().minusMonths(1).getMillis());
-        jXDatePickerFrom.setDate(new Date(storedDateFromMillis));
-
-        // Retrieve 'to' date
-        long storedDateToMillis = NbPreferences.forModule(SearchFilterTopComponent.class).getLong(
-                DATE_TO_KEY,
-                new DateTime().getMillis());
-        jXDatePickerTo.setDate(new Date(storedDateToMillis));
-
-        // Retrieve 'by'
-        String storedPeriodTypeString = NbPreferences.forModule(SearchFilterTopComponent.class).get(
-                PERIOD_TYPE_KEY,
-                PeriodType.WEEK.name());
-        assert (storedPeriodTypeString != null);
-        PeriodType storedPeriodType = PeriodType.valueOf(storedPeriodTypeString);
-
-        int i = 0;
-        int indexToSelect = 0;
-        boolean periodFound = false;
-        while (i < jComboBoxBy.getItemCount() && !periodFound) {
-            if (jComboBoxBy.getItemAt(i).equals(storedPeriodType)) {
-                indexToSelect = i;
-                periodFound = true;
-            }
-            i++;
-        }
-        jComboBoxBy.setSelectedIndex(indexToSelect);
-
-        assert (jXDatePickerFrom.getDate() != null);
-        assert (jXDatePickerTo.getDate() != null);
-        assert (jXDatePickerFrom.getDate().compareTo(jXDatePickerTo.getDate()) <= 0);
-
-        jButtonSearchActionPerformed();
     }
 
+    /** Unregisters listener when the component is closed */
     @Override
     public void componentClosed() {
         result.removeLookupListener(this);
         result = null;
     }
 
-    /** replaces this in object stream */
-    @Override
-    public Object writeReplace() {
-        return new ResolvableHelper();
-    }
-
-    @Override
-    protected String preferredID() {
-        return PREFERRED_ID;
-    }
-
+    /**
+     * Updates the visibility of the filters (from/to/by/currencies/accounts...)
+     * @param ev Lookup event
+     */
     public void resultChanged(LookupEvent ev) {
         Collection instances = result.allInstances();
 
@@ -677,31 +739,45 @@ public final class SearchFilterTopComponent extends TopComponent implements Look
         }
     }
 
+    /**
+     * Sets the visibility of the filters (from/to/by/currencies/accounts...) depending of the content of fieldsVisibility
+     * @param fieldsVisibility Describes which filters should be visible and which should not
+     */
     public void setVisibility(FieldsVisibility fieldsVisibility) {
+        // From
         jLabelFrom.setVisible(fieldsVisibility.isFromVisible());
         jXDatePickerFrom.setVisible(fieldsVisibility.isFromVisible());
 
+        // To
         jLabelTo.setVisible(fieldsVisibility.isToVisible());
         jXDatePickerTo.setVisible(fieldsVisibility.isToVisible());
 
+        // By
         jLabelBy.setVisible(fieldsVisibility.isByVisible());
         jComboBoxBy.setVisible(fieldsVisibility.isByVisible());
 
+        // Currency
         jLabelCurrency.setVisible(fieldsVisibility.isCurrencyVisible());
         jComboBoxCurrency.setVisible(fieldsVisibility.isCurrencyVisible());
 
+        // Accounts
         jLabelAccounts.setVisible(fieldsVisibility.isAccountsVisible());
         jScrollPaneAccounts.setVisible(fieldsVisibility.isAccountsVisible());
 
+        // Categories
         jLabelCategories.setVisible(fieldsVisibility.isCategoriesVisible());
         jScrollPaneCategories.setVisible(fieldsVisibility.isCategoriesVisible());
 
+        // Payees
         jLabelPayees.setVisible(fieldsVisibility.isPayeesVisible());
         jScrollPanePayees.setVisible(fieldsVisibility.isPayeesVisible());
 
+        // Keywords
         jLabelKeywords.setVisible(fieldsVisibility.isKeywordsVisible());
         jTextFieldKeywords.setVisible(fieldsVisibility.isKeywordsVisible());
 
+        // If at least one filter is visible, display the Search button
+        // Otherwise display a label: "No field supported for the current view"
         if (fieldsVisibility.isFromVisible() || fieldsVisibility.isToVisible() ||
                 fieldsVisibility.isByVisible() || fieldsVisibility.isCurrencyVisible() ||
                 fieldsVisibility.isAccountsVisible() || fieldsVisibility.isCategoriesVisible() ||
@@ -711,15 +787,6 @@ public final class SearchFilterTopComponent extends TopComponent implements Look
         } else {
             jButtonSearch.setVisible(false);
             jLabelNoFieldSupported.setVisible(true);
-        }
-    }
-
-    final static class ResolvableHelper implements Serializable {
-
-        private static final long serialVersionUID = 1L;
-
-        public Object readResolve() {
-            return SearchFilterTopComponent.getDefault();
         }
     }
 }
