@@ -358,8 +358,10 @@ public class GrisbiFile050 implements Importer {
             Datamodel.saveAccount(account);
 
             // Update the currency's balance and the currency's initial amount
-            accountCurrency.setBalance(accountCurrency.getBalance().add(accountBalance));
-            accountCurrency.setInitialAmount(accountCurrency.getInitialAmount().add(accountInitialAmount));
+            if (accountActive) {
+                accountCurrency.setBalance(accountCurrency.getBalance().add(accountBalance));
+                accountCurrency.setInitialAmount(accountCurrency.getInitialAmount().add(accountInitialAmount));
+            }
 
             numberOfImportedAccounts++;
         }

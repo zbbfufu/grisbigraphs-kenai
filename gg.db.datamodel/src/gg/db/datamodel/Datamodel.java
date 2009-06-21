@@ -345,7 +345,7 @@ public class Datamodel {
     }
 
     /**
-     * Gets the total balance of a currency
+     * Gets the total balance of a currency (sum of balances of the active accounts that belong to the currency)
      * @param currency Currency for which the total balance must be computed
      * @return Total balance
      */

@@ -171,7 +171,7 @@ public class Currency implements MoneyContainer {
     }
 
     /**
-     * Gets the balance of the currency
+     * Gets the balance of the currency (sum of balances of the active accounts of the currency)
      * @return Balance of the currency
      */
     @Override
