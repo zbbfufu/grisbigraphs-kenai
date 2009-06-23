@@ -22,37 +22,45 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 <filesystem>
     <folder name="Actions">
         <folder name="Window">
-            <file name="gg-view-importhistory-ImportHistoryAction.instance">
-                <attr name="SystemFileSystem.localizingBundle" stringvalue="gg.view.importhistory.Bundle"/>
-                <attr name="component" methodvalue="gg.view.importhistory.ImportHistoryTopComponent.findInstance"/>
-                <attr name="displayName" bundlevalue="gg.view.importhistory.Bundle#CTL_ImportHistoryAction"/>
-                <attr name="iconBase" stringvalue="gg/resources/icons/ImportHistory.png"/>
+            <file name="gg-view-transactions-TransactionsAction.instance">
+                <attr name="SystemFileSystem.localizingBundle" stringvalue="gg.view.transactions.Bundle"/>
+                <attr name="component" methodvalue="gg.view.transactions.TransactionsTopComponent.findInstance"/>
+                <attr name="displayName" bundlevalue="gg.view.transactions.Bundle#CTL_TransactionsAction"/>
+                <attr name="iconBase" stringvalue="gg/resources/icons/Transactions.png"/>
                 <attr name="instanceCreate" methodvalue="org.openide.windows.TopComponent.openAction"/>
             </file>
         </folder>
     </folder>
     <folder name="Menu">
         <folder name="View">
-            <file name="ImportHistoryAction.shadow">
-                <attr name="originalFile" stringvalue="Actions/Window/gg-view-importhistory-ImportHistoryAction.instance"/>
-                <attr name="position" intvalue="280"/>
+            <file name="TransactionsAction.shadow">
+                <attr name="originalFile" stringvalue="Actions/Window/gg-view-transactions-TransactionsAction.instance"/>
+                <attr name="position" intvalue="50"/>
             </file>
         </folder>
         <folder name="Window">
-            <file name="ImportHistoryAction.shadow">
-                <attr name="originalFile" stringvalue="Actions/Window/gg-view-importhistory-ImportHistoryAction.instance"/>
-                <attr name="position" intvalue="280"/>
+            <file name="TransactionsAction.shadow">
+                <attr name="originalFile" stringvalue="Actions/Window/gg-view-transactions-TransactionsAction.instance"/>
+                <attr name="position" intvalue="50"/>
+            </file>
+        </folder>
+    </folder>
+    <folder name="Toolbars">
+        <folder name="View">
+            <file name="TransactionsAction.shadow">
+                <attr name="originalFile" stringvalue="Actions/Window/gg-view-transactions-TransactionsAction.instance"/>
+                <attr name="position" intvalue="50"/>
             </file>
         </folder>
     </folder>
     <folder name="Windows2">
         <folder name="Components">
-            <file name="ImportHistoryTopComponent.settings" url="ImportHistoryTopComponentSettings.xml"/>
+            <file name="TransactionsTopComponent.settings" url="TransactionsTopComponentSettings.xml"/>
         </folder>
         <folder name="Modes">
             <folder name="editor">
-                <file name="ImportHistoryTopComponent.wstcref" url="ImportHistoryTopComponentWstcref.xml">
-                    <attr name="position" intvalue="280"/>
+                <file name="TransactionsTopComponent.wstcref" url="TransactionsTopComponentWstcref.xml">
+                    <attr name="position" intvalue="50"/>
                 </file>
             </folder>
         </folder>

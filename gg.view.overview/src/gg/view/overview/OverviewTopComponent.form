@@ -27,10 +27,10 @@
                           <Component id="jLabelImportedOn" alignment="0" min="-2" max="-2" attributes="0"/>
                       </Group>
                       <EmptySpace max="-2" attributes="0"/>
-                      <Group type="103" groupAlignment="0" max="-2" attributes="0">
-                          <Component id="jTextFieldLastModifiedOn" linkSize="1" alignment="0" max="32767" attributes="1"/>
-                          <Component id="jTextFieldImportedOn" linkSize="1" alignment="0" max="32767" attributes="1"/>
-                          <Component id="jTextFieldGrisbiFileName" linkSize="1" alignment="0" min="-2" pref="209" max="-2" attributes="1"/>
+                      <Group type="103" groupAlignment="0" attributes="0">
+                          <Component id="jTextFieldImportedOn" alignment="0" pref="294" max="32767" attributes="1"/>
+                          <Component id="jTextFieldGrisbiFileName" alignment="0" pref="294" max="32767" attributes="1"/>
+                          <Component id="jTextFieldLastModifiedOn" alignment="0" pref="294" max="32767" attributes="1"/>
                       </Group>
                   </Group>
               </Group>

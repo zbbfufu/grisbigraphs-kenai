@@ -43,6 +43,9 @@ import org.hibernate.Transaction;
  */
 public class Datamodel {
 
+    private Datamodel() {
+    }
+
     /**
      * Gets the file imports log
      * @return List of Grisbi files imported in the embedded database
@@ -325,7 +328,6 @@ public class Datamodel {
      * @param currency Currency for which the transactions are wanted
      * @return List of transactions that belong to the currency
      */
-    @SuppressWarnings("unchecked")
     public static List<gg.db.entities.Transaction> getCurrencyTransactions(Currency currency) {
         if (currency == null) {
             throw new IllegalArgumentException("The parameter 'currency' is null");
@@ -338,8 +340,44 @@ public class Datamodel {
                 "a.currency=:currency and " +
                 "a.active=true " +
                 "order by t.date").setEntity("currency", currency);
+        @SuppressWarnings("unchecked")
         List<gg.db.entities.Transaction> transactions = (List<gg.db.entities.Transaction>) query.list();
         t.commit();
+
+        return transactions;
+    }
+
+    /**
+     * Gets the list of transactions that meet a search filter
+     * @param searchFilter Search filter
+     * @return List of transactions
+     */
+    public static List<gg.db.entities.Transaction> getTransactions(SearchFilter searchFilter) {
+        if (searchFilter == null) {
+            throw new IllegalArgumentException("The parameter 'searchFilter' is null");
+        }
+
+        Session session = Installer.createSession();
+        Transaction tx = session.beginTransaction();
+
+        Query query = getQuery(session,
+                searchFilter,
+                true, // Search from start
+                true, // Search until end
+                true, // Filter on categories
+                true,
+                true,
+                "select t",
+                null,
+                ""); // No group by
+
+        // Execute the query
+        @SuppressWarnings("unchecked")
+        List<gg.db.entities.Transaction> transactions = (List<gg.db.entities.Transaction>) query.list();
+
+        session.flush();
+        tx.commit();
+        session.close();
 
         return transactions;
     }
@@ -407,8 +445,8 @@ public class Datamodel {
      * @return Query object
      */
     private static Query getQuery(Session session, SearchFilter searchFilter, boolean searchFromStartDate,
-            boolean searchUntilEndDate, boolean filterOnCategories,
-            String select, String where, String groupBy) {
+            boolean searchUntilEndDate, boolean filterOnCategories, boolean filterOnPayees,
+            boolean filterOnKeywords, String select, String where, String groupBy) {
         if (searchFilter == null) {
             throw new IllegalArgumentException("The parameter 'searchFilter' is null");
         }
@@ -448,14 +486,14 @@ public class Datamodel {
         if (searchFilter.hasCategoriesFilter() && filterOnCategories) {
             whereClause.add("t.category in (:categories)");
         }
-        if (searchFilter.hasPayeesFilter()) {
+        if (searchFilter.hasPayeesFilter() && filterOnPayees) {
             whereClause.add("t.payee in (:payees)");
         }
         if (!searchFilter.isIncludeTransferTransactions()) {
             whereClause.add("t.category<>:categoryTransfer");
         }
-        if (searchFilter.hasKeywordsFilter()) {
-            // TODO: Add keyword filter
+        if (searchFilter.hasKeywordsFilter() && filterOnKeywords) {
+            whereClause.add("upper(t.comment) like :keyword");
         }
 
         // Compute the WHERE statement
@@ -495,14 +533,14 @@ public class Datamodel {
         if (searchFilter.hasCategoriesFilter() && filterOnCategories) {
             query.setParameterList("categories", searchFilter.getCategories());
         }
-        if (searchFilter.hasPayeesFilter()) {
+        if (searchFilter.hasPayeesFilter() && filterOnPayees) {
             query.setParameterList("payees", searchFilter.getPayees());
         }
         if (!searchFilter.isIncludeTransferTransactions()) {
             query.setParameter("categoryTransfer", transferCategory);
         }
-        if (searchFilter.hasKeywordsFilter()) {
-            // TODO: Add keyword filter
+        if (searchFilter.hasKeywordsFilter() && filterOnKeywords) {
+            query.setParameter("keyword", "%" + searchFilter.getKeywords().toUpperCase() + "%");
         }
 
         return query;
@@ -526,6 +564,8 @@ public class Datamodel {
                 true, // Search from start
                 true, // Search until end
                 false, // No filter on categories
+                false, // No filter on payees
+                false, // No filter on keywords
                 "select sum(t.amount)",
                 "t.amount>0", // Search only incomes
                 ""); // No group by
@@ -560,6 +600,8 @@ public class Datamodel {
                 true, // Search from start
                 true, // Search until end
                 false, // No filter on categories
+                false, // No filter on payees
+                false, // No filter on keywords
                 "select sum(t.amount)",
                 "t.amount<0", // Search only expenses
                 ""); // No group by
@@ -594,6 +636,8 @@ public class Datamodel {
                 true, // Search from start
                 true, // Search until end
                 false, // No filter on categories
+                false, // No filter on payees
+                false, // No filter on keywords
                 "select sum(t.amount)",
                 null, // No specific where clause
                 ""); // No group by
@@ -629,6 +673,8 @@ public class Datamodel {
                 true, // Search from start
                 true, // Search until end
                 false, // No filter on categories (all categories are expected)
+                false, // No filter on payees
+                false, // No filter on keywords
                 "select t.category.id, sum(t.amount)",
                 null, // No specific where clause
                 "group by t.category.id");
@@ -662,6 +708,8 @@ public class Datamodel {
                 false, // from is not taken into account
                 true, // Search until end
                 false, // No filter on categories
+                false, // No filter on payees
+                false, // No filter on keywords
                 "select t.account.id, sum(t.amount)",
                 null, // No specific where clause
                 "group by t.account.id");

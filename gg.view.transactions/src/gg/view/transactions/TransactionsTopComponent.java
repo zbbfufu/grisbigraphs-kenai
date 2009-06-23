@@ -1,5 +1,5 @@
 /*
- * MovementsBalancesTopComponent.java
+ * OverviewTopComponent.java
  *
  * Copyright (C) 2009 Francois Duchemin
  *
@@ -19,22 +19,23 @@
  * along with GrisbiGraphs; if not, write to the Free Software
  * Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
  */
-package gg.view.movementsbalances;
+package gg.view.transactions;
 
-import gg.searchfilter.FieldsVisibility;
 import gg.db.datamodel.Datamodel;
 import gg.db.datamodel.SearchFilter;
 import gg.db.entities.Account;
+import gg.db.entities.Category;
 import gg.db.entities.Currency;
-import gg.db.entities.MoneyContainer;
-import gg.options.Options;
+import gg.db.entities.Payee;
+import gg.db.entities.Transaction;
+import gg.searchfilter.FieldsVisibility;
 import gg.utilities.Utilities;
 import gg.wallet.Wallet;
-import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
 import java.util.logging.Logger;
 import javax.swing.JTable;
@@ -42,6 +43,7 @@ import javax.swing.ListSelectionModel;
 import javax.swing.tree.DefaultMutableTreeNode;
 import javax.swing.tree.DefaultTreeModel;
 import javax.swing.tree.TreePath;
+import org.joda.time.format.DateTimeFormat;
 import org.openide.util.NbBundle;
 import org.openide.windows.TopComponent;
 import org.openide.windows.WindowManager;
@@ -55,54 +57,54 @@ import org.openide.util.LookupEvent;
 import org.openide.util.LookupListener;
 import org.openide.util.lookup.AbstractLookup;
 import org.openide.util.lookup.InstanceContent;
-import org.openide.windows.TopComponentGroup;
 
 /**
- * Top component which displays the movements' balances evolution over time.
+ * Top component which displays transactions.
  */
-@ConvertAsProperties(dtd = "-//gg.view.movementsbalances//MovementsBalances//EN", autostore = false)
-public final class MovementsBalancesTopComponent extends TopComponent implements LookupListener {
+@ConvertAsProperties(dtd = "-//gg.view.transactions//Transactions//EN", autostore = false)
+public final class TransactionsTopComponent extends TopComponent implements LookupListener {
 
     /** Singleton instance of the topcomponent */
-    private static MovementsBalancesTopComponent instance;
+    private static TransactionsTopComponent instance;
     /** Path to the icon used by the component and its open action */
-    private static final String ICON_PATH = "gg/resources/icons/MovementsBalances.png";
+    private static final String ICON_PATH = "gg/resources/icons/Transactions.png";
     /** ID of the component */
-    private static final String PREFERRED_ID = "MovementsBalancesTopComponent";
+    private static final String PREFERRED_ID = "TransactionsTopComponent";
     /** Content available in the lookup of the topcomponent */
     private InstanceContent content = new InstanceContent();
     /** Result for the lookup listener */
-    private Lookup.Result result = null;
+    private Lookup.Result<SearchFilter> result = null;
     /** Currently displayed search filters */
     private List<SearchFilter> displayedSearchFilters = new ArrayList<SearchFilter>();
-    /** Defines which filters are supported by this view */
-    private FieldsVisibility fieldsVisibility = new FieldsVisibility();
 
-    /** Creates a new instance of MovementsBalancesTopComponent */
-    public MovementsBalancesTopComponent() {
+    /** Creates a new instance of TransactionsTopComponent */
+    public TransactionsTopComponent() {
         initComponents();
-        setName(NbBundle.getMessage(MovementsBalancesTopComponent.class, "CTL_MovementsBalancesTopComponent"));
-        setToolTipText(NbBundle.getMessage(MovementsBalancesTopComponent.class, "HINT_MovementsBalancesTopComponent"));
+        setName(NbBundle.getMessage(TransactionsTopComponent.class, "CTL_TransactionsTopComponent"));
+        setToolTipText(NbBundle.getMessage(TransactionsTopComponent.class, "HINT_TransactionsTopComponent"));
         setIcon(ImageUtilities.loadImage(ICON_PATH, true));
         putClientProperty(TopComponent.PROP_DRAGGING_DISABLED, Boolean.TRUE);
         putClientProperty(TopComponent.PROP_UNDOCKING_DISABLED, Boolean.TRUE);
 
         // Outline settings
-        outlineMovementsBalances.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
-        outlineMovementsBalances.setRootVisible(false);
-        outlineMovementsBalances.setPopupUsedFromTheCorner(false);
-        outlineMovementsBalances.setColumnHidingAllowed(false);
-        outlineMovementsBalances.setAutoResizeMode(JTable.AUTO_RESIZE_OFF);
+        outlineTransactions.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
+        outlineTransactions.setRootVisible(false);
+        outlineTransactions.setPopupUsedFromTheCorner(false);
+        outlineTransactions.setColumnHidingAllowed(false);
+        outlineTransactions.setAutoResizeMode(JTable.AUTO_RESIZE_OFF);
 
         // Set the supported filters
+        FieldsVisibility fieldsVisibility = new FieldsVisibility();
         fieldsVisibility.setFromVisible(true);
         fieldsVisibility.setToVisible(true);
-        fieldsVisibility.setByVisible(true);
         fieldsVisibility.setCurrencyVisible(true);
         fieldsVisibility.setAccountsVisible(true);
-        content.set(Collections.singleton(fieldsVisibility), null);
+        fieldsVisibility.setCategoriesVisible(true);
+        fieldsVisibility.setPayeesVisible(true);
+        fieldsVisibility.setKeywordsVisible(true);
 
         // Initialize the topcomponent's lookup
+        content.set(Collections.singleton(fieldsVisibility), null);
         associateLookup(new AbstractLookup(content));
     }
 
@@ -114,10 +116,10 @@ public final class MovementsBalancesTopComponent extends TopComponent implements
     // <editor-fold defaultstate="collapsed" desc="Generated Code">//GEN-BEGIN:initComponents
     private void initComponents() {
 
-        jScrollPaneMovementsBalances = new javax.swing.JScrollPane();
-        outlineMovementsBalances = new org.netbeans.swing.outline.Outline();
+        jScrollPaneTransactions = new javax.swing.JScrollPane();
+        outlineTransactions = new org.netbeans.swing.outline.Outline();
 
-        jScrollPaneMovementsBalances.setViewportView(outlineMovementsBalances);
+        jScrollPaneTransactions.setViewportView(outlineTransactions);
 
         javax.swing.GroupLayout layout = new javax.swing.GroupLayout(this);
         this.setLayout(layout);
@@ -125,20 +127,20 @@ public final class MovementsBalancesTopComponent extends TopComponent implements
             layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
             .addGroup(layout.createSequentialGroup()
                 .addContainerGap()
-                .addComponent(jScrollPaneMovementsBalances, javax.swing.GroupLayout.DEFAULT_SIZE, 380, Short.MAX_VALUE)
+                .addComponent(jScrollPaneTransactions, javax.swing.GroupLayout.DEFAULT_SIZE, 399, Short.MAX_VALUE)
                 .addContainerGap())
         );
         layout.setVerticalGroup(
             layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
             .addGroup(layout.createSequentialGroup()
                 .addContainerGap()
-                .addComponent(jScrollPaneMovementsBalances, javax.swing.GroupLayout.DEFAULT_SIZE, 278, Short.MAX_VALUE)
+                .addComponent(jScrollPaneTransactions, javax.swing.GroupLayout.DEFAULT_SIZE, 327, Short.MAX_VALUE)
                 .addContainerGap())
         );
     }// </editor-fold>//GEN-END:initComponents
     // Variables declaration - do not modify//GEN-BEGIN:variables
-    private javax.swing.JScrollPane jScrollPaneMovementsBalances;
-    private org.netbeans.swing.outline.Outline outlineMovementsBalances;
+    private javax.swing.JScrollPane jScrollPaneTransactions;
+    private org.netbeans.swing.outline.Outline outlineTransactions;
     // End of variables declaration//GEN-END:variables
 
     /**
@@ -147,28 +149,28 @@ public final class MovementsBalancesTopComponent extends TopComponent implements
      * To obtain the singleton instance, use {@link #findInstance}.
      * @return Default instance
      */
-    public static synchronized MovementsBalancesTopComponent getDefault() {
+    public static synchronized TransactionsTopComponent getDefault() {
         if (instance == null) {
-            instance = new MovementsBalancesTopComponent();
+            instance = new TransactionsTopComponent();
         }
         return instance;
     }
 
     /**
-     * Obtain the MovementsBalancesTopComponent instance. Never call {@link #getDefault} directly!
-     * @return MovementsBalancesTopComponent instance
+     * Obtain the TransactionsTopComponent instance. Never call {@link #getDefault} directly!
+     * @return TransactionsTopComponent instance
      */
-    public static synchronized MovementsBalancesTopComponent findInstance() {
+    public static synchronized TransactionsTopComponent findInstance() {
         TopComponent win = WindowManager.getDefault().findTopComponent(PREFERRED_ID);
         if (win == null) {
-            Logger.getLogger(MovementsBalancesTopComponent.class.getName()).warning(
+            Logger.getLogger(TransactionsTopComponent.class.getName()).warning(
                     "Cannot find " + PREFERRED_ID + " component. It will not be located properly in the window system.");
             return getDefault();
         }
-        if (win instanceof MovementsBalancesTopComponent) {
-            return (MovementsBalancesTopComponent) win;
+        if (win instanceof TransactionsTopComponent) {
+            return (TransactionsTopComponent) win;
         }
-        Logger.getLogger(MovementsBalancesTopComponent.class.getName()).warning(
+        Logger.getLogger(TransactionsTopComponent.class.getName()).warning(
                 "There seem to be multiple components with the '" + PREFERRED_ID +
                 "' ID. That is a potential source of errors and unexpected behavior.");
         return getDefault();
@@ -197,7 +199,7 @@ public final class MovementsBalancesTopComponent extends TopComponent implements
      * @return TopComponent with loaded properties
      */
     public Object readProperties(java.util.Properties p) {
-        MovementsBalancesTopComponent singleton = MovementsBalancesTopComponent.getDefault();
+        TransactionsTopComponent singleton = TransactionsTopComponent.getDefault();
         singleton.readPropertiesImpl(p);
         return singleton;
     }
@@ -219,10 +221,7 @@ public final class MovementsBalancesTopComponent extends TopComponent implements
         return PREFERRED_ID;
     }
 
-    /**
-     * Registers a lookup listener on the search filter and opens the movements' balances group
-     * when the topcomponent is activated
-     */
+    /** Registers a lookup listener on the search filter when the topcomponent is activated */
     @Override
     protected void componentActivated() {
         super.componentActivated();
@@ -233,18 +232,13 @@ public final class MovementsBalancesTopComponent extends TopComponent implements
             result.addLookupListener(this);
             result.allInstances();
 
-            // Display the movements' balances
+            // Display the transactions
             resultChanged(null);
-        }
-
-        TopComponentGroup movementsBalancesGroup = WindowManager.getDefault().findTopComponentGroup("MovementsBalancesGroup");
-        if (movementsBalancesGroup != null) {
-            movementsBalancesGroup.open();
         }
     }
 
     /**
-     * Unregisters the lookup listener and close the movements' balances group
+     * Unregisters the lookup listener and close the accounts' balances group
      * when the topcomponent is hidden
      */
     @Override
@@ -254,11 +248,6 @@ public final class MovementsBalancesTopComponent extends TopComponent implements
         // Remove listener on search filter top component
         result.removeLookupListener(this);
         result = null;
-
-        TopComponentGroup movementsBalancesGroup = WindowManager.getDefault().findTopComponentGroup("MovementsBalancesGroup");
-        if (movementsBalancesGroup != null) {
-            movementsBalancesGroup.close();
-        }
     }
 
     /** Called when the lookup content is changed (button Search clicked in Search Filter tc) */
@@ -266,70 +255,88 @@ public final class MovementsBalancesTopComponent extends TopComponent implements
     public void resultChanged(LookupEvent ev) {
         @SuppressWarnings("unchecked")
         List<SearchFilter> searchFilters = (List<SearchFilter>) result.allInstances();
+
+        // If the search filter objects to display are different from the already displayed search filter objects
         if (!searchFilters.isEmpty() && !searchFilters.equals(displayedSearchFilters)) {
             displayData(searchFilters);
         }
     }
 
     /**
-     * Displays the currency/accounts' movements by period
-     * @param searchFilters Search filter objects (one per period) for which the movements are wanted
+     * Displays the transactions
+     * @param searchFilters Search filter for which the transactions are wanted
      */
     private void displayData(List<SearchFilter> searchFilters) {
         // Display hourglass cursor
         Utilities.changeCursorWaitStatus(true);
 
-        // Prepare treetable
         DefaultMutableTreeNode rootNode = new DefaultMutableTreeNode(); // Root (Not displayed)
 
-        // Map containing the movements' balances by currency/account and by search filter
-        // ((Currency/Account) --> (SearchFilter --> Currency/Account movement balance))
-        Map<MoneyContainer, Map<SearchFilter, BigDecimal>> balances =
-                new HashMap<MoneyContainer, Map<SearchFilter, BigDecimal>>();
+        // Active currencies
+        List<Currency> currencies = Wallet.getInstance().getActiveCurrencies();
+        // Map of active accounts: the key is the currency, the value is the list of active accounts that belong to the currency
+        Map<Currency, List<Account>> accountsWithCurrency = Wallet.getInstance().getActiveAccountsWithCurrency();
 
-        // Add the currencies into the table
-        for (Currency currency : Wallet.getInstance().getActiveCurrencies()) {
-            if (!searchFilters.get(0).hasCurrencyFilter() ||
-                    (searchFilters.get(0).hasCurrencyFilter() && searchFilters.get(0).getCurrency().compareTo(currency) == 0)) {
-                // Add currency to the tree
-                DefaultMutableTreeNode currencyNode = new DefaultMutableTreeNode(currency);
-                rootNode.add(currencyNode);
-
-                // Map containing the currency's movements by search filter
-                Map<SearchFilter, BigDecimal> currencyBalances = new HashMap<SearchFilter, BigDecimal>();
-                for (SearchFilter searchFilter : searchFilters) {
-                    currencyBalances.put(searchFilter, new BigDecimal(0));
+        SearchFilter newSearchFilter = new SearchFilter();
+        if (searchFilters.get(0).hasPeriodFilter()) {
+            newSearchFilter.setPeriod(searchFilters.get(0).getPeriod());
+        }
+        if (searchFilters.get(0).hasCurrencyFilter()) {
+            newSearchFilter.setCurrency(searchFilters.get(0).getCurrency());
+        }
+        if (searchFilters.get(0).hasAccountsFilter()) {
+            newSearchFilter.setAccounts(searchFilters.get(0).getAccounts());
+        }
+        if (searchFilters.get(0).hasPayeesFilter()) {
+            newSearchFilter.setPayees(searchFilters.get(0).getPayees());
+        }
+        if (searchFilters.get(0).hasKeywordsFilter()) {
+            newSearchFilter.setKeywords(searchFilters.get(0).getKeywords());
+        }
+        if (searchFilters.get(0).hasCategoriesFilter()) {
+            List<Category> newCategories = new ArrayList<Category>();
+            for (Category category : searchFilters.get(0).getCategories()) {
+                newCategories.add(category);
+                if (category.isTopCategory()) {
+                    newCategories.addAll(Wallet.getInstance().getSubCategoriesWithParentCategory().get(category));
                 }
+            }
+            newSearchFilter.setCategories(newCategories);
+        }
 
-                // Compute the accounts' movements for each search filter
-                for (Account account : Wallet.getInstance().getActiveAccountsWithCurrency().get(currency)) {
-                    if (!searchFilters.get(0).hasAccountsFilter() ||
-                            (searchFilters.get(0).hasAccountsFilter() && searchFilters.get(0).getAccounts().contains(account))) {
-                        // Add account to the tree
-                        DefaultMutableTreeNode accountNode = new DefaultMutableTreeNode(account);
-                        currencyNode.add(accountNode);
+        // Get the transactions that match the search filter
+        List<Transaction> transactions = Datamodel.getTransactions(newSearchFilter);
 
-                        // Compute the accounts' movements for each search filter
-                        Map<SearchFilter, BigDecimal> accountBalances = new HashMap<SearchFilter, BigDecimal>();
-                        for (SearchFilter searchFilter : searchFilters) {
-                            SearchFilter newSearchFilter = new SearchFilter();
-                            newSearchFilter.setCurrency(currency);
-                            List<Account> accounts = new ArrayList<Account>();
-                            accounts.add(account);
-                            newSearchFilter.setAccounts(accounts);
-                            newSearchFilter.setPeriod(searchFilter.getPeriod());
+        Map<Transaction, Payee> payeesWithTransaction = new HashMap<Transaction, Payee>();
+        Map<Transaction, Category> categoriesWithTransaction = new HashMap<Transaction, Category>();
 
-                            BigDecimal accountBalance = Datamodel.getBalance(newSearchFilter);
-                            accountBalances.put(searchFilter, accountBalance);
+        for (Transaction transaction : transactions) {
+            payeesWithTransaction.put(transaction, Wallet.getInstance().getPayeesWithId().get(transaction.getPayee().getId()));
+            categoriesWithTransaction.put(transaction, Wallet.getInstance().getCategoriesWithId().get(transaction.getCategory().getId()));
+        }
 
-                            currencyBalances.put(searchFilter,
-                                    currencyBalances.get(searchFilter).add(accountBalance));
-                        }
-                        balances.put(account, accountBalances);
+        for (Currency currency : currencies) {
+            // Add currency to the tree
+            DefaultMutableTreeNode currencyNode = new DefaultMutableTreeNode(currency);
+
+            // For each active account that belong to the currency
+            for (Account account : accountsWithCurrency.get(currency)) {
+                DefaultMutableTreeNode accountNode = new DefaultMutableTreeNode(account);
+
+                for (Transaction transaction : transactions) {
+                    if (transaction.getAccount().getId().compareTo(account.getId()) == 0) {
+                        DefaultMutableTreeNode transactionNode = new DefaultMutableTreeNode(transaction);
+                        accountNode.add(transactionNode);
                     }
                 }
 
-                balances.put(currency, currencyBalances);
+                if (accountNode.getChildCount() > 0) {
+                    currencyNode.add(accountNode);
+                }
+            }
+
+            if (currencyNode.getChildCount() > 0) {
+                rootNode.add(currencyNode);
             }
         }
 
@@ -337,52 +344,45 @@ public final class MovementsBalancesTopComponent extends TopComponent implements
         DefaultTreeModel treeModel = new DefaultTreeModel(rootNode);
         OutlineModel outlineModel = DefaultOutlineModel.createOutlineModel(
                 treeModel,
-                new MovementsBalancesRowModel(searchFilters, balances),
+                new TransactionsRowModel(payeesWithTransaction, categoriesWithTransaction),
                 true,
                 "Account");
-        outlineMovementsBalances.setModel(outlineModel);
+        outlineTransactions.setModel(outlineModel);
 
         // Expand all nodes of the outline
         for (int i = 0; i < rootNode.getChildCount(); i++) {
-            outlineMovementsBalances.expandPath(new TreePath(((DefaultMutableTreeNode) rootNode.getChildAt(i)).getPath()));
+            DefaultMutableTreeNode currencyNode = (DefaultMutableTreeNode) rootNode.getChildAt(i);
+            outlineTransactions.expandPath(new TreePath(currencyNode.getPath()));
+
+            for (int j = 0; j < currencyNode.getChildCount(); j++) {
+                DefaultMutableTreeNode accountNode = (DefaultMutableTreeNode) currencyNode.getChildAt(j);
+                outlineTransactions.expandPath(new TreePath(accountNode.getPath()));
+            }
         }
 
         // Resize the columns' widths
-        Utilities.packColumns(outlineMovementsBalances);
+        Utilities.packColumns(outlineTransactions);
 
         // Save the currently displayed list of search filters
         this.displayedSearchFilters = searchFilters;
-
-        // Put the balances map in the lookup so that it can be displayed as a chart by another topcomponent
-        content.set(Collections.singleton(balances), null);
-        content.add(fieldsVisibility); // Add a description of the supported filters for the search filter topcomponent
 
         // Display normal cursor
         Utilities.changeCursorWaitStatus(false);
     }
 
-    /** Row model for the Movements' balances outline */
-    private class MovementsBalancesRowModel implements RowModel {
+    /** Row model for the Accounts' Balances outline */
+    private class TransactionsRowModel implements RowModel {
 
-        /** Search filters (periods) to display */
-        private List<SearchFilter> searchFilters;
-        /** Currency/Account balances by search filter */
-        private Map<MoneyContainer, Map<SearchFilter, BigDecimal>> balances;
+        Map<Transaction, Payee> payeesWithTransaction;
+        Map<Transaction, Category> categoriesWithTransaction;
 
         /**
-         * Creates a new instance of MovementsBalancesRowModel
-         * @param searchFilters Search filters to display (one per period)
-         * @param balances Currency/Account balances by search filter
+         * Creates a new instance of AccountsBalancesRowModel
          */
-        public MovementsBalancesRowModel(List<SearchFilter> searchFilters, Map<MoneyContainer, Map<SearchFilter, BigDecimal>> balances) {
-            if (searchFilters == null) {
-                throw new IllegalArgumentException("The parameter 'searchFilters' is null");
-            }
-            if (balances == null) {
-                throw new IllegalArgumentException("The parameter 'balances' is null");
-            }
-            this.searchFilters = searchFilters;
-            this.balances = balances;
+        public TransactionsRowModel(Map<Transaction, Payee> payeesWithTransaction,
+                Map<Transaction, Category> categoriesWithTransaction) {
+            this.payeesWithTransaction = payeesWithTransaction;
+            this.categoriesWithTransaction = categoriesWithTransaction;
         }
 
         /**
@@ -401,7 +401,7 @@ public final class MovementsBalancesTopComponent extends TopComponent implements
          */
         @Override
         public int getColumnCount() {
-            return searchFilters.size();
+            return 5;
         }
 
         /**
@@ -411,7 +411,20 @@ public final class MovementsBalancesTopComponent extends TopComponent implements
          */
         @Override
         public String getColumnName(int column) {
-            return searchFilters.get(column).getPeriod().toString();
+            switch (column) {
+                case 0:
+                    return "Date";
+                case 1:
+                    return "Payee";
+                case 2:
+                    return "Category";
+                case 3:
+                    return "Amount";
+                case 4:
+                    return "Comment";
+                default:
+                    throw new AssertionError("Unknown column");
+            }
         }
 
         /**
@@ -422,31 +435,37 @@ public final class MovementsBalancesTopComponent extends TopComponent implements
          */
         @Override
         public Object getValueFor(Object node, int column) {
-            // Value to display in the current cell
-            String value = "";
-
             // Get the object contained in the current cell
             Object nodeUserObject = ((DefaultMutableTreeNode) node).getUserObject();
             assert (nodeUserObject != null);
 
-            // The object is either a currency or an account
-            MoneyContainer moneyContainer = (MoneyContainer) nodeUserObject;
-
-            // Display the currency or the account's balance value
-            // - if the object is an account or
-            // - if the object is a currency and if the user wants to see the sums
-            if (moneyContainer instanceof Account || Options.calculateSums()) {
-                SearchFilter searchFilter = searchFilters.get(column);
-                assert (searchFilter != null);
-                BigDecimal movementValue = balances.get(moneyContainer).get(searchFilter);
-                assert (movementValue != null);
-
-                if (movementValue.compareTo(BigDecimal.ZERO) != 0 || Options.displayZero()) {
-                    value = Utilities.getSignedBalance(movementValue);
+            // The object is a transaction
+            if (nodeUserObject instanceof Transaction) {
+                Transaction transaction = (Transaction) nodeUserObject;
+                switch (column) {
+                    case 0:
+                        return DateTimeFormat.longDate().withLocale(Locale.US).print(transaction.getDate().toDateMidnight());
+                    case 1:
+                        return payeesWithTransaction.get(transaction).getName();
+                    case 2:
+                        Category cat = categoriesWithTransaction.get(transaction);
+                        if (cat.isTopCategory()) {
+                            return cat.getName();
+                        } else if (cat.getGrisbiSubCategoryId() == 10000L) {
+                            return cat.getParentCategory().getName();
+                        } else {
+                            return cat.getParentCategory().getName() + " - " + cat.getName();
+                        }
+                    case 3:
+                        return Utilities.getBalance(transaction.getAmount());
+                    case 4:
+                        return transaction.getComment();
+                    default:
+                        throw new AssertionError("Unknown column");
                 }
+            } else {
+                return "";
             }
-
-            return value;
         }
 
         /**

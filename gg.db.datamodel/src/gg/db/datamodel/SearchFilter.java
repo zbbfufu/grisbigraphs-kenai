@@ -49,8 +49,8 @@ public class SearchFilter implements Comparable<SearchFilter> {
     private List<Category> categories;
     /** List of payees (empty if there is no filter on the payees) */
     private List<Payee> payees;
-    /** List of keywords (empty if there is no filter on the keywords) */
-    private List<String> keywords;
+    /** Keywords (null if there is no filter on the keywords) */
+    private String keywords;
     /** Include transfer transactions in the search? */
     private boolean includeTransferTransactions;
 
@@ -75,10 +75,10 @@ public class SearchFilter implements Comparable<SearchFilter> {
      * @param period Period (can be null if there is no filter on the period)
      * @param categories List of categoroes (can be null if there is no filter on the categories)
      * @param payees List of payees (can be null if there is no filter on the payees)
-     * @param keywords List of keywords (can be null if there is no filter on the comments)
+     * @param keywords Keywords (can be null if there is no filter on the comments)
      * @param includeTransferTransactions Should the transactions of type "Transfer" be included in the search?
      */
-    public SearchFilter(Currency currency, List<Account> accounts, Period period, List<Category> categories, List<Payee> payees, List<String> keywords, boolean includeTransferTransactions) {
+    public SearchFilter(Currency currency, List<Account> accounts, Period period, List<Category> categories, List<Payee> payees, String keywords, boolean includeTransferTransactions) {
         setCurrency(currency);
         setAccounts(accounts);
         setPeriod(period);
@@ -182,38 +182,18 @@ public class SearchFilter implements Comparable<SearchFilter> {
 
     /**
      * Gets the filtered keywords
-     * @return List of keywords on which the result will be filtered (empty if there is no filter on the keywords)
+     * @return Keywords on which the result will be filtered (null if there is no filter on the keywords)
      */
-    public List<String> getKeywords() {
-        assert (keywords != null); // The list of keywords is never null
+    public String getKeywords() {
         return keywords;
     }
 
     /**
      * Sets a filter on the keywords
-     * @param keywords List of keywords (empty if there shall be no filter on the keywords)
+     * @param keywords Keywords (null if there shall be no filter on the keywords)
      */
-    public void setKeywords(List<String> keywords) {
-        if (keywords == null) {
-            this.keywords = new ArrayList<String>();
-        } else {
-            // Make sure that 'keywords' does not contain two identic keywords
-            for (int i = 0; i < keywords.size(); i++) {
-                for (int j = i + 1; j < keywords.size(); j++) {
-                    // Make sure that each keyword is not null
-                    if (keywords.get(i) == null || keywords.get(j) == null) {
-                        throw new IllegalArgumentException("One of the keywords of 'keywords' is null");
-                    }
-
-                    // Make sure that each keyword is unique
-                    if (keywords.get(i).compareToIgnoreCase(keywords.get(j)) == 0) {
-                        throw new IllegalArgumentException("Two keywords are identic: " + keywords.get(i));
-                    }
-                }
-            }
-
-            this.keywords = keywords;
-        }
+    public void setKeywords(String keywords) {
+        this.keywords = keywords;
     }
 
     /**
@@ -277,8 +257,7 @@ public class SearchFilter implements Comparable<SearchFilter> {
      * @return true if there is a filter on keywords
      */
     public boolean hasKeywordsFilter() {
-        assert (keywords != null); // The list of keywords always exists
-        return (keywords.size() > 0);
+        return (keywords != null);
     }
 
     @Override

@@ -175,6 +175,7 @@ public final class GeneralPanel extends javax.swing.JPanel implements DocumentLi
      * Gives notification that there was an insert into one of the text fields on the form
      * @param e the document event
      */
+    @Override
     public void insertUpdate(DocumentEvent e) {
         controller.changed();
     }
@@ -183,6 +184,7 @@ public final class GeneralPanel extends javax.swing.JPanel implements DocumentLi
      * Gives notification that a portion of text has been removed in one of the text fields on the form
      * @param e the document event
      */
+    @Override
     public void removeUpdate(DocumentEvent e) {
         controller.changed();
     }
@@ -191,6 +193,7 @@ public final class GeneralPanel extends javax.swing.JPanel implements DocumentLi
      * Gives notification that an attribute or set of attributes changed for one of the text fields on the form
      * @param e the document event
      */
+    @Override
     public void changedUpdate(DocumentEvent e) {
         controller.changed();
     }

@@ -58,7 +58,7 @@ import org.openide.windows.WindowManager;
  * Top component which displays a chart showing the total income vs expenses
  * for the current month and for each currency.
  */
-@ConvertAsProperties(dtd = "-//gg.view.categoriesbalances//CategoriesBalances//EN", autostore = false)
+@ConvertAsProperties(dtd = "-//gg.view.overview//IncomeExpenses//EN", autostore = false)
 public final class IncomeExpensesTopComponent extends TopComponent {
 
     /** Singleton instance of the topcomponent */
@@ -69,7 +69,7 @@ public final class IncomeExpensesTopComponent extends TopComponent {
     private static final String PREFERRED_ID = "IncomeExpensesTopComponent";
 
     /** Creates a new instance of IncomeExpensesTopComponent */
-    private IncomeExpensesTopComponent() {
+    public IncomeExpensesTopComponent() {
         initComponents();
         setName(NbBundle.getMessage(IncomeExpensesTopComponent.class, "CTL_IncomeExpensesTopComponent"));
         setToolTipText(NbBundle.getMessage(IncomeExpensesTopComponent.class, "HINT_IncomeExpensesTopComponent"));

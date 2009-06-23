@@ -57,7 +57,7 @@ import org.openide.windows.WindowManager;
 /**
  * Top component which displays a graph showing the accounts' balances evolution over time.
  */
-@ConvertAsProperties(dtd = "-//gg.view.categoriesbalances//CategoriesBalances//EN", autostore = false)
+@ConvertAsProperties(dtd = "-//gg.view.accountsbalances//GraphAccountsBalances//EN", autostore = false)
 public final class GraphAccountsBalancesTopComponent extends TopComponent implements LookupListener {
 
     /** Singleton instance of the topcomponent */
@@ -70,7 +70,7 @@ public final class GraphAccountsBalancesTopComponent extends TopComponent implem
     private Lookup.Result result = null;
 
     /** Creates a new instance of GraphAccountsBalancesTopComponent */
-    private GraphAccountsBalancesTopComponent() {
+    public GraphAccountsBalancesTopComponent() {
         initComponents();
         setName(NbBundle.getMessage(GraphAccountsBalancesTopComponent.class, "CTL_GraphAccountsBalancesTopComponent"));
         setToolTipText(NbBundle.getMessage(GraphAccountsBalancesTopComponent.class, "HINT_GraphAccountsBalancesTopComponent"));

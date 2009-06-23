@@ -38,6 +38,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Properties;
 import java.util.logging.Logger;
+import javax.swing.JTable;
 import javax.swing.ListSelectionModel;
 import javax.swing.tree.DefaultMutableTreeNode;
 import javax.swing.tree.DefaultTreeModel;
@@ -60,7 +61,7 @@ import org.openide.windows.TopComponentGroup;
 /**
  * Top component which displays the accounts' balances evolution over time.
  */
-@ConvertAsProperties(dtd = "-//gg.view.categoriesbalances//CategoriesBalances//EN", autostore = false)
+@ConvertAsProperties(dtd = "-//gg.view.accountsbalances//AccountsBalances//EN", autostore = false)
 public final class AccountsBalancesTopComponent extends TopComponent implements LookupListener {
 
     /** Singleton instance of the topcomponent */
@@ -79,7 +80,7 @@ public final class AccountsBalancesTopComponent extends TopComponent implements 
     private FieldsVisibility fieldsVisibility = new FieldsVisibility();
 
     /** Creates a new instance of AccountsBalancesTopComponent */
-    private AccountsBalancesTopComponent() {
+    public AccountsBalancesTopComponent() {
         initComponents();
         setName(NbBundle.getMessage(AccountsBalancesTopComponent.class, "CTL_AccountsBalancesTopComponent"));
         setToolTipText(NbBundle.getMessage(AccountsBalancesTopComponent.class, "HINT_AccountsBalancesTopComponent"));
@@ -92,6 +93,7 @@ public final class AccountsBalancesTopComponent extends TopComponent implements 
         outlineAccountsBalances.setRootVisible(false);
         outlineAccountsBalances.setPopupUsedFromTheCorner(false);
         outlineAccountsBalances.setColumnHidingAllowed(false);
+        outlineAccountsBalances.setAutoResizeMode(JTable.AUTO_RESIZE_OFF);
 
         // Set the supported filters
         fieldsVisibility.setFromVisible(true);
@@ -99,9 +101,9 @@ public final class AccountsBalancesTopComponent extends TopComponent implements 
         fieldsVisibility.setByVisible(true);
         fieldsVisibility.setCurrencyVisible(true);
         fieldsVisibility.setAccountsVisible(true);
-        content.set(Collections.singleton(fieldsVisibility), null);
 
         // Initialize the topcomponent's lookup
+        content.set(Collections.singleton(fieldsVisibility), null);
         associateLookup(new AbstractLookup(content));
     }
 
@@ -405,6 +407,9 @@ public final class AccountsBalancesTopComponent extends TopComponent implements 
         for (int i = 0; i < rootNode.getChildCount(); i++) {
             outlineAccountsBalances.expandPath(new TreePath(((DefaultMutableTreeNode) rootNode.getChildAt(i)).getPath()));
         }
+
+        // Resize the columns' widths
+        Utilities.packColumns(outlineAccountsBalances);
 
         // Save the currently displayed list of search filters
         this.displayedSearchFilters = searchFilters;

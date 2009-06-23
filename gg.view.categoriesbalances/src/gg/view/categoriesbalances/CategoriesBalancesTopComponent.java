@@ -35,6 +35,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.logging.Logger;
+import javax.swing.JTable;
 import javax.swing.ListSelectionModel;
 import javax.swing.tree.DefaultMutableTreeNode;
 import javax.swing.tree.DefaultTreeModel;
@@ -89,6 +90,7 @@ public final class CategoriesBalancesTopComponent extends TopComponent implement
         outlineCategoriesBalances.setRootVisible(false);
         outlineCategoriesBalances.setPopupUsedFromTheCorner(false);
         outlineCategoriesBalances.setColumnHidingAllowed(false);
+        outlineCategoriesBalances.setAutoResizeMode(JTable.AUTO_RESIZE_OFF);
 
         // Set the supported filters
         fieldsVisibility.setFromVisible(true);
@@ -446,6 +448,9 @@ public final class CategoriesBalancesTopComponent extends TopComponent implement
         for (int i = 0; i < rootNode.getChildCount(); i++) {
             outlineCategoriesBalances.expandPath(new TreePath(((DefaultMutableTreeNode) rootNode.getChildAt(i)).getPath()));
         }
+
+        // Resize the columns' widths
+        Utilities.packColumns(outlineCategoriesBalances);
 
         // Save the currently displayed list of search filters
         this.displayedSearchFilters = searchFilters;

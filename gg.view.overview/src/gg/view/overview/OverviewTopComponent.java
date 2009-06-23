@@ -35,6 +35,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Properties;
 import java.util.logging.Logger;
+import javax.swing.JTable;
 import javax.swing.ListSelectionModel;
 import javax.swing.tree.DefaultMutableTreeNode;
 import javax.swing.tree.DefaultTreeModel;
@@ -54,7 +55,7 @@ import org.openide.windows.TopComponentGroup;
  * Top component which displays a global overview.
  * All active accounts are displayed together with their current balances.
  */
-@ConvertAsProperties(dtd = "-//gg.view.categoriesbalances//CategoriesBalances//EN", autostore = false)
+@ConvertAsProperties(dtd = "-//gg.view.overview//Overview//EN", autostore = false)
 public final class OverviewTopComponent extends TopComponent {
 
     /** Singleton instance of the topcomponent */
@@ -67,7 +68,7 @@ public final class OverviewTopComponent extends TopComponent {
     private FieldsVisibility fieldsVisibility = new FieldsVisibility();
 
     /** Creates a new instance of OverviewTopComponent */
-    private OverviewTopComponent() {
+    public OverviewTopComponent() {
         initComponents();
         setName(NbBundle.getMessage(OverviewTopComponent.class, "CTL_OverviewTopComponent"));
         setToolTipText(NbBundle.getMessage(OverviewTopComponent.class, "HINT_OverviewTopComponent"));
@@ -83,6 +84,12 @@ public final class OverviewTopComponent extends TopComponent {
         outlineOverview.setRootVisible(false);
         outlineOverview.setPopupUsedFromTheCorner(false);
         outlineOverview.setColumnHidingAllowed(false);
+        outlineOverview.setAutoResizeMode(JTable.AUTO_RESIZE_OFF);
+
+        // File properties settings
+        jTextFieldGrisbiFileName.setBackground(jLabelGrisbiFileName.getBackground());
+        jTextFieldLastModifiedOn.setBackground(jLabelLastModifiedOn.getBackground());
+        jTextFieldImportedOn.setBackground(jLabelImportedOn.getBackground());
 
         // Display the active accounts together with their current balances
         displayData();
@@ -136,15 +143,12 @@ public final class OverviewTopComponent extends TopComponent {
                             .addComponent(jLabelGrisbiFileName)
                             .addComponent(jLabelImportedOn))
                         .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                        .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING, false)
-                            .addComponent(jTextFieldLastModifiedOn)
-                            .addComponent(jTextFieldImportedOn)
-                            .addComponent(jTextFieldGrisbiFileName, javax.swing.GroupLayout.PREFERRED_SIZE, 209, javax.swing.GroupLayout.PREFERRED_SIZE))))
+                        .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                            .addComponent(jTextFieldImportedOn, javax.swing.GroupLayout.DEFAULT_SIZE, 294, Short.MAX_VALUE)
+                            .addComponent(jTextFieldGrisbiFileName, javax.swing.GroupLayout.DEFAULT_SIZE, 294, Short.MAX_VALUE)
+                            .addComponent(jTextFieldLastModifiedOn, javax.swing.GroupLayout.DEFAULT_SIZE, 294, Short.MAX_VALUE))))
                 .addContainerGap())
         );
-
-        layout.linkSize(javax.swing.SwingConstants.HORIZONTAL, new java.awt.Component[] {jTextFieldGrisbiFileName, jTextFieldImportedOn, jTextFieldLastModifiedOn});
-
         layout.setVerticalGroup(
             layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
             .addGroup(layout.createSequentialGroup()
@@ -324,6 +328,9 @@ public final class OverviewTopComponent extends TopComponent {
         for (int i = 0; i < rootNode.getChildCount(); i++) {
             outlineOverview.expandPath(new TreePath(((DefaultMutableTreeNode) rootNode.getChildAt(i)).getPath()));
         }
+
+        // Resize the columns' widths
+        Utilities.packColumns(outlineOverview);
 
         // Display the normal cursor
         Utilities.changeCursorWaitStatus(false);

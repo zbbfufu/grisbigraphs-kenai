@@ -1,5 +1,5 @@
 /*
- * ImportHistoryViewTopComponent.java
+ * ImportHistoryTopComponent.java
  *
  * Copyright (C) 2009 Francois Duchemin
  *
@@ -29,6 +29,7 @@ import java.util.List;
 import java.util.Properties;
 import java.util.logging.Logger;
 import javax.swing.JLabel;
+import javax.swing.JTable;
 import javax.swing.ListSelectionModel;
 import javax.swing.table.DefaultTableCellRenderer;
 import javax.swing.table.DefaultTableModel;
@@ -43,15 +44,15 @@ import org.openide.windows.WindowManager;
 /**
  * Top component which displays the history of the Grisbi file imports.
  */
-@ConvertAsProperties(dtd = "-//gg.view.categoriesbalances//CategoriesBalances//EN", autostore = false)
-public final class ImportHistoryViewTopComponent extends TopComponent {
+@ConvertAsProperties(dtd = "-//gg.view.importhistory//ImportHistory//EN", autostore = false)
+public final class ImportHistoryTopComponent extends TopComponent {
 
     /** Singleton instance of the topcomponent */
-    private static ImportHistoryViewTopComponent instance;
+    private static ImportHistoryTopComponent instance;
     /** Path to the icon used by the component and its open action */
-    private static final String ICON_PATH = "gg/resources/icons/ImportHistoryView.png";
+    private static final String ICON_PATH = "gg/resources/icons/ImportHistory.png";
     /** ID of the component */
-    private static final String PREFERRED_ID = "ImportHistoryViewTopComponent";
+    private static final String PREFERRED_ID = "ImportHistoryTopComponent";
     /** Position of 'Imported on' in the model */
     private static final byte COLUMN_IMPORTED_ON = 0;
     /** Position of 'File path' in the model */
@@ -61,11 +62,11 @@ public final class ImportHistoryViewTopComponent extends TopComponent {
     /** Position of 'success' in the model */
     private static final byte COLUMN_SUCCESS = 3;
 
-    /** Creates a new instance of ImportHistoryViewTopComponent */
-    private ImportHistoryViewTopComponent() {
+    /** Creates a new instance of ImportHistoryTopComponent */
+    public ImportHistoryTopComponent() {
         initComponents();
-        setName(NbBundle.getMessage(ImportHistoryViewTopComponent.class, "CTL_ImportHistoryViewTopComponent"));
-        setToolTipText(NbBundle.getMessage(ImportHistoryViewTopComponent.class, "HINT_ImportHistoryViewTopComponent"));
+        setName(NbBundle.getMessage(ImportHistoryTopComponent.class, "CTL_ImportHistoryTopComponent"));
+        setToolTipText(NbBundle.getMessage(ImportHistoryTopComponent.class, "HINT_ImportHistoryTopComponent"));
         setIcon(ImageUtilities.loadImage(ICON_PATH, true));
         putClientProperty(TopComponent.PROP_DRAGGING_DISABLED, Boolean.TRUE);
         putClientProperty(TopComponent.PROP_UNDOCKING_DISABLED, Boolean.TRUE);
@@ -120,6 +121,7 @@ public final class ImportHistoryViewTopComponent extends TopComponent {
         eTableImportHistory.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
         eTableImportHistory.setColumnHidingAllowed(false);
         eTableImportHistory.setPopupUsedFromTheCorner(false);
+        eTableImportHistory.setAutoResizeMode(JTable.AUTO_RESIZE_OFF);
 
         // Left align the durations
         DefaultTableCellRenderer leftRenderer = new DefaultTableCellRenderer();
@@ -172,28 +174,28 @@ public final class ImportHistoryViewTopComponent extends TopComponent {
      * To obtain the singleton instance, use {@link #findInstance}.
      * @return Default instance
      */
-    public static synchronized ImportHistoryViewTopComponent getDefault() {
+    public static synchronized ImportHistoryTopComponent getDefault() {
         if (instance == null) {
-            instance = new ImportHistoryViewTopComponent();
+            instance = new ImportHistoryTopComponent();
         }
         return instance;
     }
 
     /**
-     * Obtain the ImportHistoryViewTopComponent instance. Never call {@link #getDefault} directly!
-     * @return ImportHistoryViewTopComponent instance
+     * Obtain the ImportHistoryTopComponent instance. Never call {@link #getDefault} directly!
+     * @return ImportHistoryTopComponent instance
      */
-    public static synchronized ImportHistoryViewTopComponent findInstance() {
+    public static synchronized ImportHistoryTopComponent findInstance() {
         TopComponent win = WindowManager.getDefault().findTopComponent(PREFERRED_ID);
         if (win == null) {
-            Logger.getLogger(ImportHistoryViewTopComponent.class.getName()).warning(
+            Logger.getLogger(ImportHistoryTopComponent.class.getName()).warning(
                     "Cannot find " + PREFERRED_ID + " component. It will not be located properly in the window system.");
             return getDefault();
         }
-        if (win instanceof ImportHistoryViewTopComponent) {
-            return (ImportHistoryViewTopComponent) win;
+        if (win instanceof ImportHistoryTopComponent) {
+            return (ImportHistoryTopComponent) win;
         }
-        Logger.getLogger(ImportHistoryViewTopComponent.class.getName()).warning(
+        Logger.getLogger(ImportHistoryTopComponent.class.getName()).warning(
                 "There seem to be multiple components with the '" + PREFERRED_ID +
                 "' ID. That is a potential source of errors and unexpected behavior.");
         return getDefault();
@@ -222,7 +224,7 @@ public final class ImportHistoryViewTopComponent extends TopComponent {
      * @return TopComponent with loaded properties
      */
     public Object readProperties(Properties p) {
-        ImportHistoryViewTopComponent singleton = ImportHistoryViewTopComponent.getDefault();
+        ImportHistoryTopComponent singleton = ImportHistoryTopComponent.getDefault();
         singleton.readPropertiesImpl(p);
         return singleton;
     }
@@ -267,6 +269,9 @@ public final class ImportHistoryViewTopComponent extends TopComponent {
                         fileImport.getImportDuration(),
                         fileImport.getSuccess()});
         }
+
+        // Resize the columns' widths
+        Utilities.packColumns(eTableImportHistory);
 
         // Display normal cursor
         Utilities.changeCursorWaitStatus(true);

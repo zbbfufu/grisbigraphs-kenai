@@ -79,7 +79,7 @@ import org.openide.util.lookup.InstanceContent;
  * Top component which displays the fields that permit to filter the results on currencies,
  * accounts, period, categories, payees and payees.
  */
-@ConvertAsProperties(dtd = "-//gg.view.categoriesbalances//CategoriesBalances//EN", autostore = false)
+@ConvertAsProperties(dtd = "-//gg.searchfilter//SearchFilter//EN", autostore = false)
 public final class SearchFilterTopComponent extends TopComponent implements LookupListener {
 
     /** Singleton instance of the topcomponent */
@@ -150,7 +150,7 @@ public final class SearchFilterTopComponent extends TopComponent implements Look
     private static final String PERIOD_TYPE_KEY = "PeriodType";
 
     /** Creates a new instance of SearchFilterTopComponent */
-    private SearchFilterTopComponent() {
+    public SearchFilterTopComponent() {
         initComponents();
         setName(NbBundle.getMessage(SearchFilterTopComponent.class, "CTL_SearchFilterTopComponent"));
         setToolTipText(NbBundle.getMessage(SearchFilterTopComponent.class, "HINT_SearchFilterTopComponent"));
@@ -178,6 +178,7 @@ public final class SearchFilterTopComponent extends TopComponent implements Look
         jComboBoxCurrency.setPreferredSize(jXDatePickerTo.getPreferredSize());
         jComboBoxCurrency.addActionListener(new ActionListener() {
 
+            @Override
             public void actionPerformed(ActionEvent evt) {
                 // Currency selected --> display the corresponding accounts
                 jComboBoxCurrencyActionPerformed();
@@ -217,6 +218,16 @@ public final class SearchFilterTopComponent extends TopComponent implements Look
         jLabelPayees = new JLabel(NbBundle.getMessage(SearchFilterTopComponent.class, "SearchFilterTopComponent.jLabelPayees.text"));
         jListPayees = new JList(listModelPayees);
         jScrollPanePayees = new JScrollPane(jListPayees);
+        jListPayees.addMouseListener(new MouseAdapter() {
+
+            @Override
+            public void mouseClicked(MouseEvent evt) {
+                // Right click --> display the popup menu
+                if (evt.getButton() == MouseEvent.BUTTON3) {
+                    jPopupMenuPayees.show(jListPayees, evt.getX(), evt.getY());
+                }
+            }
+        });
 
         jLabelKeywords = new JLabel(NbBundle.getMessage(SearchFilterTopComponent.class, "SearchFilterTopComponent.jLabelKeywords.text"));
         jTextFieldKeywords = new JTextField();
@@ -226,6 +237,7 @@ public final class SearchFilterTopComponent extends TopComponent implements Look
         jButtonSearch = new JButton(NbBundle.getMessage(SearchFilterTopComponent.class, "SearchFilterTopComponent.jButtonSearch.text"));
         jButtonSearch.addActionListener(new ActionListener() {
 
+            @Override
             public void actionPerformed(ActionEvent evt) {
                 jButtonSearchActionPerformed();
             }
@@ -382,7 +394,7 @@ public final class SearchFilterTopComponent extends TopComponent implements Look
 
     /** When the button 'Search' is clicked, creates search filters objects and put them in the lookup */
     public void jButtonSearchActionPerformed() {
-        if (jXDatePickerFrom.getDate() == null) {
+        if (jComboBoxBy.isVisible() && jXDatePickerFrom.getDate() == null) {
             // 'from' date has not been entered
             NotifyDescriptor message = new NotifyDescriptor.Message(
                     "Please enter a date in the field 'from'",
@@ -392,7 +404,7 @@ public final class SearchFilterTopComponent extends TopComponent implements Look
             return;
         }
 
-        if (jXDatePickerTo.getDate() == null) {
+        if (jComboBoxBy.isVisible() && jXDatePickerTo.getDate() == null) {
             // 'to' date has not been entered
             NotifyDescriptor message = new NotifyDescriptor.Message(
                     "Please enter a date in the field 'to'",
@@ -403,8 +415,19 @@ public final class SearchFilterTopComponent extends TopComponent implements Look
         }
 
         // Get the 'from' and 'to' dates
-        LocalDate from = new LocalDate(jXDatePickerFrom.getDate());
-        LocalDate to = new LocalDate(jXDatePickerTo.getDate());
+        LocalDate from;
+        LocalDate to;
+        if (jXDatePickerFrom.getDate() != null) {
+            from = new LocalDate(jXDatePickerFrom.getDate());
+        }else {
+            from = new LocalDate(1990, 1, 1);
+        }
+
+        if (jXDatePickerTo.getDate() != null) {
+            to = new LocalDate(jXDatePickerTo.getDate());
+        } else {
+            to = new LocalDate();
+        }
 
         // Check that 'from' is before 'to'
         if (from.compareTo(to) > 0) {
@@ -418,9 +441,15 @@ public final class SearchFilterTopComponent extends TopComponent implements Look
         }
 
         // Get 'by' (type of period: day, week, month, year)
-        assert (jComboBoxBy.getSelectedIndex() != -1);
-        PeriodType periodType = (PeriodType) jComboBoxBy.getSelectedItem();
-        assert (periodType != null);
+        PeriodType periodType;
+        if (jComboBoxBy.isVisible()) {
+            assert (jComboBoxBy.getSelectedIndex() != -1);
+            periodType = (PeriodType) jComboBoxBy.getSelectedItem();
+            assert (periodType != null);
+        } else {
+            periodType = PeriodType.FREE;
+        }
+
         Periods periods = new Periods(from, to, periodType);
         assert (periods != null);
 
@@ -489,14 +518,7 @@ public final class SearchFilterTopComponent extends TopComponent implements Look
         }
 
         // Get selected keywords
-        List<String> enteredKeywords = new ArrayList<String>();
         String keywords = jTextFieldKeywords.getText();
-        if (keywords.compareTo("") != 0) {
-            String[] keywordsSplit = keywords.split(" ");
-            for (int i = 0; i < keywordsSplit.length; i++) {
-                enteredKeywords.add(keywordsSplit[i]);
-            }
-        }
 
         // Create the search filters (one for each period)
         List<SearchFilter> searchFilters = new ArrayList<SearchFilter>();
@@ -508,7 +530,7 @@ public final class SearchFilterTopComponent extends TopComponent implements Look
             searchFilter.setAccounts(selectedAccounts);
             searchFilter.setCategories(selectedCategories);
             searchFilter.setPayees(selectedPayees);
-            searchFilter.setKeywords(enteredKeywords);
+            searchFilter.setKeywords(keywords);
             searchFilter.setIncludeTransferTransactions(true);
 
             searchFilters.add(searchFilter);
@@ -532,6 +554,9 @@ public final class SearchFilterTopComponent extends TopComponent implements Look
         jPopupMenuAccounts = new javax.swing.JPopupMenu();
         jMenuItemSelectAllAccounts = new javax.swing.JMenuItem();
         jMenuItemDeselectAllAccounts = new javax.swing.JMenuItem();
+        jPopupMenuPayees = new javax.swing.JPopupMenu();
+        jMenuItemSelectAllPayees = new javax.swing.JMenuItem();
+        jMenuItemDeselectAllPayees = new javax.swing.JMenuItem();
         jScrollPaneSearchFilter = new javax.swing.JScrollPane();
         jPanelSearchFilterContainer = new javax.swing.JPanel();
         jPanelSearchFilter = new javax.swing.JPanel();
@@ -567,6 +592,22 @@ public final class SearchFilterTopComponent extends TopComponent implements Look
             }
         });
         jPopupMenuAccounts.add(jMenuItemDeselectAllAccounts);
+
+        org.openide.awt.Mnemonics.setLocalizedText(jMenuItemSelectAllPayees, org.openide.util.NbBundle.getMessage(SearchFilterTopComponent.class, "SearchFilterTopComponent.jMenuItemSelectAllPayees.text")); // NOI18N
+        jMenuItemSelectAllPayees.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                jMenuItemSelectAllPayeesActionPerformed(evt);
+            }
+        });
+        jPopupMenuPayees.add(jMenuItemSelectAllPayees);
+
+        org.openide.awt.Mnemonics.setLocalizedText(jMenuItemDeselectAllPayees, org.openide.util.NbBundle.getMessage(SearchFilterTopComponent.class, "SearchFilterTopComponent.jMenuItemDeselectAllPayees.text")); // NOI18N
+        jMenuItemDeselectAllPayees.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                jMenuItemDeselectAllPayeesActionPerformed(evt);
+            }
+        });
+        jPopupMenuPayees.add(jMenuItemDeselectAllPayees);
 
         setLayout(new java.awt.BorderLayout());
 
@@ -609,15 +650,28 @@ public final class SearchFilterTopComponent extends TopComponent implements Look
         // Deselect all accounts
         jListAccounts.clearSelection();
     }//GEN-LAST:event_jMenuItemDeselectAllAccountsActionPerformed
+
+    private void jMenuItemSelectAllPayeesActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jMenuItemSelectAllPayeesActionPerformed
+        jListPayees.setSelectionInterval(0, jListPayees.getModel().getSize() - 1);
+    }//GEN-LAST:event_jMenuItemSelectAllPayeesActionPerformed
+
+    private void jMenuItemDeselectAllPayeesActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jMenuItemDeselectAllPayeesActionPerformed
+        // Deselect all payees
+        jListPayees.clearSelection();
+    }//GEN-LAST:event_jMenuItemDeselectAllPayeesActionPerformed
+
     // Variables declaration - do not modify//GEN-BEGIN:variables
     private javax.swing.JMenuItem jMenuItemDeselectAllAccounts;
     private javax.swing.JMenuItem jMenuItemDeselectAllCategories;
+    private javax.swing.JMenuItem jMenuItemDeselectAllPayees;
     private javax.swing.JMenuItem jMenuItemSelectAllAccounts;
     private javax.swing.JMenuItem jMenuItemSelectAllCategories;
+    private javax.swing.JMenuItem jMenuItemSelectAllPayees;
     private javax.swing.JPanel jPanelSearchFilter;
     private javax.swing.JPanel jPanelSearchFilterContainer;
     private javax.swing.JPopupMenu jPopupMenuAccounts;
     private javax.swing.JPopupMenu jPopupMenuCategories;
+    private javax.swing.JPopupMenu jPopupMenuPayees;
     private javax.swing.JScrollPane jScrollPaneSearchFilter;
     // End of variables declaration//GEN-END:variables
 
@@ -730,6 +784,7 @@ public final class SearchFilterTopComponent extends TopComponent implements Look
      * Updates the visibility of the filters (from/to/by/currencies/accounts...)
      * @param ev Lookup event
      */
+    @Override
     public void resultChanged(LookupEvent ev) {
         Collection instances = result.allInstances();
 

@@ -18,10 +18,9 @@ You should have received a copy of the GNU General Public License
 along with GrisbiGraphs; if not, write to the Free Software
 Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 -->
-<!DOCTYPE settings PUBLIC "-//NetBeans//DTD Session settings 1.0//EN" "http://www.netbeans.org/dtds/sessionsettings-1_0.dtd">
-<settings version="1.0">
-    <module name="gg.view.overview" spec="1.0"/>
-    <instanceof class="org.openide.windows.TopComponent"/>
-    <instanceof class="gg.view.overview.IncomeExpensesTopComponent"/>
-    <instance class="gg.view.overview.IncomeExpensesTopComponent" method="getDefault"/>
-</settings>
+<!DOCTYPE tc-ref PUBLIC "-//NetBeans//DTD Top Component in Mode Properties 2.0//EN" "http://www.netbeans.org/dtds/tc-ref2_0.dtd">
+<tc-ref version="2.0" >
+    <module name="gg.view.transactions" spec="1.0"/>
+    <tc-id id="TransactionsTopComponent"/>
+    <state opened="false"/>
+</tc-ref>
