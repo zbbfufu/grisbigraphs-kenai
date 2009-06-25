@@ -23,15 +23,20 @@ package gg.view.movementsbalances;
 
 import gg.searchfilter.FieldsVisibility;
 import gg.db.datamodel.Datamodel;
-import gg.db.datamodel.SearchFilter;
+import gg.db.datamodel.Period;
+import gg.db.datamodel.PeriodType;
+import gg.db.datamodel.Periods;
+import gg.db.datamodel.SearchCriteria;
 import gg.db.entities.Account;
 import gg.db.entities.Currency;
 import gg.db.entities.MoneyContainer;
 import gg.options.Options;
+import gg.searchfilter.SearchFilter;
 import gg.utilities.Utilities;
 import gg.wallet.Wallet;
 import java.math.BigDecimal;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
@@ -73,8 +78,8 @@ public final class MovementsBalancesTopComponent extends TopComponent implements
     private InstanceContent content = new InstanceContent();
     /** Result for the lookup listener */
     private Lookup.Result result = null;
-    /** Currently displayed search filters */
-    private List<SearchFilter> displayedSearchFilters = new ArrayList<SearchFilter>();
+    /** Currently displayed search filter */
+    private SearchFilter displayedSearchFilter;
     /** Defines which filters are supported by this view */
     private FieldsVisibility fieldsVisibility = new FieldsVisibility();
 
@@ -237,6 +242,7 @@ public final class MovementsBalancesTopComponent extends TopComponent implements
             resultChanged(null);
         }
 
+        // Open movements' balances group
         TopComponentGroup movementsBalancesGroup = WindowManager.getDefault().findTopComponentGroup("MovementsBalancesGroup");
         if (movementsBalancesGroup != null) {
             movementsBalancesGroup.open();
@@ -255,75 +261,116 @@ public final class MovementsBalancesTopComponent extends TopComponent implements
         result.removeLookupListener(this);
         result = null;
 
+        // Close movements' balances group
         TopComponentGroup movementsBalancesGroup = WindowManager.getDefault().findTopComponentGroup("MovementsBalancesGroup");
         if (movementsBalancesGroup != null) {
             movementsBalancesGroup.close();
         }
     }
 
+    /**
+     * Are two search filters identic?
+     * @param newSearchFilter New search filter
+     * @param oldSearchFilter Old search filter
+     * @return true if the search filters have the same values for the fields that are supported by this view
+     */
+    private boolean isSame(SearchFilter newSearchFilter, SearchFilter oldSearchFilter) {
+        assert (newSearchFilter != null);
+
+        return (oldSearchFilter != null &&
+                newSearchFilter.getFrom().compareTo(oldSearchFilter.getFrom()) == 0 &&
+                newSearchFilter.getTo().compareTo(oldSearchFilter.getTo()) == 0 &&
+                newSearchFilter.getPeriodType().compareTo(oldSearchFilter.getPeriodType()) == 0 &&
+                newSearchFilter.getCurrency().compareTo(oldSearchFilter.getCurrency()) == 0 &&
+                newSearchFilter.getAccounts().equals(oldSearchFilter.getAccounts()));
+    }
+    
     /** Called when the lookup content is changed (button Search clicked in Search Filter tc) */
     @Override
     public void resultChanged(LookupEvent ev) {
-        @SuppressWarnings("unchecked")
-        List<SearchFilter> searchFilters = (List<SearchFilter>) result.allInstances();
-        if (!searchFilters.isEmpty() && !searchFilters.equals(displayedSearchFilters)) {
-            displayData(searchFilters);
+        Collection instances = result.allInstances();
+
+        if (!instances.isEmpty()) {
+            // Get the filters specified by the user
+            SearchFilter searchFilter = (SearchFilter) instances.iterator().next();
+
+            // If the filters specified by the user are different from the ones that are already displayed, refresh table
+            if (!isSame(searchFilter, displayedSearchFilter) &&
+                    searchFilter.getPeriodType().compareTo(PeriodType.FREE) != 0) {
+                displayData(searchFilter);
+            }
         }
     }
 
     /**
      * Displays the currency/accounts' movements by period
-     * @param searchFilters Search filter objects (one per period) for which the movements are wanted
+     * @param searchFilter Search filter for which the table must be computed
      */
-    private void displayData(List<SearchFilter> searchFilters) {
+    private void displayData(SearchFilter searchFilter) {
         // Display hourglass cursor
         Utilities.changeCursorWaitStatus(true);
 
         // Prepare treetable
         DefaultMutableTreeNode rootNode = new DefaultMutableTreeNode(); // Root (Not displayed)
 
-        // Map containing the movements' balances by currency/account and by search filter
-        // ((Currency/Account) --> (SearchFilter --> Currency/Account movement balance))
-        Map<MoneyContainer, Map<SearchFilter, BigDecimal>> balances =
-                new HashMap<MoneyContainer, Map<SearchFilter, BigDecimal>>();
+        // Map containing the movements' balances by currency/account and by search criteria
+        // ((Currency/Account) --> (SearchCriteria --> Currency/Account movement balance))
+        Map<MoneyContainer, Map<SearchCriteria, BigDecimal>> balances =
+                new HashMap<MoneyContainer, Map<SearchCriteria, BigDecimal>>();
+        
+        // List of periods (one per column)
+        Periods periods = new Periods(searchFilter.getFrom(),
+                searchFilter.getTo(),
+                searchFilter.getPeriodType());
+
+        // List of search criteria (one per column)
+        List<SearchCriteria> searchCriterias = new ArrayList<SearchCriteria>();
+        for (Period period : periods.getPeriods()) {
+            SearchCriteria searchCriteria = new SearchCriteria();
+            searchCriteria.setPeriod(period);
+            searchCriteria.setCurrency(searchFilter.getCurrency());
+            searchCriteria.setAccounts(searchFilter.getAccounts());
+
+            searchCriterias.add(searchCriteria);
+        }
 
         // Add the currencies into the table
         for (Currency currency : Wallet.getInstance().getActiveCurrencies()) {
-            if (!searchFilters.get(0).hasCurrencyFilter() ||
-                    (searchFilters.get(0).hasCurrencyFilter() && searchFilters.get(0).getCurrency().compareTo(currency) == 0)) {
+            if (!searchFilter.hasCurrencyFilter() ||
+                    (searchFilter.hasCurrencyFilter() && searchFilter.getCurrency().compareTo(currency) == 0)) {
                 // Add currency to the tree
                 DefaultMutableTreeNode currencyNode = new DefaultMutableTreeNode(currency);
                 rootNode.add(currencyNode);
 
-                // Map containing the currency's movements by search filter
-                Map<SearchFilter, BigDecimal> currencyBalances = new HashMap<SearchFilter, BigDecimal>();
-                for (SearchFilter searchFilter : searchFilters) {
-                    currencyBalances.put(searchFilter, new BigDecimal(0));
+                // Map containing the currency's movements by search criteria
+                Map<SearchCriteria, BigDecimal> currencyBalances = new HashMap<SearchCriteria, BigDecimal>();
+                for (SearchCriteria searchCriteria : searchCriterias) {
+                    currencyBalances.put(searchCriteria, new BigDecimal(0));
                 }
 
-                // Compute the accounts' movements for each search filter
+                // Compute the accounts' movements for each search criteria (for each period)
                 for (Account account : Wallet.getInstance().getActiveAccountsWithCurrency().get(currency)) {
-                    if (!searchFilters.get(0).hasAccountsFilter() ||
-                            (searchFilters.get(0).hasAccountsFilter() && searchFilters.get(0).getAccounts().contains(account))) {
+                    if (!searchFilter.hasAccountsFilter() ||
+                            (searchFilter.hasAccountsFilter() && searchFilter.getAccounts().contains(account))) {
                         // Add account to the tree
                         DefaultMutableTreeNode accountNode = new DefaultMutableTreeNode(account);
                         currencyNode.add(accountNode);
 
-                        // Compute the accounts' movements for each search filter
-                        Map<SearchFilter, BigDecimal> accountBalances = new HashMap<SearchFilter, BigDecimal>();
-                        for (SearchFilter searchFilter : searchFilters) {
-                            SearchFilter newSearchFilter = new SearchFilter();
-                            newSearchFilter.setCurrency(currency);
+                        // Compute the accounts' movements for each search criteria
+                        Map<SearchCriteria, BigDecimal> accountBalances = new HashMap<SearchCriteria, BigDecimal>();
+                        for (SearchCriteria searchCriteria : searchCriterias) {
+                            SearchCriteria newSearchCriteria = new SearchCriteria();
+                            newSearchCriteria.setCurrency(currency);
                             List<Account> accounts = new ArrayList<Account>();
                             accounts.add(account);
-                            newSearchFilter.setAccounts(accounts);
-                            newSearchFilter.setPeriod(searchFilter.getPeriod());
+                            newSearchCriteria.setAccounts(accounts);
+                            newSearchCriteria.setPeriod(searchCriteria.getPeriod());
 
-                            BigDecimal accountBalance = Datamodel.getBalance(newSearchFilter);
-                            accountBalances.put(searchFilter, accountBalance);
+                            BigDecimal accountBalance = Datamodel.getBalance(newSearchCriteria);
+                            accountBalances.put(searchCriteria, accountBalance);
 
-                            currencyBalances.put(searchFilter,
-                                    currencyBalances.get(searchFilter).add(accountBalance));
+                            currencyBalances.put(searchCriteria,
+                                    currencyBalances.get(searchCriteria).add(accountBalance));
                         }
                         balances.put(account, accountBalances);
                     }
@@ -337,7 +384,7 @@ public final class MovementsBalancesTopComponent extends TopComponent implements
         DefaultTreeModel treeModel = new DefaultTreeModel(rootNode);
         OutlineModel outlineModel = DefaultOutlineModel.createOutlineModel(
                 treeModel,
-                new MovementsBalancesRowModel(searchFilters, balances),
+                new MovementsBalancesRowModel(searchCriterias, balances),
                 true,
                 "Account");
         outlineMovementsBalances.setModel(outlineModel);
@@ -350,8 +397,8 @@ public final class MovementsBalancesTopComponent extends TopComponent implements
         // Resize the columns' widths
         Utilities.packColumns(outlineMovementsBalances);
 
-        // Save the currently displayed list of search filters
-        this.displayedSearchFilters = searchFilters;
+        // Save the currently displayed search filter
+        this.displayedSearchFilter = searchFilter;
 
         // Put the balances map in the lookup so that it can be displayed as a chart by another topcomponent
         content.set(Collections.singleton(balances), null);
@@ -364,24 +411,24 @@ public final class MovementsBalancesTopComponent extends TopComponent implements
     /** Row model for the Movements' balances outline */
     private class MovementsBalancesRowModel implements RowModel {
 
-        /** Search filters (periods) to display */
-        private List<SearchFilter> searchFilters;
-        /** Currency/Account balances by search filter */
-        private Map<MoneyContainer, Map<SearchFilter, BigDecimal>> balances;
+        /** List of search criteria (columns) */
+        private List<SearchCriteria> searchCriterias;
+        /** Currency/Account balances by search criteria */
+        private Map<MoneyContainer, Map<SearchCriteria, BigDecimal>> balances;
 
         /**
          * Creates a new instance of MovementsBalancesRowModel
-         * @param searchFilters Search filters to display (one per period)
-         * @param balances Currency/Account balances by search filter
+         * @param searchCriterias Search criteria to display (one per period)
+         * @param balances Currency/Account balances by search criteria
          */
-        public MovementsBalancesRowModel(List<SearchFilter> searchFilters, Map<MoneyContainer, Map<SearchFilter, BigDecimal>> balances) {
-            if (searchFilters == null) {
-                throw new IllegalArgumentException("The parameter 'searchFilters' is null");
+        public MovementsBalancesRowModel(List<SearchCriteria> searchCriterias, Map<MoneyContainer, Map<SearchCriteria, BigDecimal>> balances) {
+            if (searchCriterias == null) {
+                throw new IllegalArgumentException("The parameter 'searchCriterias' is null");
             }
             if (balances == null) {
                 throw new IllegalArgumentException("The parameter 'balances' is null");
             }
-            this.searchFilters = searchFilters;
+            this.searchCriterias = searchCriterias;
             this.balances = balances;
         }
 
@@ -401,7 +448,7 @@ public final class MovementsBalancesTopComponent extends TopComponent implements
          */
         @Override
         public int getColumnCount() {
-            return searchFilters.size();
+            return searchCriterias.size();
         }
 
         /**
@@ -411,7 +458,7 @@ public final class MovementsBalancesTopComponent extends TopComponent implements
          */
         @Override
         public String getColumnName(int column) {
-            return searchFilters.get(column).getPeriod().toString();
+            return searchCriterias.get(column).getPeriod().toString();
         }
 
         /**
@@ -436,9 +483,9 @@ public final class MovementsBalancesTopComponent extends TopComponent implements
             // - if the object is an account or
             // - if the object is a currency and if the user wants to see the sums
             if (moneyContainer instanceof Account || Options.calculateSums()) {
-                SearchFilter searchFilter = searchFilters.get(column);
-                assert (searchFilter != null);
-                BigDecimal movementValue = balances.get(moneyContainer).get(searchFilter);
+                SearchCriteria searchCriteria = searchCriterias.get(column);
+                assert (searchCriteria != null);
+                BigDecimal movementValue = balances.get(moneyContainer).get(searchCriteria);
                 assert (movementValue != null);
 
                 if (movementValue.compareTo(BigDecimal.ZERO) != 0 || Options.displayZero()) {

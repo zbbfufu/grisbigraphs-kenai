@@ -203,7 +203,7 @@ public class GrisbiFile050 implements Importer {
             }
 
             // For each category, save an empty sub-category
-            Category noSubCategory = new Category(categoryId, 10000L, "No sub-category", category, false);
+            Category noSubCategory = new Category(categoryId, Category.NO_SUB_CATEGORY_ID, "No sub-category", category, false);
             Datamodel.saveCategory(noSubCategory);
 
             numberOfImportedCategories++;
@@ -534,7 +534,7 @@ public class GrisbiFile050 implements Importer {
                 } else if (transactionGrisbiCategoryId != 0) {
                     // Else, if a category is defined, get the category
                     transactionGrisbiCategory.setCategoryId(transactionGrisbiCategoryId);
-                    transactionGrisbiCategory.setSubCategoryId(10000L);
+                    transactionGrisbiCategory.setSubCategoryId(Category.NO_SUB_CATEGORY_ID);
                     transactionCategory = categories.get(transactionGrisbiCategory);
                     assert (transactionCategory != null);
                 } else {

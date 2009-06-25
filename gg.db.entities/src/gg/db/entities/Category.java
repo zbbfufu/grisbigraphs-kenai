@@ -54,6 +54,8 @@ public class Category {
     public static final Category BREAKDOWN_OF_TRANSACTIONS = new Category(-30L, -30L, "Breakdown", null, true);
     /** This constant permits to search for transactions, which have no category */
     public static final Category NO_CATEGORY = new Category(-40L, -40L, "NO_CATEGORY", null, true);
+    /** Sub-category ID used when no sub-category is defined */
+    public static final Long NO_SUB_CATEGORY_ID = 10000L;
 
     /** Creates a new instance of Category */
     public Category() {

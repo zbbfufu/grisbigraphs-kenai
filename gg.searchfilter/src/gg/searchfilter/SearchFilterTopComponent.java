@@ -22,10 +22,8 @@
 package gg.searchfilter;
 
 import gg.application.Constants;
-import gg.db.datamodel.Period;
 import gg.db.datamodel.PeriodType;
 import gg.db.datamodel.Periods;
-import gg.db.datamodel.SearchFilter;
 import gg.db.entities.Account;
 import gg.db.entities.Category;
 import gg.db.entities.Currency;
@@ -40,6 +38,7 @@ import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.Date;
 import java.util.List;
 import java.util.Properties;
@@ -88,7 +87,7 @@ public final class SearchFilterTopComponent extends TopComponent implements Look
     private static final String ICON_PATH = "gg/resources/icons/SearchFilter.png";
     /** ID of the component */
     private static final String PREFERRED_ID = "SearchFilterTopComponent";
-    /** Content available in the lookup of the topcomponent (list of search filter objects) */
+    /** Content available in the lookup of the topcomponent (search filter object) */
     private InstanceContent content = new InstanceContent();
     /** Model for the accounts list */
     private DefaultListModel listModelAccounts = new DefaultListModel();
@@ -239,7 +238,7 @@ public final class SearchFilterTopComponent extends TopComponent implements Look
 
             @Override
             public void actionPerformed(ActionEvent evt) {
-                jButtonSearchActionPerformed();
+                search();
             }
         });
         jPanelSearch.add(jButtonSearch, BorderLayout.EAST);
@@ -392,8 +391,8 @@ public final class SearchFilterTopComponent extends TopComponent implements Look
         }
     }
 
-    /** When the button 'Search' is clicked, creates search filters objects and put them in the lookup */
-    public void jButtonSearchActionPerformed() {
+    /** When the button 'Search' is clicked, creates a searchfilter object and put it in the lookup */
+    public void search() {
         if (jComboBoxBy.isVisible() && jXDatePickerFrom.getDate() == null) {
             // 'from' date has not been entered
             NotifyDescriptor message = new NotifyDescriptor.Message(
@@ -419,7 +418,7 @@ public final class SearchFilterTopComponent extends TopComponent implements Look
         LocalDate to;
         if (jXDatePickerFrom.getDate() != null) {
             from = new LocalDate(jXDatePickerFrom.getDate());
-        }else {
+        } else {
             from = new LocalDate(1990, 1, 1);
         }
 
@@ -520,24 +519,12 @@ public final class SearchFilterTopComponent extends TopComponent implements Look
         // Get selected keywords
         String keywords = jTextFieldKeywords.getText();
 
-        // Create the search filters (one for each period)
-        List<SearchFilter> searchFilters = new ArrayList<SearchFilter>();
-        for (Period period : periods.getPeriods()) {
-            SearchFilter searchFilter = new SearchFilter();
+        // Create the search filter
+        SearchFilter searchFilter = new SearchFilter(from, to, periodType, selectedCurrency,
+                selectedAccounts, selectedCategories, selectedPayees, keywords);
 
-            searchFilter.setPeriod(period);
-            searchFilter.setCurrency(selectedCurrency);
-            searchFilter.setAccounts(selectedAccounts);
-            searchFilter.setCategories(selectedCategories);
-            searchFilter.setPayees(selectedPayees);
-            searchFilter.setKeywords(keywords);
-            searchFilter.setIncludeTransferTransactions(true);
-
-            searchFilters.add(searchFilter);
-        }
-
-        // Put the list of SearchFilter in the lookup of the TC
-        content.set(searchFilters, null);
+        // Put the search filter in the lookup of the TC
+        content.set(Collections.singleton(searchFilter), null);
     }
 
     /** This method is called from within the constructor to
@@ -769,7 +756,7 @@ public final class SearchFilterTopComponent extends TopComponent implements Look
             loadDefaultValues();
 
             // Search with the current selection
-            jButtonSearchActionPerformed();
+            search();
         }
     }
 
@@ -791,6 +778,8 @@ public final class SearchFilterTopComponent extends TopComponent implements Look
         if (!instances.isEmpty()) {
             FieldsVisibility fieldsVisibility = (FieldsVisibility) instances.iterator().next();
             setVisibility(fieldsVisibility);
+
+            search();
         }
     }
 

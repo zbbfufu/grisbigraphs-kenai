@@ -26,7 +26,7 @@ import gg.db.entities.Currency;
 import gg.db.datamodel.Period;
 import gg.db.datamodel.PeriodType;
 import gg.db.datamodel.Periods;
-import gg.db.datamodel.SearchFilter;
+import gg.db.datamodel.SearchCriteria;
 import gg.utilities.Utilities;
 import gg.wallet.Wallet;
 import java.awt.BorderLayout;
@@ -244,14 +244,14 @@ public final class IncomeExpensesTopComponent extends TopComponent {
         List<Currency> currencies = Wallet.getInstance().getActiveCurrencies();
         for (Currency currency : currencies) {
             // Filter on the currency and on the current month
-            SearchFilter searchFilter = new SearchFilter(currency, null, currentMonth, null, null, null, false);
+            SearchCriteria searchCriteria = new SearchCriteria(currency, null, currentMonth, null, null, null, false);
 
             // Get income
-            BigDecimal currencyIncome = Datamodel.getIncome(searchFilter);
+            BigDecimal currencyIncome = Datamodel.getIncome(searchCriteria);
             currencyIncome = currencyIncome.setScale(2, RoundingMode.HALF_EVEN);
 
             // Get expenses
-            BigDecimal currencyExpenses = Datamodel.getExpenses(searchFilter).abs();
+            BigDecimal currencyExpenses = Datamodel.getExpenses(searchCriteria).abs();
             currencyExpenses = currencyExpenses.setScale(2, RoundingMode.HALF_EVEN);
 
             // Plot income and expenses for the current month and for the current currency on the chart

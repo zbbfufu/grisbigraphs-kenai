@@ -21,7 +21,7 @@
  */
 package gg.view.categoriesbalances;
 
-import gg.db.datamodel.SearchFilter;
+import gg.db.datamodel.SearchCriteria;
 import gg.db.entities.Category;
 import gg.utilities.Utilities;
 import gg.wallet.Wallet;
@@ -215,17 +215,17 @@ public final class GraphCategoriesBalancesTopComponent extends TopComponent impl
         Collection instances = result.allInstances();
         if (!instances.isEmpty()) {
             @SuppressWarnings("unchecked")
-            Map<Long, Map<SearchFilter, BigDecimal>> balances =
-                    (Map<Long, Map<SearchFilter, BigDecimal>>) instances.iterator().next();
+            Map<Long, Map<SearchCriteria, BigDecimal>> balances =
+                    (Map<Long, Map<SearchCriteria, BigDecimal>>) instances.iterator().next();
             displayData(balances);
         }
     }
 
     /**
      * Displays the categories/sub-categories' balances by period
-     * @param searchFilters Search filter objects (one per period) for which the balances are wanted
+     * @param balances Categories' balances
      */
-    private void displayData(Map<Long, Map<SearchFilter, BigDecimal>> balances) {
+    private void displayData(Map<Long, Map<SearchCriteria, BigDecimal>> balances) {
         // Display hourglass cursor
         Utilities.changeCursorWaitStatus(true);
 
@@ -264,22 +264,22 @@ public final class GraphCategoriesBalancesTopComponent extends TopComponent impl
             Category category = Wallet.getInstance().getCategoriesWithId().get(categoryId);
             assert (category != null);
 
-            SortedSet<SearchFilter> sortedSearchFilters = new TreeSet<SearchFilter>(
+            SortedSet<SearchCriteria> sortedSearchCriteria = new TreeSet<SearchCriteria>(
                     balances.get(categoryId).keySet());
-            for (SearchFilter searchFilter : sortedSearchFilters) {
+            for (SearchCriteria searchCriteria : sortedSearchCriteria) {
 
-                if ((!searchFilter.hasCategoriesFilter() && category.isTopCategory() && !category.getSystemProperty()) ||
-                        searchFilter.getCategories().contains(category)) {
+                if ((!searchCriteria.hasCategoriesFilter() && category.isTopCategory() && !category.getSystemProperty()) ||
+                        searchCriteria.getCategories().contains(category)) {
 
                     BigDecimal balance = new BigDecimal(0);
-                    if (balances.get(categoryId) != null && balances.get(categoryId).get(searchFilter) != null) {
-                        balance = balances.get(categoryId).get(searchFilter);
+                    if (balances.get(categoryId) != null && balances.get(categoryId).get(searchCriteria) != null) {
+                        balance = balances.get(categoryId).get(searchCriteria);
                     }
 
                     dataset.addValue(
                             balance,
                             category.getName(),
-                            searchFilter.getPeriod());
+                            searchCriteria.getPeriod());
                 }
             }
         }

@@ -22,16 +22,20 @@
 package gg.view.transactions;
 
 import gg.db.datamodel.Datamodel;
-import gg.db.datamodel.SearchFilter;
+import gg.db.datamodel.Period;
+import gg.db.datamodel.PeriodType;
+import gg.db.datamodel.SearchCriteria;
 import gg.db.entities.Account;
 import gg.db.entities.Category;
 import gg.db.entities.Currency;
 import gg.db.entities.Payee;
 import gg.db.entities.Transaction;
 import gg.searchfilter.FieldsVisibility;
+import gg.searchfilter.SearchFilter;
 import gg.utilities.Utilities;
 import gg.wallet.Wallet;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
@@ -74,8 +78,8 @@ public final class TransactionsTopComponent extends TopComponent implements Look
     private InstanceContent content = new InstanceContent();
     /** Result for the lookup listener */
     private Lookup.Result<SearchFilter> result = null;
-    /** Currently displayed search filters */
-    private List<SearchFilter> displayedSearchFilters = new ArrayList<SearchFilter>();
+    /** Currently displayed search filter */
+    private SearchFilter displayedSearchFilter;
 
     /** Creates a new instance of TransactionsTopComponent */
     public TransactionsTopComponent() {
@@ -250,91 +254,113 @@ public final class TransactionsTopComponent extends TopComponent implements Look
         result = null;
     }
 
-    /** Called when the lookup content is changed (button Search clicked in Search Filter tc) */
+    /**
+     * Are two search filters identic?
+     * @param newSearchFilter New search filter
+     * @param oldSearchFilter Old search filter
+     * @return true if the search filters have the same values for the fields that are supported by this view
+     */
+    private boolean isSame(SearchFilter newSearchFilter, SearchFilter oldSearchFilter) {
+        assert (newSearchFilter != null);
+
+        return (oldSearchFilter != null &&
+                newSearchFilter.getFrom().compareTo(oldSearchFilter.getFrom()) == 0 &&
+                newSearchFilter.getTo().compareTo(oldSearchFilter.getTo()) == 0 &&
+                newSearchFilter.getPeriodType().compareTo(oldSearchFilter.getPeriodType()) == 0 &&
+                newSearchFilter.getCurrency().compareTo(oldSearchFilter.getCurrency()) == 0 &&
+                newSearchFilter.getAccounts().equals(oldSearchFilter.getAccounts()) &&
+                newSearchFilter.getCategories().equals(oldSearchFilter.getCategories()) &&
+                newSearchFilter.getPayees().equals(oldSearchFilter.getPayees()) &&
+                newSearchFilter.getKeywords().compareTo(oldSearchFilter.getKeywords()) == 0);
+    }
+
+    /** Called when the lookup content is changed (button 'Search' clicked in the 'Search Filter' tc) */
     @Override
     public void resultChanged(LookupEvent ev) {
-        @SuppressWarnings("unchecked")
-        List<SearchFilter> searchFilters = (List<SearchFilter>) result.allInstances();
+        Collection instances = result.allInstances();
 
-        // If the search filter objects to display are different from the already displayed search filter objects
-        if (!searchFilters.isEmpty() && !searchFilters.equals(displayedSearchFilters)) {
-            displayData(searchFilters);
+        if (!instances.isEmpty()) {
+            // Get the filters specified by the user
+            SearchFilter searchFilter = (SearchFilter) instances.iterator().next();
+
+            // If the filters specified by the user are different from the ones that are already displayed, refresh table
+            if (!isSame(searchFilter, displayedSearchFilter)) {
+                displayData(searchFilter);
+            }
         }
     }
 
     /**
      * Displays the transactions
-     * @param searchFilters Search filter for which the transactions are wanted
+     * @param searchFilter Search filter for which the table must be computed
      */
-    private void displayData(List<SearchFilter> searchFilters) {
+    private void displayData(SearchFilter searchFilter) {
         // Display hourglass cursor
         Utilities.changeCursorWaitStatus(true);
 
-        DefaultMutableTreeNode rootNode = new DefaultMutableTreeNode(); // Root (Not displayed)
-
-        // Active currencies
-        List<Currency> currencies = Wallet.getInstance().getActiveCurrencies();
-        // Map of active accounts: the key is the currency, the value is the list of active accounts that belong to the currency
-        Map<Currency, List<Account>> accountsWithCurrency = Wallet.getInstance().getActiveAccountsWithCurrency();
-
-        SearchFilter newSearchFilter = new SearchFilter();
-        if (searchFilters.get(0).hasPeriodFilter()) {
-            newSearchFilter.setPeriod(searchFilters.get(0).getPeriod());
+        // Prepare the search criteria to query the database
+        SearchCriteria searchCriteria = new SearchCriteria();
+        searchCriteria.setPeriod(new Period(searchFilter.getFrom(), searchFilter.getTo(), PeriodType.FREE));
+        if (searchFilter.hasCurrencyFilter()) {
+            searchCriteria.setCurrency(searchFilter.getCurrency());
         }
-        if (searchFilters.get(0).hasCurrencyFilter()) {
-            newSearchFilter.setCurrency(searchFilters.get(0).getCurrency());
+        if (searchFilter.hasAccountsFilter()) {
+            searchCriteria.setAccounts(searchFilter.getAccounts());
         }
-        if (searchFilters.get(0).hasAccountsFilter()) {
-            newSearchFilter.setAccounts(searchFilters.get(0).getAccounts());
+        if (searchFilter.hasPayeesFilter()) {
+            searchCriteria.setPayees(searchFilter.getPayees());
         }
-        if (searchFilters.get(0).hasPayeesFilter()) {
-            newSearchFilter.setPayees(searchFilters.get(0).getPayees());
+        if (searchFilter.hasKeywordsFilter()) {
+            searchCriteria.setKeywords(searchFilter.getKeywords());
         }
-        if (searchFilters.get(0).hasKeywordsFilter()) {
-            newSearchFilter.setKeywords(searchFilters.get(0).getKeywords());
-        }
-        if (searchFilters.get(0).hasCategoriesFilter()) {
+        if (searchFilter.hasCategoriesFilter()) {
             List<Category> newCategories = new ArrayList<Category>();
-            for (Category category : searchFilters.get(0).getCategories()) {
+            for (Category category : searchFilter.getCategories()) {
                 newCategories.add(category);
                 if (category.isTopCategory()) {
                     newCategories.addAll(Wallet.getInstance().getSubCategoriesWithParentCategory().get(category));
                 }
             }
-            newSearchFilter.setCategories(newCategories);
+            searchCriteria.setCategories(newCategories);
         }
 
-        // Get the transactions that match the search filter
-        List<Transaction> transactions = Datamodel.getTransactions(newSearchFilter);
+        // Get the transactions that match the search criteria
+        List<Transaction> transactions = Datamodel.getTransactions(searchCriteria);
 
+        // Get the payees and the categories for each transaction
         Map<Transaction, Payee> payeesWithTransaction = new HashMap<Transaction, Payee>();
         Map<Transaction, Category> categoriesWithTransaction = new HashMap<Transaction, Category>();
-
         for (Transaction transaction : transactions) {
             payeesWithTransaction.put(transaction, Wallet.getInstance().getPayeesWithId().get(transaction.getPayee().getId()));
             categoriesWithTransaction.put(transaction, Wallet.getInstance().getCategoriesWithId().get(transaction.getCategory().getId()));
         }
 
-        for (Currency currency : currencies) {
+        // Prepare the tree
+        DefaultMutableTreeNode rootNode = new DefaultMutableTreeNode(); // Root (Not displayed)
+        for (Currency currency : Wallet.getInstance().getActiveCurrencies()) {
             // Add currency to the tree
             DefaultMutableTreeNode currencyNode = new DefaultMutableTreeNode(currency);
 
             // For each active account that belong to the currency
-            for (Account account : accountsWithCurrency.get(currency)) {
+            for (Account account : Wallet.getInstance().getActiveAccountsWithCurrency().get(currency)) {
+                // Add account to the tree
                 DefaultMutableTreeNode accountNode = new DefaultMutableTreeNode(account);
 
                 for (Transaction transaction : transactions) {
                     if (transaction.getAccount().getId().compareTo(account.getId()) == 0) {
+                        // Add transactions that belong to the current account to the tree
                         DefaultMutableTreeNode transactionNode = new DefaultMutableTreeNode(transaction);
                         accountNode.add(transactionNode);
                     }
                 }
 
+                // If the account contains transactions matching the search criteria, display the account
                 if (accountNode.getChildCount() > 0) {
                     currencyNode.add(accountNode);
                 }
             }
 
+            // If the currency contains accounts that contain transactions matching the search criteria, display the currency
             if (currencyNode.getChildCount() > 0) {
                 rootNode.add(currencyNode);
             }
@@ -363,8 +389,8 @@ public final class TransactionsTopComponent extends TopComponent implements Look
         // Resize the columns' widths
         Utilities.packColumns(outlineTransactions);
 
-        // Save the currently displayed list of search filters
-        this.displayedSearchFilters = searchFilters;
+        // Save the currently displayed search filter
+        this.displayedSearchFilter = searchFilter;
 
         // Display normal cursor
         Utilities.changeCursorWaitStatus(false);
@@ -373,11 +399,25 @@ public final class TransactionsTopComponent extends TopComponent implements Look
     /** Row model for the Accounts' Balances outline */
     private class TransactionsRowModel implements RowModel {
 
-        Map<Transaction, Payee> payeesWithTransaction;
-        Map<Transaction, Category> categoriesWithTransaction;
+        /** Payees of the transactions */
+        private Map<Transaction, Payee> payeesWithTransaction;
+        /** Categories of the transactions */
+        private Map<Transaction, Category> categoriesWithTransaction;
+        /** Position of 'date' in the model */
+        private static final byte COLUMN_DATE = 0;
+        /** Position of 'payee' in the model */
+        private static final byte COLUMN_PAYEE = 1;
+        /** Position of 'category' in the model */
+        private static final byte COLUMN_CATEGORY = 2;
+        /** Position of 'amount' in the model */
+        private static final byte COLUMN_AMOUNT = 3;
+        /** Position of 'comment' in the model */
+        private static final byte COLUMN_COMMENT = 4;
 
         /**
-         * Creates a new instance of AccountsBalancesRowModel
+         * Creates a new instance of TransactionsRowModel
+         * @param payeesWithTransaction Payees of the transactions
+         * @param categoriesWithTransaction Categories of the transactions
          */
         public TransactionsRowModel(Map<Transaction, Payee> payeesWithTransaction,
                 Map<Transaction, Category> categoriesWithTransaction) {
@@ -412,15 +452,15 @@ public final class TransactionsTopComponent extends TopComponent implements Look
         @Override
         public String getColumnName(int column) {
             switch (column) {
-                case 0:
+                case COLUMN_DATE:
                     return "Date";
-                case 1:
+                case COLUMN_PAYEE:
                     return "Payee";
-                case 2:
+                case COLUMN_CATEGORY:
                     return "Category";
-                case 3:
+                case COLUMN_AMOUNT:
                     return "Amount";
-                case 4:
+                case COLUMN_COMMENT:
                     return "Comment";
                 default:
                     throw new AssertionError("Unknown column");
@@ -435,6 +475,9 @@ public final class TransactionsTopComponent extends TopComponent implements Look
          */
         @Override
         public Object getValueFor(Object node, int column) {
+            // Value to display in the current cell
+            String value = "";
+
             // Get the object contained in the current cell
             Object nodeUserObject = ((DefaultMutableTreeNode) node).getUserObject();
             assert (nodeUserObject != null);
@@ -443,29 +486,34 @@ public final class TransactionsTopComponent extends TopComponent implements Look
             if (nodeUserObject instanceof Transaction) {
                 Transaction transaction = (Transaction) nodeUserObject;
                 switch (column) {
-                    case 0:
-                        return DateTimeFormat.longDate().withLocale(Locale.US).print(transaction.getDate().toDateMidnight());
-                    case 1:
-                        return payeesWithTransaction.get(transaction).getName();
-                    case 2:
+                    case COLUMN_DATE:
+                        value = DateTimeFormat.longDate().withLocale(Locale.US).print(transaction.getDate().toDateMidnight());
+                        break;
+                    case COLUMN_PAYEE:
+                        value = payeesWithTransaction.get(transaction).getName();
+                        break;
+                    case COLUMN_CATEGORY:
                         Category cat = categoriesWithTransaction.get(transaction);
                         if (cat.isTopCategory()) {
-                            return cat.getName();
-                        } else if (cat.getGrisbiSubCategoryId() == 10000L) {
-                            return cat.getParentCategory().getName();
+                            value = cat.getName();
+                        } else if (cat.getGrisbiSubCategoryId() == Category.NO_SUB_CATEGORY_ID) {
+                            value = cat.getParentCategory().getName();
                         } else {
-                            return cat.getParentCategory().getName() + " - " + cat.getName();
+                            value = cat.getParentCategory().getName() + " - " + cat.getName();
                         }
-                    case 3:
-                        return Utilities.getBalance(transaction.getAmount());
-                    case 4:
-                        return transaction.getComment();
+                        break;
+                    case COLUMN_AMOUNT:
+                        value = Utilities.getBalance(transaction.getAmount());
+                        break;
+                    case COLUMN_COMMENT:
+                        value = transaction.getComment();
+                        break;
                     default:
                         throw new AssertionError("Unknown column");
                 }
-            } else {
-                return "";
             }
+
+            return value;
         }
 
         /**

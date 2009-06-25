@@ -21,7 +21,7 @@
  */
 package gg.view.accountsbalances;
 
-import gg.db.datamodel.SearchFilter;
+import gg.db.datamodel.SearchCriteria;
 import gg.db.entities.Account;
 import gg.db.entities.MoneyContainer;
 import gg.utilities.Utilities;
@@ -221,10 +221,10 @@ public final class GraphAccountsBalancesTopComponent extends TopComponent implem
     public void resultChanged(LookupEvent ev) {
         Collection instances = result.allInstances();
         if (!instances.isEmpty()) {
-            // Get the currency/account balances by search filter
+            // Get the currency/account balances by search criteria
             @SuppressWarnings("unchecked")
-            Map<MoneyContainer, Map<SearchFilter, BigDecimal>> balances =
-                    (Map<MoneyContainer, Map<SearchFilter, BigDecimal>>) instances.iterator().next();
+            Map<MoneyContainer, Map<SearchCriteria, BigDecimal>> balances =
+                    (Map<MoneyContainer, Map<SearchCriteria, BigDecimal>>) instances.iterator().next();
 
             // Display the content of the table in the graph
             displayData(balances);
@@ -233,9 +233,9 @@ public final class GraphAccountsBalancesTopComponent extends TopComponent implem
 
     /**
      * Displays the accounts' balances by period
-     * @param searchFilters Search filter objects (one per period) for which the balances are wanted
+     * @param balances Accounts' balances
      */
-    private void displayData(Map<MoneyContainer, Map<SearchFilter, BigDecimal>> balances) {
+    private void displayData(Map<MoneyContainer, Map<SearchCriteria, BigDecimal>> balances) {
         // Display hourglass cursor
         Utilities.changeCursorWaitStatus(true);
 
@@ -274,17 +274,17 @@ public final class GraphAccountsBalancesTopComponent extends TopComponent implem
 
             if (moneyContainer instanceof Account) {
                 Account account = (Account) moneyContainer;
-                SortedSet<SearchFilter> sortedSearchFilters = new TreeSet<SearchFilter>(
+                SortedSet<SearchCriteria> sortedSearchCriteria = new TreeSet<SearchCriteria>(
                         balances.get(account).keySet());
 
-                for (SearchFilter searchFilter : sortedSearchFilters) {
-                    if (!searchFilter.hasAccountsFilter() ||
-                            searchFilter.getAccounts().contains(account)) {
+                for (SearchCriteria searchCriteria : sortedSearchCriteria) {
+                    if (!searchCriteria.hasAccountsFilter() ||
+                            searchCriteria.getAccounts().contains(account)) {
 
                         dataset.addValue(
-                                balances.get(moneyContainer).get(searchFilter),
+                                balances.get(moneyContainer).get(searchCriteria),
                                 account.toString(),
-                                searchFilter.getPeriod());
+                                searchCriteria.getPeriod());
                     }
                 }
             }

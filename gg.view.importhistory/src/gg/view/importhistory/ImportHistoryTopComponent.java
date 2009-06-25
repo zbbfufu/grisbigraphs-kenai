@@ -112,7 +112,7 @@ public final class ImportHistoryTopComponent extends TopComponent {
                             return "No";
                         }
                     default:
-                        return "";
+                        throw new AssertionError("Unknown column");
                 }
             }
         });

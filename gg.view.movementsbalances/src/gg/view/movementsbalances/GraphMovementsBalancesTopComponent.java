@@ -21,7 +21,7 @@
  */
 package gg.view.movementsbalances;
 
-import gg.db.datamodel.SearchFilter;
+import gg.db.datamodel.SearchCriteria;
 import gg.db.entities.Account;
 import gg.db.entities.MoneyContainer;
 import gg.utilities.Utilities;
@@ -221,10 +221,10 @@ public final class GraphMovementsBalancesTopComponent extends TopComponent imple
     public void resultChanged(LookupEvent ev) {
         Collection instances = result.allInstances();
         if (!instances.isEmpty()) {
-            // Get the currency/account movements balances by search filter
+            // Get the currency/account movements balances by search criteria
             @SuppressWarnings("unchecked")
-            Map<MoneyContainer, Map<SearchFilter, BigDecimal>> balances =
-                    (Map<MoneyContainer, Map<SearchFilter, BigDecimal>>) instances.iterator().next();
+            Map<MoneyContainer, Map<SearchCriteria, BigDecimal>> balances =
+                    (Map<MoneyContainer, Map<SearchCriteria, BigDecimal>>) instances.iterator().next();
 
             // Display the content of the table in the graph
             displayData(balances);
@@ -235,7 +235,7 @@ public final class GraphMovementsBalancesTopComponent extends TopComponent imple
      * Displays the accounts' movements balances by period
      * @param searchFilters Search filter objects (one per period) for which the movements balances are wanted
      */
-    private void displayData(Map<MoneyContainer, Map<SearchFilter, BigDecimal>> balances) {
+    private void displayData(Map<MoneyContainer, Map<SearchCriteria, BigDecimal>> balances) {
         // Display hourglass cursor
         Utilities.changeCursorWaitStatus(true);
 
@@ -273,17 +273,17 @@ public final class GraphMovementsBalancesTopComponent extends TopComponent imple
         for (MoneyContainer moneyContainer : balances.keySet()) {
             if (moneyContainer instanceof Account) {
 
-                SortedSet<SearchFilter> sortedSearchFilters = new TreeSet<SearchFilter>(
+                SortedSet<SearchCriteria> sortedSearchFilters = new TreeSet<SearchCriteria>(
                         balances.get(moneyContainer).keySet());
 
-                for (SearchFilter searchFilter : sortedSearchFilters) {
-                    BigDecimal accountBalance = balances.get(moneyContainer).get(searchFilter);
+                for (SearchCriteria searchCriteria : sortedSearchFilters) {
+                    BigDecimal accountBalance = balances.get(moneyContainer).get(searchCriteria);
                     accountBalance = accountBalance.setScale(2, RoundingMode.HALF_EVEN);
 
                     dataset.addValue(
                             accountBalance,
                             moneyContainer.toString(),
-                            searchFilter.getPeriod());
+                            searchCriteria.getPeriod());
                 }
             }
         }

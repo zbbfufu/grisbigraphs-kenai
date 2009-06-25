@@ -348,20 +348,20 @@ public class Datamodel {
     }
 
     /**
-     * Gets the list of transactions that meet a search filter
-     * @param searchFilter Search filter
+     * Gets the list of transactions that meet a search criteria
+     * @param searchCriteria Search criteria
      * @return List of transactions
      */
-    public static List<gg.db.entities.Transaction> getTransactions(SearchFilter searchFilter) {
-        if (searchFilter == null) {
-            throw new IllegalArgumentException("The parameter 'searchFilter' is null");
+    public static List<gg.db.entities.Transaction> getTransactions(SearchCriteria searchCriteria) {
+        if (searchCriteria == null) {
+            throw new IllegalArgumentException("The parameter 'searchCriteria' is null");
         }
 
         Session session = Installer.createSession();
         Transaction tx = session.beginTransaction();
 
         Query query = getQuery(session,
-                searchFilter,
+                searchCriteria,
                 true, // Search from start
                 true, // Search until end
                 true, // Filter on categories
@@ -435,7 +435,7 @@ public class Datamodel {
     /**
      * Gets a query object
      * @param session Database session
-     * @param searchFilter Search filter
+     * @param searchCriteria Search criteria
      * @param searchFromStartDate Search from start? (if false, no filter on start date)
      * @param searchUntilEndDate Search until end? (if false, no filter on end date)
      * @param filterOnCategories Filter on categories?
@@ -444,11 +444,11 @@ public class Datamodel {
      * @param groupBy Group by statement
      * @return Query object
      */
-    private static Query getQuery(Session session, SearchFilter searchFilter, boolean searchFromStartDate,
+    private static Query getQuery(Session session, SearchCriteria searchCriteria, boolean searchFromStartDate,
             boolean searchUntilEndDate, boolean filterOnCategories, boolean filterOnPayees,
             boolean filterOnKeywords, String select, String where, String groupBy) {
-        if (searchFilter == null) {
-            throw new IllegalArgumentException("The parameter 'searchFilter' is null");
+        if (searchCriteria == null) {
+            throw new IllegalArgumentException("The parameter 'searchCriteria' is null");
         }
 
         Category transferCategory = getCategory(
@@ -467,9 +467,9 @@ public class Datamodel {
         // WHERE clause
         List<String> whereClause = new ArrayList<String>();
         whereClause.add("a.active=true");
-        if (searchFilter.hasAccountsFilter()) {
+        if (searchCriteria.hasAccountsFilter()) {
             whereClause.add("t.account in (:accounts)");
-        } else if (searchFilter.hasCurrencyFilter()) {
+        } else if (searchCriteria.hasCurrencyFilter()) {
             whereClause.add("a.currency=:currency");
         }
 
@@ -477,22 +477,22 @@ public class Datamodel {
         if (where != null) {
             whereClause.add(where);
         }
-        if (searchFilter.hasPeriodFilter() && searchFromStartDate) {
+        if (searchCriteria.hasPeriodFilter() && searchFromStartDate) {
             whereClause.add("t.date>=:start");
         }
-        if (searchFilter.hasPeriodFilter() && searchUntilEndDate) {
+        if (searchCriteria.hasPeriodFilter() && searchUntilEndDate) {
             whereClause.add("t.date<=:end");
         }
-        if (searchFilter.hasCategoriesFilter() && filterOnCategories) {
+        if (searchCriteria.hasCategoriesFilter() && filterOnCategories) {
             whereClause.add("t.category in (:categories)");
         }
-        if (searchFilter.hasPayeesFilter() && filterOnPayees) {
+        if (searchCriteria.hasPayeesFilter() && filterOnPayees) {
             whereClause.add("t.payee in (:payees)");
         }
-        if (!searchFilter.isIncludeTransferTransactions()) {
+        if (!searchCriteria.isIncludeTransferTransactions()) {
             whereClause.add("t.category<>:categoryTransfer");
         }
-        if (searchFilter.hasKeywordsFilter() && filterOnKeywords) {
+        if (searchCriteria.hasKeywordsFilter() && filterOnKeywords) {
             whereClause.add("upper(t.comment) like :keyword");
         }
 
@@ -519,48 +519,48 @@ public class Datamodel {
         Query query = session.createQuery(queryString);
 
         // Add the entities to the query
-        if (searchFilter.hasAccountsFilter()) {
-            query.setParameterList("accounts", searchFilter.getAccounts());
-        } else if (searchFilter.hasCurrencyFilter()) {
-            query.setParameter("currency", searchFilter.getCurrency());
+        if (searchCriteria.hasAccountsFilter()) {
+            query.setParameterList("accounts", searchCriteria.getAccounts());
+        } else if (searchCriteria.hasCurrencyFilter()) {
+            query.setParameter("currency", searchCriteria.getCurrency());
         }
-        if (searchFilter.hasPeriodFilter() && searchFromStartDate) {
-            query.setParameter("start", searchFilter.getPeriod().getStart());
+        if (searchCriteria.hasPeriodFilter() && searchFromStartDate) {
+            query.setParameter("start", searchCriteria.getPeriod().getStart());
         }
-        if (searchFilter.hasPeriodFilter() && searchUntilEndDate) {
-            query.setParameter("end", searchFilter.getPeriod().getEnd());
+        if (searchCriteria.hasPeriodFilter() && searchUntilEndDate) {
+            query.setParameter("end", searchCriteria.getPeriod().getEnd());
         }
-        if (searchFilter.hasCategoriesFilter() && filterOnCategories) {
-            query.setParameterList("categories", searchFilter.getCategories());
+        if (searchCriteria.hasCategoriesFilter() && filterOnCategories) {
+            query.setParameterList("categories", searchCriteria.getCategories());
         }
-        if (searchFilter.hasPayeesFilter() && filterOnPayees) {
-            query.setParameterList("payees", searchFilter.getPayees());
+        if (searchCriteria.hasPayeesFilter() && filterOnPayees) {
+            query.setParameterList("payees", searchCriteria.getPayees());
         }
-        if (!searchFilter.isIncludeTransferTransactions()) {
+        if (!searchCriteria.isIncludeTransferTransactions()) {
             query.setParameter("categoryTransfer", transferCategory);
         }
-        if (searchFilter.hasKeywordsFilter() && filterOnKeywords) {
-            query.setParameter("keyword", "%" + searchFilter.getKeywords().toUpperCase() + "%");
+        if (searchCriteria.hasKeywordsFilter() && filterOnKeywords) {
+            query.setParameter("keyword", "%" + searchCriteria.getKeywords().toUpperCase() + "%");
         }
 
         return query;
     }
 
     /**
-     * Gets an income total based on a search filter
-     * @param searchFilter Search filter
+     * Gets an income total based on a search criteria
+     * @param searchCriteria Search criteria
      * @return Income
      */
-    public static BigDecimal getIncome(SearchFilter searchFilter) {
-        if (searchFilter == null) {
-            throw new IllegalArgumentException("The parameter 'searchFilter' is null");
+    public static BigDecimal getIncome(SearchCriteria searchCriteria) {
+        if (searchCriteria == null) {
+            throw new IllegalArgumentException("The parameter 'searchCriteria' is null");
         }
 
         Session session = Installer.createSession();
         Transaction tx = session.beginTransaction();
 
         Query query = getQuery(session,
-                searchFilter,
+                searchCriteria,
                 true, // Search from start
                 true, // Search until end
                 false, // No filter on categories
@@ -584,19 +584,19 @@ public class Datamodel {
     }
 
     /**
-     * Gets the expenses total based on a search filter
-     * @param searchFilter Search filter
+     * Gets the expenses total based on a search criteria
+     * @param searchCriteria Search criteria
      * @return Expenses
      */
-    public static BigDecimal getExpenses(SearchFilter searchFilter) {
-        if (searchFilter == null) {
-            throw new IllegalArgumentException("The parameter 'searchFilter' is null");
+    public static BigDecimal getExpenses(SearchCriteria searchCriteria) {
+        if (searchCriteria == null) {
+            throw new IllegalArgumentException("The parameter 'searchCriteria' is null");
         }
         Session session = Installer.createSession();
         Transaction tx = session.beginTransaction();
 
         Query query = getQuery(session,
-                searchFilter,
+                searchCriteria,
                 true, // Search from start
                 true, // Search until end
                 false, // No filter on categories
@@ -620,19 +620,19 @@ public class Datamodel {
     }
 
     /**
-     * Gets the balance corresponding to a search filter
-     * @param searchFilter Search filter
+     * Gets the balance corresponding to a search criteria
+     * @param searchCriteria Search criteria
      * @return Balance
      */
-    public static BigDecimal getBalance(SearchFilter searchFilter) {
-        if (searchFilter == null) {
-            throw new IllegalArgumentException("The parameter 'searchFilter' is null");
+    public static BigDecimal getBalance(SearchCriteria searchCriteria) {
+        if (searchCriteria == null) {
+            throw new IllegalArgumentException("The parameter 'searchCriteria' is null");
         }
         Session session = Installer.createSession();
         Transaction tx = session.beginTransaction();
 
         Query query = getQuery(session,
-                searchFilter,
+                searchCriteria,
                 true, // Search from start
                 true, // Search until end
                 false, // No filter on categories
@@ -656,20 +656,20 @@ public class Datamodel {
 
     /**
      * Gets the balances for categories and sub-categories
-     * @param searchFilter Search filter
+     * @param searchCriteria Search criteria
      * @return List of category balances: each item of the list is an array.
      * The first element of the array is the category ID.
      * The second element of the array is the corresponding category balance.
      */
-    public static List getCategoriesBalances(SearchFilter searchFilter) {
-        if (searchFilter == null) {
-            throw new IllegalArgumentException("The parameter 'searchFilter' is null");
+    public static List getCategoriesBalances(SearchCriteria searchCriteria) {
+        if (searchCriteria == null) {
+            throw new IllegalArgumentException("The parameter 'searchCriteria' is null");
         }
         Session session = Installer.createSession();
         Transaction tx = session.beginTransaction();
 
         Query query = getQuery(session,
-                searchFilter,
+                searchCriteria,
                 true, // Search from start
                 true, // Search until end
                 false, // No filter on categories (all categories are expected)
@@ -691,20 +691,20 @@ public class Datamodel {
 
     /**
      * Gets the balances for accounts until a date (from is not taken into account)
-     * @param searchFilter Search filter
+     * @param searchCriteria Search criteria
      * @return List of account balances: each item of the list is an array.
      * The first element of the array is the account ID.
      * The second element of the array is the corresponding account balance.
      */
-    public static List getAccountsBalancesUntil(SearchFilter searchFilter) {
-        if (searchFilter == null) {
-            throw new IllegalArgumentException("The parameter 'searchFilter' is null");
+    public static List getAccountsBalancesUntil(SearchCriteria searchCriteria) {
+        if (searchCriteria == null) {
+            throw new IllegalArgumentException("The parameter 'searchCriteria' is null");
         }
         Session session = Installer.createSession();
         Transaction tx = session.beginTransaction();
 
         Query query = getQuery(session,
-                searchFilter,
+                searchCriteria,
                 false, // from is not taken into account
                 true, // Search until end
                 false, // No filter on categories
