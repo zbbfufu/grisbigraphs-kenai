@@ -33,6 +33,7 @@ import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
+import java.util.logging.Logger;
 import org.hibernate.Query;
 import org.hibernate.Session;
 import org.hibernate.Transaction;
@@ -43,20 +44,25 @@ import org.hibernate.Transaction;
  */
 public class Datamodel {
 
-    private Datamodel() {
-    }
+    /** Class name */
+    private static final String CLASS_NAME = "gg.db.datamodel.Datamodel";
+    /** Logger */
+    private static Logger log = Logger.getLogger(CLASS_NAME);
 
     /**
      * Gets the file imports log
      * @return List of Grisbi files imported in the embedded database
      */
     public static List<FileImport> getFileImports() {
+        log.entering(CLASS_NAME, "getFileImports");
+
         Session s = Installer.currentSession();
         Transaction t = s.beginTransaction();
         @SuppressWarnings("unchecked")
         List<FileImport> fileImports = (List<FileImport>) s.createQuery("from FileImport order by importedOn desc").list();
         t.commit();
 
+        log.exiting(CLASS_NAME, "getFileImports", fileImports);
         return fileImports;
     }
 
@@ -65,12 +71,15 @@ public class Datamodel {
      * @return List of currencies
      */
     public static List<Currency> getCurrencies() {
+        log.entering(CLASS_NAME, "getCurrencies");
+
         Session s = Installer.currentSession();
         Transaction t = s.beginTransaction();
         @SuppressWarnings("unchecked")
         List<Currency> currencies = (List<Currency>) s.createQuery("from Currency order by name").list();
         t.commit();
 
+        log.exiting(CLASS_NAME, "getCurrencies", currencies);
         return currencies;
     }
 
@@ -79,6 +88,8 @@ public class Datamodel {
      * @return Map of currencies: the key is the currency ID, the value is the currency itself
      */
     public static Map<Long, Currency> getCurrenciesWithId() {
+        log.entering(CLASS_NAME, "getCurrenciesWithId");
+
         Map<Long, Currency> currenciesWithId = new HashMap<Long, Currency>();
         List<Currency> currencies = getCurrencies();
 
@@ -86,6 +97,7 @@ public class Datamodel {
             currenciesWithId.put(currency.getId(), currency);
         }
 
+        log.exiting(CLASS_NAME, "getCurrencies", currenciesWithId);
         return currenciesWithId;
     }
 
@@ -94,12 +106,15 @@ public class Datamodel {
      * @return List of active currencies
      */
     public static List<Currency> getActiveCurrencies() {
+        log.entering(CLASS_NAME, "getActiveCurrencies");
+
         Session s = Installer.currentSession();
         Transaction t = s.beginTransaction();
         @SuppressWarnings("unchecked")
         List<Currency> activeCurrencies = (List<Currency>) s.createQuery("from Currency where active=true order by name").list();
         t.commit();
 
+        log.exiting(CLASS_NAME, "getCurrencies", activeCurrencies);
         return activeCurrencies;
     }
 
@@ -108,12 +123,15 @@ public class Datamodel {
      * @return List of payees
      */
     public static List<Payee> getPayees() {
+        log.entering(CLASS_NAME, "getPayees");
+
         Session s = Installer.currentSession();
         Transaction t = s.beginTransaction();
         @SuppressWarnings("unchecked")
         List<Payee> payees = (List<Payee>) s.createQuery("from Payee order by name").list();
         t.commit();
 
+        log.exiting(CLASS_NAME, "getPayees", payees);
         return payees;
     }
 
@@ -122,6 +140,8 @@ public class Datamodel {
      * @return Map of payees: the key is the payee ID, the value is the payee itself
      */
     public static Map<Long, Payee> getPayeesWithId() {
+        log.entering(CLASS_NAME, "getPayeesWithId");
+
         Map<Long, Payee> payeesWithId = new HashMap<Long, Payee>();
         List<Payee> payees = getPayees();
 
@@ -129,6 +149,7 @@ public class Datamodel {
             payeesWithId.put(payee.getId(), payee);
         }
 
+        log.exiting(CLASS_NAME, "getPayeesWithId", payeesWithId);
         return payeesWithId;
     }
 
@@ -137,12 +158,15 @@ public class Datamodel {
      * @return List of accounts
      */
     public static List<Account> getAccounts() {
+        log.entering(CLASS_NAME, "getAccounts");
+
         Session s = Installer.currentSession();
         Transaction t = s.beginTransaction();
         @SuppressWarnings("unchecked")
         List<Account> accounts = (List<Account>) s.createQuery("from Account order by name").list();
         t.commit();
 
+        log.exiting(CLASS_NAME, "getAccounts", accounts);
         return accounts;
     }
 
@@ -151,13 +175,16 @@ public class Datamodel {
      * @return List of active accounts
      */
     public static List<Account> getActiveAccounts() {
+        log.entering(CLASS_NAME, "getActiveAccounts");
+
         Session s = Installer.currentSession();
         Transaction t = s.beginTransaction();
         @SuppressWarnings("unchecked")
-        List<Account> list = (List<Account>) s.createQuery("from Account where active=true order by name").list();
+        List<Account> activeAccounts = (List<Account>) s.createQuery("from Account where active=true order by name").list();
         t.commit();
 
-        return list;
+        log.exiting(CLASS_NAME, "getActiveAccounts", activeAccounts);
+        return activeAccounts;
     }
 
     /**
@@ -165,6 +192,8 @@ public class Datamodel {
      * @return Map of accounts: the key is the account ID, the value is the account itself
      */
     public static Map<Long, Account> getAccountsWithId() {
+        log.entering(CLASS_NAME, "getAccountsWithId");
+
         Map<Long, Account> accountsWithId = new HashMap<Long, Account>();
         List<Account> accounts = getAccounts();
 
@@ -172,6 +201,7 @@ public class Datamodel {
             accountsWithId.put(account.getId(), account);
         }
 
+        log.exiting(CLASS_NAME, "getAccountsWithId", accountsWithId);
         return accountsWithId;
     }
 
@@ -180,12 +210,15 @@ public class Datamodel {
      * @return List of categories
      */
     public static List<Category> getCategories() {
+        log.entering(CLASS_NAME, "getCategories");
+
         Session s = Installer.currentSession();
         Transaction t = s.beginTransaction();
         @SuppressWarnings("unchecked")
         List<Category> categories = (List<Category>) s.createQuery("from Category order by name").list();
         t.commit();
 
+        log.exiting(CLASS_NAME, "getCategories", categories);
         return categories;
     }
 
@@ -195,6 +228,7 @@ public class Datamodel {
      * @return Sub-categories of the category
      */
     public static List<Category> getSubCategories(Category category) {
+        log.entering(CLASS_NAME, "getSubCategories", category);
         if (category == null) {
             throw new IllegalArgumentException("The parameter 'category' is null");
         }
@@ -206,6 +240,7 @@ public class Datamodel {
                 setEntity("category", category).list();
         t.commit();
 
+        log.exiting(CLASS_NAME, "getSubCategories", subCategories);
         return subCategories;
     }
 
@@ -215,6 +250,7 @@ public class Datamodel {
      * @return Active accounts of the currency
      */
     public static List<Account> getActiveAccounts(Currency currency) {
+        log.entering(CLASS_NAME, "getActiveAccounts", currency);
         if (currency == null) {
             throw new IllegalArgumentException("The parameter 'currency' is null");
         }
@@ -226,6 +262,7 @@ public class Datamodel {
                 setEntity("currency", currency).list();
         t.commit();
 
+        log.exiting(CLASS_NAME, "getActiveAccounts", activeAccounts);
         return activeAccounts;
     }
 
@@ -234,6 +271,8 @@ public class Datamodel {
      * @return List of top categories
      */
     public static List<Category> getTopCategories() {
+        log.entering(CLASS_NAME, "getTopCategories");
+
         Session s = Installer.currentSession();
         Transaction t = s.beginTransaction();
         @SuppressWarnings("unchecked")
@@ -242,6 +281,7 @@ public class Datamodel {
                 "order by name").list();
         t.commit();
 
+        log.exiting(CLASS_NAME, "getTopCategories", topCategories);
         return topCategories;
     }
 
@@ -250,6 +290,8 @@ public class Datamodel {
      * @return Map of categories: the key is the Grisbi Category ID, the value is the category itself
      */
     public static Map<GrisbiCategory, Category> getCategoriesWithGrisbiCategory() {
+        log.entering(CLASS_NAME, "getCategoriesWithGrisbiCategory");
+
         Map<GrisbiCategory, Category> categoriesWithGrisbiCategory = new HashMap<GrisbiCategory, Category>(); // Collection to return that contains the categories - the key is the Grisbi category
         List<Category> categories = getCategories();
 
@@ -257,6 +299,7 @@ public class Datamodel {
             categoriesWithGrisbiCategory.put(new GrisbiCategory(category.getGrisbiCategoryId(), category.getGrisbiSubCategoryId()), category);
         }
 
+        log.exiting(CLASS_NAME, "getCategoriesWithGrisbiCategory", categoriesWithGrisbiCategory);
         return categoriesWithGrisbiCategory;
     }
 
@@ -265,6 +308,8 @@ public class Datamodel {
      * @return Map of categories: the key is the category ID, the value is the category itself
      */
     public static Map<Long, Category> getCategoriesWithId() {
+        log.entering(CLASS_NAME, "getCategoriesWithId");
+
         Map<Long, Category> categoriesWithId = new HashMap<Long, Category>();
         List<Category> categories = getCategories();
 
@@ -272,6 +317,7 @@ public class Datamodel {
             categoriesWithId.put(category.getId(), category);
         }
 
+        log.exiting(CLASS_NAME, "getCategoriesWithId", categoriesWithId);
         return categoriesWithId;
     }
 
@@ -282,6 +328,7 @@ public class Datamodel {
      * @return List of transactions that belong to the account
      */
     public static List<gg.db.entities.Transaction> getAccountTransactions(Account account) {
+        log.entering(CLASS_NAME, "getAccountTransactions", account);
         if (account == null) {
             throw new IllegalArgumentException("The parameter 'account' is null");
         }
@@ -294,6 +341,7 @@ public class Datamodel {
                 "order by date").setEntity("account", account).list();
         t.commit();
 
+        log.exiting(CLASS_NAME, "getAccountTransactions", transactions);
         return transactions;
     }
 
@@ -305,6 +353,7 @@ public class Datamodel {
      * @return Total balance in the currency of the account
      */
     public static BigDecimal getAccountTotalBalance(Account account) {
+        log.entering(CLASS_NAME, "getAccountTotalBalance", account);
         if (account == null) {
             throw new IllegalArgumentException("The parameter 'account' is null");
         }
@@ -319,6 +368,7 @@ public class Datamodel {
         }
         t.commit();
 
+        log.exiting(CLASS_NAME, "getAccountTotalBalance", totalBalance);
         return totalBalance;
     }
 
@@ -329,6 +379,7 @@ public class Datamodel {
      * @return List of transactions that belong to the currency
      */
     public static List<gg.db.entities.Transaction> getCurrencyTransactions(Currency currency) {
+        log.entering(CLASS_NAME, "getCurrencyTransactions", currency);
         if (currency == null) {
             throw new IllegalArgumentException("The parameter 'currency' is null");
         }
@@ -344,6 +395,7 @@ public class Datamodel {
         List<gg.db.entities.Transaction> transactions = (List<gg.db.entities.Transaction>) query.list();
         t.commit();
 
+        log.exiting(CLASS_NAME, "getCurrencyTransactions", transactions);
         return transactions;
     }
 
@@ -353,6 +405,7 @@ public class Datamodel {
      * @return List of transactions
      */
     public static List<gg.db.entities.Transaction> getTransactions(SearchCriteria searchCriteria) {
+        log.entering(CLASS_NAME, "getTransactions", searchCriteria);
         if (searchCriteria == null) {
             throw new IllegalArgumentException("The parameter 'searchCriteria' is null");
         }
@@ -370,7 +423,6 @@ public class Datamodel {
                 "select t",
                 null,
                 ""); // No group by
-
         // Execute the query
         @SuppressWarnings("unchecked")
         List<gg.db.entities.Transaction> transactions = (List<gg.db.entities.Transaction>) query.list();
@@ -379,6 +431,7 @@ public class Datamodel {
         tx.commit();
         session.close();
 
+        log.exiting(CLASS_NAME, "getTransactions", transactions);
         return transactions;
     }
 
@@ -388,6 +441,7 @@ public class Datamodel {
      * @return Total balance
      */
     public static BigDecimal getCurrencyTotalBalance(Currency currency) {
+        log.entering(CLASS_NAME, "getCurrencyTotalBalance", currency);
         if (currency == null) {
             throw new IllegalArgumentException("The parameter 'currency' is null");
         }
@@ -403,6 +457,7 @@ public class Datamodel {
         }
         t.commit();
 
+        log.exiting(CLASS_NAME, "getCurrencyTotalBalance", totalBalance);
         return totalBalance;
     }
 
@@ -413,6 +468,7 @@ public class Datamodel {
      * @return Category
      */
     public static Category getCategory(Long grisbiCategoryId, Long grisbiSubCategoryId) {
+        log.entering(CLASS_NAME, "getCategory", new Object[]{grisbiCategoryId, grisbiSubCategoryId});
         if (grisbiCategoryId == null) {
             throw new IllegalArgumentException("The parameter 'grisbiCategoryId' is null");
         }
@@ -429,6 +485,7 @@ public class Datamodel {
         Category category = (Category) query.uniqueResult();
         t.commit();
 
+        log.exiting(CLASS_NAME, "getCategory", category);
         return category;
     }
 
@@ -447,6 +504,7 @@ public class Datamodel {
     private static Query getQuery(Session session, SearchCriteria searchCriteria, boolean searchFromStartDate,
             boolean searchUntilEndDate, boolean filterOnCategories, boolean filterOnPayees,
             boolean filterOnKeywords, String select, String where, String groupBy) {
+        log.entering(CLASS_NAME, "getQuery", new Object[]{searchCriteria, searchFromStartDate, searchUntilEndDate, filterOnCategories, filterOnPayees, filterOnKeywords, select, where, groupBy});
         if (searchCriteria == null) {
             throw new IllegalArgumentException("The parameter 'searchCriteria' is null");
         }
@@ -543,6 +601,7 @@ public class Datamodel {
             query.setParameter("keyword", "%" + searchCriteria.getKeywords().toUpperCase() + "%");
         }
 
+        log.exiting(CLASS_NAME, "getQuery", query.getQueryString());
         return query;
     }
 
@@ -552,6 +611,7 @@ public class Datamodel {
      * @return Income
      */
     public static BigDecimal getIncome(SearchCriteria searchCriteria) {
+        log.entering(CLASS_NAME, "getIncome", searchCriteria);
         if (searchCriteria == null) {
             throw new IllegalArgumentException("The parameter 'searchCriteria' is null");
         }
@@ -580,6 +640,7 @@ public class Datamodel {
         tx.commit();
         session.close();
 
+        log.exiting(CLASS_NAME, "getIncome", income);
         return income;
     }
 
@@ -589,6 +650,7 @@ public class Datamodel {
      * @return Expenses
      */
     public static BigDecimal getExpenses(SearchCriteria searchCriteria) {
+        log.entering(CLASS_NAME, "getExpenses", searchCriteria);
         if (searchCriteria == null) {
             throw new IllegalArgumentException("The parameter 'searchCriteria' is null");
         }
@@ -616,6 +678,7 @@ public class Datamodel {
         tx.commit();
         session.close();
 
+        log.exiting(CLASS_NAME, "getExpenses", expenses);
         return expenses;
     }
 
@@ -625,6 +688,7 @@ public class Datamodel {
      * @return Balance
      */
     public static BigDecimal getBalance(SearchCriteria searchCriteria) {
+        log.entering(CLASS_NAME, "getBalance", searchCriteria);
         if (searchCriteria == null) {
             throw new IllegalArgumentException("The parameter 'searchCriteria' is null");
         }
@@ -651,6 +715,7 @@ public class Datamodel {
         tx.commit();
         session.close();
 
+        log.exiting(CLASS_NAME, "getBalance", balance);
         return balance;
     }
 
@@ -662,6 +727,7 @@ public class Datamodel {
      * The second element of the array is the corresponding category balance.
      */
     public static List getCategoriesBalances(SearchCriteria searchCriteria) {
+        log.entering(CLASS_NAME, "getCategoriesBalances", searchCriteria);
         if (searchCriteria == null) {
             throw new IllegalArgumentException("The parameter 'searchCriteria' is null");
         }
@@ -686,6 +752,7 @@ public class Datamodel {
         tx.commit();
         session.close();
 
+        log.exiting(CLASS_NAME, "getCategoriesBalances", categoriesBalances);
         return categoriesBalances;
     }
 
@@ -697,6 +764,7 @@ public class Datamodel {
      * The second element of the array is the corresponding account balance.
      */
     public static List getAccountsBalancesUntil(SearchCriteria searchCriteria) {
+        log.entering(CLASS_NAME, "getAccountsBalancesUntil", searchCriteria);
         if (searchCriteria == null) {
             throw new IllegalArgumentException("The parameter 'searchCriteria' is null");
         }
@@ -721,6 +789,7 @@ public class Datamodel {
         tx.commit();
         session.close();
 
+        log.exiting(CLASS_NAME, "getAccountsBalancesUntil", accountsBalances);
         return accountsBalances;
     }
 
@@ -729,6 +798,7 @@ public class Datamodel {
      * @param fileImport New log to insert
      */
     public static void saveFileImport(FileImport fileImport) {
+        log.entering(CLASS_NAME, "saveFileImport", fileImport);
         if (fileImport == null) {
             throw new IllegalArgumentException("The parameter 'fileImport' is null");
         }
@@ -736,6 +806,8 @@ public class Datamodel {
         Transaction t = s.beginTransaction();
         s.save(fileImport);
         t.commit();
+
+        log.exiting(CLASS_NAME, "saveFileImport");
     }
 
     /**
@@ -743,6 +815,7 @@ public class Datamodel {
      * @param payee Payee to save
      */
     public static void savePayee(Payee payee) {
+        log.entering(CLASS_NAME, "savePayee", payee);
         if (payee == null) {
             throw new IllegalArgumentException("The parameter 'payee' is null");
         }
@@ -750,6 +823,7 @@ public class Datamodel {
         Transaction t = s.beginTransaction();
         s.save(payee);
         t.commit();
+        log.exiting(CLASS_NAME, "savePayee");
     }
 
     /**
@@ -757,10 +831,15 @@ public class Datamodel {
      * @param category Category to save
      */
     public static void saveCategory(Category category) {
+        log.entering(CLASS_NAME, "saveCategory", category);
+        if (category == null) {
+            throw new IllegalArgumentException("The parameter 'category' is null");
+        }
         Session s = Installer.currentSession();
         Transaction t = s.beginTransaction();
         s.save(category);
         t.commit();
+        log.exiting(CLASS_NAME, "saveCategory");
     }
 
     /**
@@ -768,6 +847,7 @@ public class Datamodel {
      * @param currency Currency to save
      */
     public static void saveCurrency(Currency currency) {
+        log.entering(CLASS_NAME, "saveCurrency", currency);
         if (currency == null) {
             throw new IllegalArgumentException("The parameter 'currency' is null");
         }
@@ -775,6 +855,7 @@ public class Datamodel {
         Transaction t = s.beginTransaction();
         s.saveOrUpdate(currency);
         t.commit();
+        log.exiting(CLASS_NAME, "saveCurrency");
     }
 
     /**
@@ -782,6 +863,7 @@ public class Datamodel {
      * @param account Account to save
      */
     public static void saveAccount(Account account) {
+        log.entering(CLASS_NAME, "saveAccount", account);
         if (account == null) {
             throw new IllegalArgumentException("The parameter 'account' is null");
         }
@@ -789,6 +871,7 @@ public class Datamodel {
         Transaction t = s.beginTransaction();
         s.save(account);
         t.commit();
+        log.exiting(CLASS_NAME, "saveAccount");
     }
 
     /**
@@ -796,6 +879,7 @@ public class Datamodel {
      * @param transaction Transaction to save
      */
     public static void saveTransaction(gg.db.entities.Transaction transaction) {
+        log.entering(CLASS_NAME, "saveTransaction", transaction);
         if (transaction == null) {
             throw new IllegalArgumentException("The parameter 'transaction' is null");
         }
@@ -803,10 +887,12 @@ public class Datamodel {
         Transaction t = s.beginTransaction();
         s.save(transaction);
         t.commit();
+        log.exiting(CLASS_NAME, "saveTransaction");
     }
 
     /** Empties the database */
     public static void emptyDatabase() {
+        log.entering(CLASS_NAME, "emptyDatabase");
         Session s = Installer.currentSession();
         Transaction t = s.beginTransaction();
         s.createQuery("delete Transaction").executeUpdate();
@@ -815,5 +901,6 @@ public class Datamodel {
         s.createQuery("delete Currency").executeUpdate();
         s.createQuery("delete Payee").executeUpdate();
         t.commit();
+        log.exiting(CLASS_NAME, "emptyDatabase");
     }
 }

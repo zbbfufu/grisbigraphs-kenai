@@ -42,18 +42,21 @@ public final class GeneralOptionsPanelController extends OptionsPanelController 
     private boolean changed;
 
     /** Component should load its data here */
+    @Override
     public void update() {
         getPanel().load();
         changed = false;
     }
 
     /** This method is called when Options Dialog "OK" button is pressed */
+    @Override
     public void applyChanges() {
         getPanel().store();
         changed = false;
     }
 
     /** This method is called when Options Dialog "Cancel" button is pressed */
+    @Override
     public void cancel() {
         // need not do anything special, if no changes have been persisted yet
     }
@@ -62,6 +65,7 @@ public final class GeneralOptionsPanelController extends OptionsPanelController 
      * Should return true if some option value in this category is valid
      * @return true if some option value in this category is valid
      */
+    @Override
     public boolean isValid() {
         return getPanel().valid();
     }
@@ -70,6 +74,7 @@ public final class GeneralOptionsPanelController extends OptionsPanelController 
      * Should return true if some option value in this category has been changed
      * @return true if some option value in this category has been changed
      */
+    @Override
     public boolean isChanged() {
         return changed;
     }
@@ -78,6 +83,7 @@ public final class GeneralOptionsPanelController extends OptionsPanelController 
      * Get current help context asociated with this panel
      * @return current help context
      */
+    @Override
     public HelpCtx getHelpCtx() {
         return null; // new HelpCtx("...ID") if you have a help set
     }
@@ -87,6 +93,7 @@ public final class GeneralOptionsPanelController extends OptionsPanelController 
      * @param masterLookup master lookup composed from lookups provided by individual OptionsPanelControllers - getLookup()
      * @return visual component representing this options category
      */
+    @Override
     public JComponent getComponent(Lookup masterLookup) {
         return getPanel();
     }
@@ -95,6 +102,7 @@ public final class GeneralOptionsPanelController extends OptionsPanelController 
      * Registers new listener
      * @param l a new listener
      */
+    @Override
     public void addPropertyChangeListener(PropertyChangeListener l) {
         pcs.addPropertyChangeListener(l);
     }
@@ -103,6 +111,7 @@ public final class GeneralOptionsPanelController extends OptionsPanelController 
      * Unregisters given listener
      * @param l a listener to be removed
      */
+    @Override
     public void removePropertyChangeListener(PropertyChangeListener l) {
         pcs.removePropertyChangeListener(l);
     }

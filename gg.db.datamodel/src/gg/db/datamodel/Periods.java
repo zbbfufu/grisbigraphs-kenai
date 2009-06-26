@@ -357,4 +357,15 @@ public class Periods {
 
         this.periods = periods;
     }
+
+    @Override
+    public String toString() {
+        String description = "start=" + start + " - end=" + end + " - period type=" + periodType + "\n";
+
+        for (Period period : periods) {
+            description += period.toString() + "\n";
+        }
+
+        return description;
+    }
 }

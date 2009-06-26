@@ -45,6 +45,7 @@ import org.joda.time.DateTime;
 import org.openide.DialogDisplayer;
 import org.openide.NotifyDescriptor;
 import org.openide.awt.StatusDisplayer;
+import org.openide.util.NbBundle;
 import org.openide.windows.TopComponent;
 import org.openide.windows.WindowManager;
 
@@ -71,8 +72,12 @@ public class ImporterEngine implements Runnable {
      * @throws FileNotFoundException If the Grisbi file to import does not exist
      */
     public ImporterEngine(File grisbiFile) throws FileNotFoundException {
+        log.entering(this.getClass().getName(), "ImporterEngine", grisbiFile.getAbsolutePath());
+
         setGrisbiFile(grisbiFile);
         setImportCancelled(false);
+
+        log.exiting(this.getClass().getName(), "ImporterEngine");
     }
 
     /**
@@ -123,6 +128,7 @@ public class ImporterEngine implements Runnable {
      * @throws DocumentException If there is an error parsing the Grisbi file
      */
     private Document getGrisbiFileDocument() throws DocumentException {
+        log.entering(this.getClass().getName(), "getGrisbiFileDocument");
         long startParsingTime = System.currentTimeMillis();
         SAXReader reader = new SAXReader();
 
@@ -132,6 +138,7 @@ public class ImporterEngine implements Runnable {
 
         log.info("The Grisbi file '" + grisbiFile.getAbsolutePath() + "' has been successfully imported into a document in " + (endParsingTime - startParsingTime) + " ms");
 
+        log.exiting(this.getClass().getName(), "getGrisbiFileDocument");
         return grisbiFileDocument;
     }
 
@@ -140,19 +147,23 @@ public class ImporterEngine implements Runnable {
      * @param grisbiFileDocument Document of the Grisbi file for which the version is wanted
      * @return Version of the Grisbi file (<CODE>FileVersion.UNSUPPORTED_VERSION</CODE> if the file is not supported)
      */
-    private static FileVersion getFileVersion(Document grisbiFileDocument) {
+    private FileVersion getFileVersion(Document grisbiFileDocument) {
+        log.entering(this.getClass().getName(), "getFileVersion");
         assert (grisbiFileDocument != null);
+
+        FileVersion fileVersion = FileVersion.UNSUPPORTED_VERSION;
 
         // Get the version of the grisbi file
         Node fileVersionNode = grisbiFileDocument.selectSingleNode("/Grisbi/Generalites/Version_fichier");
         if (fileVersionNode != null) {
-            String fileVersion = fileVersionNode.getText();
-            if (fileVersion.compareToIgnoreCase("0.5.0") == 0) {
-                return FileVersion.VERSION_0_5_0;
+            String fileVersionStr = fileVersionNode.getText();
+            if (fileVersionStr.compareToIgnoreCase("0.5.0") == 0) {
+                fileVersion = FileVersion.VERSION_0_5_0;
             }
         }
 
-        return FileVersion.UNSUPPORTED_VERSION;
+        log.exiting(this.getClass().getName(), "getFileVersion", fileVersion);
+        return fileVersion;
     }
 
     /**
@@ -164,6 +175,7 @@ public class ImporterEngine implements Runnable {
      * @throws DateFormatException If a date is wrongly formatted
      */
     public long importFile() throws DocumentException, ParsingException, NumberFormatException, DateFormatException {
+        log.entering(this.getClass().getName(), "importFile");
         setImportCancelled(false);
 
         // Import the Grisbi file into a Document (that supports XPath)
@@ -192,6 +204,7 @@ public class ImporterEngine implements Runnable {
         long importDuration = grisbiFileImporter.importFile();
         setImportCancelled(grisbiFileImporter.isImportCancelled());
 
+        log.exiting(this.getClass().getName(), "importFile", importDuration);
         return importDuration;
     }
 
@@ -206,15 +219,18 @@ public class ImporterEngine implements Runnable {
             if (isImportCancelled()) { // Import cancelled by the user
                 log.info("Import cancelled by the user");
                 Datamodel.emptyDatabase();
-                StatusDisplayer.getDefault().setStatusText("Import cancelled");
+                StatusDisplayer.getDefault().setStatusText(
+                        NbBundle.getMessage(ImporterEngine.class, "ImporterEngine.ImportCancelled"));
             } else {
                 if (checkDatabase()) {
                     log.info("Grisbi file correctly imported");
-                    StatusDisplayer.getDefault().setStatusText("Grisbi file imported");
+                    StatusDisplayer.getDefault().setStatusText(
+                            NbBundle.getMessage(ImporterEngine.class, "ImporterEngine.GrisbiFileImported"));
                     success = true;
                 } else { // Errors during the consistency checks
                     log.info("Consistency check errors found");
-                    StatusDisplayer.getDefault().setStatusText("Consistency check error");
+                    StatusDisplayer.getDefault().setStatusText(
+                            NbBundle.getMessage(ImporterEngine.class, "ImporterEngine.ConsistencyCheckError"));
                 }
             }
 
@@ -236,7 +252,7 @@ public class ImporterEngine implements Runnable {
 
                 @Override
                 public void run() {
-                    // Close all opened editor TopComponents  (when an editor is closed, its group is also closed)
+                    // Close all opened editor TopComponents (when an editor is closed, its group is also closed)
                     TopComponent[] tc = TopComponent.getRegistry().getOpened().toArray(new TopComponent[0]);
                     for (int i = tc.length - 1; i >= 0; i--) {
                         if (WindowManager.getDefault().isEditorTopComponent(tc[i])) {
@@ -294,6 +310,8 @@ public class ImporterEngine implements Runnable {
      * @return true if the database is consistent, false otherwise
      */
     public boolean checkDatabase() {
+        log.entering(this.getClass().getName(), "checkDatabase");
+
         List<Currency> currencies = Datamodel.getActiveCurrencies();
         for (Currency currency : currencies) {
             BigDecimal currencyBalance = currency.getBalance();
@@ -301,7 +319,10 @@ public class ImporterEngine implements Runnable {
 
             // Check Currency.getBalance() with Datamodel.getCurrencyTotalBalance()
             if (currencyBalance.compareTo(currencyTotalBalance) != 0) {
-                String errorDetails = "Consistency error for the currency '" + currency + "': currency.getBalance() (" + currencyBalance + ") is different from Datamodel.getCurrencyTotalBalance(currency) (" + currencyTotalBalance + ")";
+                String errorDetails = NbBundle.getMessage(
+                        ImporterEngine.class,
+                        "ImporterEngine.ConsistencyCheckErrorCurrencyGetCurrencyTotalBalance",
+                        new Object[] {currency.getName(), currencyBalance, currencyTotalBalance});
                 log.info(errorDetails);
                 NotifyDescriptor message = new NotifyDescriptor.Message(errorDetails, NotifyDescriptor.ERROR_MESSAGE);
                 message.setTitle(Constants.APPLICATION_TITLE);
@@ -313,7 +334,10 @@ public class ImporterEngine implements Runnable {
             BigDecimal initialCurrencyAmount = currency.getInitialAmount();
             BigDecimal currencyWalletBalance = getBalance(Datamodel.getCurrencyTransactions(currency)).add(initialCurrencyAmount);
             if (currencyBalance.compareTo(currencyWalletBalance) != 0) {
-                String errorDetails = "Consistency error for the currency '" + currency + "': currency.getBalance() (" + currencyBalance + ") is different from getBalance(Datamodel.getCurrencyTransactions(currency)).add(initialCurrencyAmount) (" + currencyWalletBalance + ")";
+                String errorDetails = NbBundle.getMessage(
+                        ImporterEngine.class,
+                        "ImporterEngine.ConsistencyCheckErrorCurrencyGetCurrencyTransactions",
+                        new Object[] {currency.getName(), currencyBalance, currencyWalletBalance});
                 log.info(errorDetails);
                 NotifyDescriptor message = new NotifyDescriptor.Message(errorDetails, NotifyDescriptor.ERROR_MESSAGE);
                 message.setTitle(Constants.APPLICATION_TITLE);
@@ -328,7 +352,10 @@ public class ImporterEngine implements Runnable {
 
                 // Check Account.getBalance() with Datamodel.getAccountTotalBalance()
                 if (accountBalance.compareTo(accountTotalBalance) != 0) {
-                    String errorDetails = "Consistency error for the account '" + account + "': account.getBalance() (" + accountBalance + ") is different from Datamodel.getAccountTotalBalance(account).add(account.getInitialAmount()) (" + accountTotalBalance + ")";
+                    String errorDetails = NbBundle.getMessage(
+                            ImporterEngine.class,
+                            "ImporterEngine.ConsistencyCheckErrorAccountGetAccountTotalBalance",
+                            new Object[] {account.getName(), accountBalance, accountTotalBalance});
                     log.info(errorDetails);
                     NotifyDescriptor message = new NotifyDescriptor.Message(errorDetails, NotifyDescriptor.ERROR_MESSAGE);
                     message.setTitle(Constants.APPLICATION_TITLE);
@@ -339,7 +366,10 @@ public class ImporterEngine implements Runnable {
                 // Check Account.getBalance() with getBalance()
                 BigDecimal accountWalletBalance = getBalance(Datamodel.getAccountTransactions(account)).add(account.getInitialAmount());
                 if (accountBalance.compareTo(accountWalletBalance) != 0) {
-                    String errorDetails = "Consistency error for the account '" + account + "': account.getBalance() (" + accountBalance + ") is different from getBalance(Datamodel.getAccountTransactions(account)).add(account.getInitialAmount()) (" + accountWalletBalance + ")";
+                    String errorDetails = NbBundle.getMessage(
+                            ImporterEngine.class,
+                            "ImporterEngine.ConsistencyCheckErrorAccountGetAccountTransactions",
+                            new Object[] {account.getName(), accountBalance, accountWalletBalance});
                     log.info(errorDetails);
                     NotifyDescriptor message = new NotifyDescriptor.Message(errorDetails, NotifyDescriptor.ERROR_MESSAGE);
                     message.setTitle(Constants.APPLICATION_TITLE);
@@ -349,6 +379,7 @@ public class ImporterEngine implements Runnable {
             }
         }
 
+        log.exiting(this.getClass().getName(), "checkDatabase");
         return true;
     }
 

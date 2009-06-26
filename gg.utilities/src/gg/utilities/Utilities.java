@@ -77,8 +77,7 @@ public class Utilities {
             @Override
             public void run() {
                 try {
-                    JFrame mainFrame =
-                            (JFrame) WindowManager.getDefault().getMainWindow();
+                    JFrame mainFrame = (JFrame) WindowManager.getDefault().getMainWindow();
                     Component glassPane = mainFrame.getGlassPane();
                     if (isWaiting) {
                         glassPane.setVisible(true);

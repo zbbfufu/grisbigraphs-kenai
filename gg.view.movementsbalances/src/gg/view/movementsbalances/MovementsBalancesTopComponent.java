@@ -82,6 +82,8 @@ public final class MovementsBalancesTopComponent extends TopComponent implements
     private SearchFilter displayedSearchFilter;
     /** Defines which filters are supported by this view */
     private FieldsVisibility fieldsVisibility = new FieldsVisibility();
+    /** Logger */
+    private Logger log = Logger.getLogger(this.getClass().getName());
 
     /** Creates a new instance of MovementsBalancesTopComponent */
     public MovementsBalancesTopComponent() {
@@ -307,6 +309,8 @@ public final class MovementsBalancesTopComponent extends TopComponent implements
      * @param searchFilter Search filter for which the table must be computed
      */
     private void displayData(SearchFilter searchFilter) {
+        log.info("Movements' balances table computed and displayed");
+
         // Display hourglass cursor
         Utilities.changeCursorWaitStatus(true);
 
@@ -386,7 +390,7 @@ public final class MovementsBalancesTopComponent extends TopComponent implements
                 treeModel,
                 new MovementsBalancesRowModel(searchCriterias, balances),
                 true,
-                "Account");
+                NbBundle.getMessage(MovementsBalancesTopComponent.class, "MovementsBalancesTopComponent.Account"));
         outlineMovementsBalances.setModel(outlineModel);
 
         // Expand all nodes of the outline

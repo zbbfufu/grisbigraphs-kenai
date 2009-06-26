@@ -183,4 +183,16 @@ public class FieldsVisibility {
     public void setKeywordsVisible(boolean keywordsVisible) {
         this.keywordsVisible = keywordsVisible;
     }
+
+    @Override
+    public String toString() {
+        return "From visible: " + fromVisible + "\n" +
+                "To visible: " + toVisible + "\n" +
+                "By visible: " + byVisible + "\n" +
+                "Currency visible: " + currencyVisible + "\n" +
+                "Accounts visible: " + accountsVisible + "\n" +
+                "Categories visible: " + categoriesVisible + "\n" +
+                "Payees visible: " + payeesVisible + "\n" +
+                "Keywords visible: " + keywordsVisible;
+    }
 }

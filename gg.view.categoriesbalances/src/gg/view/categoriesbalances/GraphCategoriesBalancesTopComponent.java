@@ -67,6 +67,8 @@ public final class GraphCategoriesBalancesTopComponent extends TopComponent impl
     private static final String PREFERRED_ID = "GraphCategoriesBalancesTopComponent";
     /** Result for the lookup listener */
     private Lookup.Result result = null;
+    /** Logger */
+    private Logger log = Logger.getLogger(this.getClass().getName());
 
     /** Creates a new instance of GraphCategoriesBalancesTopComponent */
     public GraphCategoriesBalancesTopComponent() {
@@ -226,6 +228,8 @@ public final class GraphCategoriesBalancesTopComponent extends TopComponent impl
      * @param balances Categories' balances
      */
     private void displayData(Map<Long, Map<SearchCriteria, BigDecimal>> balances) {
+        log.info("Categories' balances graph computed and displayed");
+
         // Display hourglass cursor
         Utilities.changeCursorWaitStatus(true);
 
@@ -236,7 +240,7 @@ public final class GraphCategoriesBalancesTopComponent extends TopComponent impl
         JFreeChart chart = ChartFactory.createLineChart(
                 "", // chart title
                 "", // x axis label
-                "Amount", // y axis label
+                NbBundle.getMessage(GraphCategoriesBalancesTopComponent.class, "GraphAccountsBalancesTopComponent.Amount"), // y axis label
                 dataset, // data displayed in the chart
                 PlotOrientation.VERTICAL,
                 true, // include legend

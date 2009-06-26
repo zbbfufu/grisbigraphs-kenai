@@ -31,6 +31,7 @@ import java.util.logging.Logger;
 import javax.swing.JFileChooser;
 import org.openide.DialogDisplayer;
 import org.openide.NotifyDescriptor;
+import org.openide.util.NbBundle;
 import org.openide.util.NbPreferences;
 import org.openide.windows.WindowManager;
 
@@ -47,10 +48,12 @@ public final class ImportGrisbiFileAction implements ActionListener {
 
     @Override
     public void actionPerformed(ActionEvent e) {
+        log.entering(this.getClass().getName(), "actionPerformed");
+
         JFileChooser fileChooser = new JFileChooser(
                 NbPreferences.forModule(ImportGrisbiFileAction.class).get(CURRENT_FOLDER_PATH_KEY, null)); // The last selected folder is selected by default
         fileChooser.setMultiSelectionEnabled(false);
-        fileChooser.setDialogTitle("Select Grisbi file");
+        fileChooser.setDialogTitle(NbBundle.getMessage(ImportGrisbiFileAction.class, "ImportGrisbiFileAction.SelectGrisbiFile"));
         fileChooser.setDialogType(JFileChooser.OPEN_DIALOG);
         fileChooser.setFileSelectionMode(JFileChooser.FILES_ONLY);
         fileChooser.addChoosableFileFilter(new FilterGSB()); // The GSB filter is displayed (Grisbi files have the extension *.gsb)
@@ -78,5 +81,7 @@ public final class ImportGrisbiFileAction implements ActionListener {
                 DialogDisplayer.getDefault().notifyLater(message);
             }
         }
+
+        log.exiting(this.getClass().getName(), "actionPerformed");
     }
 }

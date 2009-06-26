@@ -80,6 +80,8 @@ public final class TransactionsTopComponent extends TopComponent implements Look
     private Lookup.Result<SearchFilter> result = null;
     /** Currently displayed search filter */
     private SearchFilter displayedSearchFilter;
+    /** Logger */
+    private Logger log = Logger.getLogger(this.getClass().getName());
 
     /** Creates a new instance of TransactionsTopComponent */
     public TransactionsTopComponent() {
@@ -295,6 +297,8 @@ public final class TransactionsTopComponent extends TopComponent implements Look
      * @param searchFilter Search filter for which the table must be computed
      */
     private void displayData(SearchFilter searchFilter) {
+        log.info("Transactions table computed and displayed");
+
         // Display hourglass cursor
         Utilities.changeCursorWaitStatus(true);
 
@@ -372,7 +376,7 @@ public final class TransactionsTopComponent extends TopComponent implements Look
                 treeModel,
                 new TransactionsRowModel(payeesWithTransaction, categoriesWithTransaction),
                 true,
-                "Account");
+                NbBundle.getMessage(TransactionsTopComponent.class, "TransactionsTopComponent.Account"));
         outlineTransactions.setModel(outlineModel);
 
         // Expand all nodes of the outline
@@ -453,17 +457,17 @@ public final class TransactionsTopComponent extends TopComponent implements Look
         public String getColumnName(int column) {
             switch (column) {
                 case COLUMN_DATE:
-                    return "Date";
+                    return NbBundle.getMessage(TransactionsTopComponent.class, "TransactionsTopComponent.Date");
                 case COLUMN_PAYEE:
-                    return "Payee";
+                    return NbBundle.getMessage(TransactionsTopComponent.class, "TransactionsTopComponent.Payee");
                 case COLUMN_CATEGORY:
-                    return "Category";
+                    return NbBundle.getMessage(TransactionsTopComponent.class, "TransactionsTopComponent.Category");
                 case COLUMN_AMOUNT:
-                    return "Amount";
+                    return NbBundle.getMessage(TransactionsTopComponent.class, "TransactionsTopComponent.Amount");
                 case COLUMN_COMMENT:
-                    return "Comment";
+                    return NbBundle.getMessage(TransactionsTopComponent.class, "TransactionsTopComponent.Comment");
                 default:
-                    throw new AssertionError("Unknown column");
+                    throw new AssertionError("Unknown column: " + column);
             }
         }
 
@@ -509,7 +513,7 @@ public final class TransactionsTopComponent extends TopComponent implements Look
                         value = transaction.getComment();
                         break;
                     default:
-                        throw new AssertionError("Unknown column");
+                        throw new AssertionError("Unknown column: " + column);
                 }
             }
 

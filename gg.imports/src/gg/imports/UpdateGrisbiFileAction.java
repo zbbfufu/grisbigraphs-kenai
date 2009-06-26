@@ -32,6 +32,7 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 import org.openide.DialogDisplayer;
 import org.openide.NotifyDescriptor;
+import org.openide.util.NbBundle;
 
 /**
  * Update Grisbi File action<BR/>
@@ -44,14 +45,16 @@ public final class UpdateGrisbiFileAction implements ActionListener {
 
     @Override
     public void actionPerformed(ActionEvent e) {
+        log.entering(this.getClass().getName(), "actionPerformed");
+
         // Get the current Grisbi file
         FileImport currentFileImport = Wallet.getInstance().getCurrentFileImport();
 
         // If there is no Grisbi file (the user never imported a Grisbi file in the DB)
         if (currentFileImport == null) {
+            log.info("No grisbi file to update");
             NotifyDescriptor message = new NotifyDescriptor.Message(
-                    "There is no Grisbi file to update.\n" +
-                    "Please import a Grisbi file using File/Import Grisbi file.",
+                    NbBundle.getMessage(UpdateGrisbiFileAction.class, "UpdateGrisbiFileAction.NoGrisbiFile"),
                     NotifyDescriptor.ERROR_MESSAGE);
             message.setTitle(Constants.APPLICATION_TITLE);
             DialogDisplayer.getDefault().notify(message);
@@ -72,5 +75,6 @@ public final class UpdateGrisbiFileAction implements ActionListener {
             message.setTitle(Constants.APPLICATION_TITLE);
             DialogDisplayer.getDefault().notifyLater(message);
         }
+        log.exiting(this.getClass().getName(), "actionPerformed");
     }
 }

@@ -21,6 +21,7 @@
  */
 package gg.application;
 
+import java.util.logging.Logger;
 import org.openide.modules.ModuleInstall;
 import org.openide.windows.TopComponent;
 import org.openide.windows.WindowManager;
@@ -30,11 +31,18 @@ import org.openide.windows.WindowManager;
  */
 public class Installer extends ModuleInstall {
 
+    /** Logger */
+    private Logger log = Logger.getLogger(this.getClass().getName());
+
     /** Sets the application version when the module is installed */
     @Override
     public void restored() {
+        log.entering(this.getClass().getName(), "restored");
+
         // Set the version of the program when the application is started
         System.setProperty("netbeans.buildnumber", Constants.VERSION);
+
+        log.exiting(this.getClass().getName(), "restored");
     }
 
     /**
@@ -43,6 +51,7 @@ public class Installer extends ModuleInstall {
      */
     @Override
     public boolean closing() {
+        log.entering(this.getClass().getName(), "closing");
         // When the application is closed: activate the first editor TopComponent
         // so that the SearchFilter TopComponent is not active when the application is closed
         // (otherwise its listener is not registered correctly when the application is re-opened)
@@ -61,6 +70,9 @@ public class Installer extends ModuleInstall {
         }
 
         // Close application
-        return super.closing();
+        boolean closing = super.closing();
+        log.exiting(this.getClass().getName(), "closing", closing);
+
+        return closing;
     }
 }

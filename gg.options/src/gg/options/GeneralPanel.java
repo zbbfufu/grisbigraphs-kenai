@@ -23,6 +23,7 @@ package gg.options;
 
 import javax.swing.event.DocumentEvent;
 import javax.swing.event.DocumentListener;
+import org.openide.util.NbBundle;
 import org.openide.util.NbPreferences;
 
 /**
@@ -137,11 +138,11 @@ public final class GeneralPanel extends javax.swing.JPanel implements DocumentLi
      */
     public boolean valid() {
         if (jTextFieldMaxPeriods.getText().length() == 0) {
-            jLabelErrorMessage.setText("Please enter the maximum number of periods");
+            jLabelErrorMessage.setText(NbBundle.getMessage(GeneralPanel.class, "GeneralPanel.EnterMaxPeriods"));
             return false;
         }
         if (!isNumber(jTextFieldMaxPeriods.getText())) {
-            jLabelErrorMessage.setText("The maximum number of periods should be numeric");
+            jLabelErrorMessage.setText(NbBundle.getMessage(GeneralPanel.class, "GeneralPanel.MaxPeriodsNumeric"));
             return false;
         }
 

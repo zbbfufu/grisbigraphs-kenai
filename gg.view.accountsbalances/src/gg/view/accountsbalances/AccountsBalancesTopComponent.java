@@ -83,6 +83,8 @@ public final class AccountsBalancesTopComponent extends TopComponent implements 
     private SearchFilter displayedSearchFilter;
     /** Defines which filters are supported by this view */
     private FieldsVisibility fieldsVisibility = new FieldsVisibility();
+    /** Logger */
+    private Logger log = Logger.getLogger(this.getClass().getName());
 
     /** Creates a new instance of AccountsBalancesTopComponent */
     public AccountsBalancesTopComponent() {
@@ -308,6 +310,8 @@ public final class AccountsBalancesTopComponent extends TopComponent implements 
      * @param searchFilter Search filter for which the table must be computed
      */
     private void displayData(SearchFilter searchFilter) {
+        log.info("Accounts' balances table computed and displayed");
+
         // Display hourglass cursor
         Utilities.changeCursorWaitStatus(true);
 
@@ -439,7 +443,7 @@ public final class AccountsBalancesTopComponent extends TopComponent implements 
                 treeModel,
                 new AccountsBalancesRowModel(searchCriterias, moneyContainerBalances),
                 true,
-                "Account");
+                NbBundle.getMessage(AccountsBalancesTopComponent.class, "AccountsBalancesTopComponent.Account"));
         outlineAccountsBalances.setModel(outlineModel);
 
         // Expand all nodes of the outline

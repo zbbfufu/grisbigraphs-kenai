@@ -30,6 +30,7 @@ import gg.db.entities.Payee;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.logging.Logger;
 
 /**
  * The singleton wallet contains hard references to entities from the database such as currencies,
@@ -61,6 +62,8 @@ public class Wallet {
     private Map<Category, List<Category>> subCategoriesWithParentCategory;
     /** Map of active accounts: the key is the currency, the value is the list of accounts that belong to the currency */
     private Map<Currency, List<Account>> activeAccountsWithCurrency;
+    /** Logger */
+    private Logger log = Logger.getLogger(this.getClass().getName());
 
     /** Creates a new instance of Wallet */
     private Wallet() {
@@ -70,6 +73,8 @@ public class Wallet {
 
     /** Updates all lists and maps with the current values from the DB */
     public void updateContent() {
+        log.entering(this.getClass().getName(), "updateContent");
+
         this.fileImports = Datamodel.getFileImports();
         this.currenciesWithId = Datamodel.getCurrenciesWithId();
         this.activeCurrencies = Datamodel.getActiveCurrencies();
@@ -90,6 +95,8 @@ public class Wallet {
             List<Account> accounts = Datamodel.getActiveAccounts(currency);
             this.activeAccountsWithCurrency.put(currency, accounts);
         }
+
+        log.exiting(this.getClass().getName(), "updateContent");
     }
 
     /**

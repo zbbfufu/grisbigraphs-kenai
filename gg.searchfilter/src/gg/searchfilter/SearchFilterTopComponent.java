@@ -147,6 +147,8 @@ public final class SearchFilterTopComponent extends TopComponent implements Look
     private static final String DATE_TO_KEY = "DateTo";
     /** Key used to identify the 'by' property */
     private static final String PERIOD_TYPE_KEY = "PeriodType";
+    /** Logger */
+    private Logger log = Logger.getLogger(this.getClass().getName());
 
     /** Creates a new instance of SearchFilterTopComponent */
     public SearchFilterTopComponent() {
@@ -288,6 +290,8 @@ public final class SearchFilterTopComponent extends TopComponent implements Look
 
     /** Loads default values for the fields 'from', 'to', 'by', 'currency', 'categories' and 'payees' */
     private void loadDefaultValues() {
+        log.entering(this.getClass().getName(), "loadDefaultValues");
+
         // Retrieve 'from' date (the date is saved between sessions)
         long storedDateFromMillis = NbPreferences.forModule(SearchFilterTopComponent.class).getLong(
                 DATE_FROM_KEY,
@@ -361,6 +365,8 @@ public final class SearchFilterTopComponent extends TopComponent implements Look
                 listModelPayees.addElement(payee);
             }
         }
+
+        log.exiting(this.getClass().getName(), "loadDefaultValues");
     }
 
     /**
@@ -393,10 +399,12 @@ public final class SearchFilterTopComponent extends TopComponent implements Look
 
     /** When the button 'Search' is clicked, creates a searchfilter object and put it in the lookup */
     public void search() {
+        log.entering(this.getClass().getName(), "search");
+
         if (jComboBoxBy.isVisible() && jXDatePickerFrom.getDate() == null) {
             // 'from' date has not been entered
             NotifyDescriptor message = new NotifyDescriptor.Message(
-                    "Please enter a date in the field 'from'",
+                    NbBundle.getMessage(SearchFilterTopComponent.class, "SearchFilterTopComponent.FromMandatory"),
                     NotifyDescriptor.WARNING_MESSAGE);
             message.setTitle(Constants.APPLICATION_TITLE);
             DialogDisplayer.getDefault().notify(message);
@@ -406,7 +414,7 @@ public final class SearchFilterTopComponent extends TopComponent implements Look
         if (jComboBoxBy.isVisible() && jXDatePickerTo.getDate() == null) {
             // 'to' date has not been entered
             NotifyDescriptor message = new NotifyDescriptor.Message(
-                    "Please enter a date in the field 'to'",
+                    NbBundle.getMessage(SearchFilterTopComponent.class, "SearchFilterTopComponent.ToMandatory"),
                     NotifyDescriptor.WARNING_MESSAGE);
             message.setTitle(Constants.APPLICATION_TITLE);
             DialogDisplayer.getDefault().notify(message);
@@ -431,8 +439,7 @@ public final class SearchFilterTopComponent extends TopComponent implements Look
         // Check that 'from' is before 'to'
         if (from.compareTo(to) > 0) {
             NotifyDescriptor message = new NotifyDescriptor.Message(
-                    "The entered period is invalid.\n" +
-                    "'From' should be before 'To'.",
+                    NbBundle.getMessage(SearchFilterTopComponent.class, "SearchFilterTopComponent.InvalidPeriod"),
                     NotifyDescriptor.WARNING_MESSAGE);
             message.setTitle(Constants.APPLICATION_TITLE);
             DialogDisplayer.getDefault().notify(message);
@@ -456,7 +463,7 @@ public final class SearchFilterTopComponent extends TopComponent implements Look
         int maxNumberPeriods = Options.getMaxPeriods(); // Get the max number of periods allowed in the options
         if (periods.getPeriods().size() > maxNumberPeriods) {
             NotifyDescriptor message = new NotifyDescriptor.Message(
-                    "Only " + maxNumberPeriods + " periods can be displayed: please enter new dates",
+                    NbBundle.getMessage(SearchFilterTopComponent.class, "SearchFilterTopComponent.MaxPeriods", new Object[] {maxNumberPeriods}),
                     NotifyDescriptor.WARNING_MESSAGE);
             message.setTitle(Constants.APPLICATION_TITLE);
             DialogDisplayer.getDefault().notify(message);
@@ -525,6 +532,7 @@ public final class SearchFilterTopComponent extends TopComponent implements Look
 
         // Put the search filter in the lookup of the TC
         content.set(Collections.singleton(searchFilter), null);
+        log.exiting(this.getClass().getName(), "search");
     }
 
     /** This method is called from within the constructor to

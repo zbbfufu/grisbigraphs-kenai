@@ -68,6 +68,8 @@ public final class GraphMovementsBalancesTopComponent extends TopComponent imple
     private static final String PREFERRED_ID = "GraphMovementsBalancesTopComponent";
     /** Result for the lookup listener */
     private Lookup.Result result = null;
+    /** Logger */
+    private Logger log = Logger.getLogger(this.getClass().getName());
 
     /** Creates a new instance of GraphMovementsBalancesTopComponent */
     public GraphMovementsBalancesTopComponent() {
@@ -236,6 +238,8 @@ public final class GraphMovementsBalancesTopComponent extends TopComponent imple
      * @param searchFilters Search filter objects (one per period) for which the movements balances are wanted
      */
     private void displayData(Map<MoneyContainer, Map<SearchCriteria, BigDecimal>> balances) {
+        log.info("Movements' balances graph computed and displayed");
+
         // Display hourglass cursor
         Utilities.changeCursorWaitStatus(true);
 
@@ -246,7 +250,7 @@ public final class GraphMovementsBalancesTopComponent extends TopComponent imple
         JFreeChart chart = ChartFactory.createLineChart(
                 "", // chart title
                 "", // x axis label
-                "Amount", // y axis label
+                NbBundle.getMessage(GraphMovementsBalancesTopComponent.class, "GraphMovementsBalancesTopComponent.Amount"), // y axis label
                 dataset, // data displayed in the chart
                 PlotOrientation.VERTICAL,
                 true, // include legend

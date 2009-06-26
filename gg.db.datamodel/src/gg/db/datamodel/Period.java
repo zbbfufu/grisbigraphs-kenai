@@ -21,11 +21,11 @@
  */
 package gg.db.datamodel;
 
-import java.util.Locale;
 import org.joda.time.DateTimeConstants;
 import org.joda.time.IllegalFieldValueException;
 import org.joda.time.LocalDate;
 import org.joda.time.format.DateTimeFormat;
+import org.openide.util.NbBundle;
 
 /**
  * <B>Period</B>
@@ -383,34 +383,33 @@ public class Period implements Comparable<Period> {
     public String toString() {
         assert (start != null && end != null && periodType != null);
 
-        String strFrom = "From";
-        String strTo = "To";
+        String strFrom = NbBundle.getMessage(Period.class, "Period.From");
+        String strTo = NbBundle.getMessage(Period.class, "Period.To");
 
         // Creates the string description depending on the type of the period
         String description = ""; // The string description of the period
         switch (periodType) {
             case DAY: // April 14, 2006 (depending on what is defined in Configuration.dateFormat)
-                description = DateTimeFormat.longDate().withLocale(Locale.US).print(start.toDateMidnight());
+                description = DateTimeFormat.longDate().print(start.toDateMidnight());
                 break;
             case WEEK: // 43 (2005)
                 description = start.toDateTimeAtCurrentTime().getWeekOfWeekyear() + " (" + start.getYear() + ")";
                 break;
             case MONTH: // Jully 2005
-                description = start.monthOfYear().getAsShortText(Locale.US) + " " + start.getYear();
+                description = start.monthOfYear().getAsShortText() + " " + start.getYear();
                 break;
             case YEAR: // 2001
                 description = String.valueOf(start.getYear());
                 break;
             case FREE: // From 20/11/2005 to 27/11/2005 (Depending on what is defined in Configuration)
                 description =
-                        strFrom + " " + DateTimeFormat.longDate().withLocale(Locale.US).print(start.toDateMidnight()) + " " +
-                        strTo + " " + DateTimeFormat.longDate().withLocale(Locale.US).print(end.toDateMidnight());
+                        strFrom + " " + DateTimeFormat.longDate().print(start.toDateMidnight()) + " " +
+                        strTo + " " + DateTimeFormat.longDate().print(end.toDateMidnight());
                 break;
             default: // Should never happen
                 throw new AssertionError("The PeriodType is unkwown");
         }
 
-        assert (description != null);
         return description;
     }
 }

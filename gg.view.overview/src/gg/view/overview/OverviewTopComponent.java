@@ -66,6 +66,8 @@ public final class OverviewTopComponent extends TopComponent {
     private static final String PREFERRED_ID = "OverviewTopComponent";
     /** Defines which filters are supported by this view */
     private FieldsVisibility fieldsVisibility = new FieldsVisibility();
+    /** Logger */
+    private Logger log = Logger.getLogger(this.getClass().getName());
 
     /** Creates a new instance of OverviewTopComponent */
     public OverviewTopComponent() {
@@ -280,6 +282,8 @@ public final class OverviewTopComponent extends TopComponent {
 
     /** Displays the active accounts together with their balances in the table */
     public void displayData() {
+        log.info("Overview computed and displayed");
+        
         // Display hourglass cursor
         Utilities.changeCursorWaitStatus(true);
 
@@ -299,6 +303,7 @@ public final class OverviewTopComponent extends TopComponent {
             jTextFieldLastModifiedOn.setText("");
         }
 
+        // Prepare outline
         DefaultMutableTreeNode rootNode = new DefaultMutableTreeNode(); // Root (Not displayed)
         Map<MoneyContainer, BigDecimal> balances = new HashMap<MoneyContainer, BigDecimal>(); // Map of currency/account and corresponding balance
 
@@ -321,7 +326,10 @@ public final class OverviewTopComponent extends TopComponent {
         // Set the model of the outline
         DefaultTreeModel treeModel = new DefaultTreeModel(rootNode);
         OutlineModel outlineModel = DefaultOutlineModel.createOutlineModel(
-                treeModel, new OverviewRowModel(balances), true, "Account");
+                treeModel,
+                new OverviewRowModel(balances),
+                true,
+                NbBundle.getMessage(OverviewTopComponent.class, "OverviewTopComponent.Account"));
         outlineOverview.setModel(outlineModel);
 
         // Expand all nodes of the outline
@@ -384,7 +392,7 @@ public final class OverviewTopComponent extends TopComponent {
          */
         @Override
         public String getColumnName(int column) {
-            return "Balance";
+            return NbBundle.getMessage(OverviewRowModel.class, "OverviewTopComponent.Balance");
         }
 
         /**

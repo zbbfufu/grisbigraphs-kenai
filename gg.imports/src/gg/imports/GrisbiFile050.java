@@ -43,6 +43,7 @@ import org.joda.time.LocalDate;
 import org.netbeans.api.progress.ProgressHandle;
 import org.netbeans.api.progress.ProgressHandleFactory;
 import org.openide.util.Cancellable;
+import org.openide.util.NbBundle;
 
 /**
  * <B>GrisbiFile050</B>
@@ -60,6 +61,8 @@ public class GrisbiFile050 implements Importer {
     private String pathToGrisbiFile;
     /** Is the import task cancelled? */
     private boolean importCancelled;
+    /** Current work unit (for the progress bar) */
+    private int workUnit;
     /** Logger */
     private Logger log = Logger.getLogger(GrisbiFile050.class.getName());
 
@@ -81,7 +84,106 @@ public class GrisbiFile050 implements Importer {
     }
 
     /**
+     * Gets expected number of payees
+     * @return Expected number of payees
+     * @throws ParsingException Expected number of payees not found
+     * @throws NumberFormatException The expected number of payees is not numeric
+     */
+    private int getExpectedNumberOfPayees() throws ParsingException, NumberFormatException {
+        log.entering(this.getClass().getName(), "getExpectedNumberOfPayees");
+        Node expectedNumberOfPayeesNode = grisbiFileDocument.selectSingleNode("/Grisbi/Tiers/Generalites/Nb_tiers");
+        if (expectedNumberOfPayeesNode == null) {
+            throw new ParsingException("The expected number of payees has not been found in the Grisbi file '" + pathToGrisbiFile + "'");
+        }
+        String expectedNumberOfPayeesValue = expectedNumberOfPayeesNode.getStringValue();
+        assert (expectedNumberOfPayeesValue != null);
+        int expectedNumberOfPayees = Integer.parseInt(expectedNumberOfPayeesValue);
+
+        log.exiting(this.getClass().getName(), "getExpectedNumberOfPayees", expectedNumberOfPayees);
+        return expectedNumberOfPayees;
+    }
+
+    /**
+     * Gets expected number of categories
+     * @return Expected number of categories
+     * @throws ParsingException Expected number of categories not found
+     * @throws NumberFormatException The expected number of categories is not numeric
+     */
+    private int getExpectedNumberOfCategories() throws ParsingException, NumberFormatException {
+        log.entering(this.getClass().getName(), "getExpectedNumberOfCategories");
+        Node expectedNumberOfCategoriesNode = grisbiFileDocument.selectSingleNode("/Grisbi/Categories/Generalites/Nb_categories");
+        if (expectedNumberOfCategoriesNode == null) {
+            throw new ParsingException("The expected number of categories has not been found in the Grisbi file '" + pathToGrisbiFile + "'");
+        }
+        String expectedNumberOfCategoriesValue = expectedNumberOfCategoriesNode.getStringValue();
+        assert (expectedNumberOfCategoriesValue != null);
+        int expectedNumberOfCategories = Integer.parseInt(expectedNumberOfCategoriesValue);
+
+        log.exiting(this.getClass().getName(), "getExpectedNumberOfCategories", expectedNumberOfCategories);
+        return expectedNumberOfCategories;
+    }
+
+    /**
+     * Gets expected number of currencies
+     * @return Expected number of currencies
+     * @throws ParsingException Expected number of currencies not found
+     * @throws NumberFormatException The expected number of currencies is not numeric
+     */
+    private int getExpectedNumberOfCurrencies() throws ParsingException, NumberFormatException {
+        log.entering(this.getClass().getName(), "getExpectedNumberOfCurrencies");
+        Node expectedNumberOfCurrenciesNode = grisbiFileDocument.selectSingleNode("/Grisbi/Devises/Generalites/Nb_devises");
+        if (expectedNumberOfCurrenciesNode == null) {
+            throw new ParsingException("The expected number of currencies has not been found in the Grisbi file '" + pathToGrisbiFile + "'");
+        }
+        String expectedNumberOfCurrenciesValue = expectedNumberOfCurrenciesNode.getStringValue();
+        assert (expectedNumberOfCurrenciesValue != null);
+        int expectedNumberOfCurrencies = Integer.parseInt(expectedNumberOfCurrenciesValue);
+
+        log.exiting(this.getClass().getName(), "getExpectedNumberOfCurrencies", expectedNumberOfCurrencies);
+        return expectedNumberOfCurrencies;
+    }
+
+    /**
+     * Gets expected number of transactions (for all accounts)
+     * @return Expected number of transactions
+     * @throws ParsingException Expected number of transactions not found
+     * @throws NumberFormatException The expected number of transactions is not numeric
+     */
+    private int getExpectedNumberOfTransactions() throws ParsingException, NumberFormatException {
+        log.entering(this.getClass().getName(), "getExpectedNumberOfTransactions");
+        int expectedNumberOfTransactions = 0;
+
+        List listOfAccounts = grisbiFileDocument.selectNodes("/Grisbi/Comptes/Compte");
+        for (Object accountObject : listOfAccounts) {
+            Node accountNode = (Node) accountObject;
+            assert (accountNode != null);
+
+            // Get the name of the current account
+            Node accountNameNode = accountNode.selectSingleNode("Details/Nom");
+            assert (accountNameNode != null);
+            String accountName = accountNameNode.getStringValue();
+            assert (accountName != null);
+
+            // Get the expected number of transactions of the account
+            Node expectedNumberOfTransactionsNode = accountNode.selectSingleNode("Details/Nb_operations");
+            if (expectedNumberOfTransactionsNode == null) {
+                throw new ParsingException("The expected number of transactions has not been found for the account '" + accountName + "' in the Grisbi file '" + pathToGrisbiFile + "'");
+            }
+            String expectedNumberOfTransactionsValue = expectedNumberOfTransactionsNode.getStringValue();
+            assert (expectedNumberOfTransactionsValue != null);
+            int expectedNumberOfTransactionsForCurrentAccount = Integer.parseInt(expectedNumberOfTransactionsValue);
+
+            expectedNumberOfTransactions += expectedNumberOfTransactionsForCurrentAccount;
+        }
+
+        log.exiting(this.getClass().getName(), "getExpectedNumberOfTransactions", expectedNumberOfTransactions);
+        return expectedNumberOfTransactions;
+    }
+
+    /**
      * Imports the payees into the embedded database
+     * @param p Progress handle for the progress bar
+     * @param expectedNumberOfPayees Expected number of payees: the number of imported payees should be equal to this number
      * @throws ParsingException
      * <UL>
      * <LI>If there is a problem finding the needed nodes</LI>
@@ -89,23 +191,15 @@ public class GrisbiFile050 implements Importer {
      * </UL>
      * @throws NumberFormatException If a string is read when a number is expected
      */
-    private void importPayees() throws ParsingException, NumberFormatException {
+    private void importPayees(ProgressHandle p, int expectedNumberOfPayees) throws ParsingException, NumberFormatException {
+        log.entering(this.getClass().getName(), "importPayees");
         long startImportingPayeesTime = System.currentTimeMillis();
 
         // Save default payee in the database
         Datamodel.savePayee(Payee.NO_PAYEE); // This constant is used to search the transactions for which no payee is defined
 
-        // Get the expected number of payees written in the Grisbi file
-        Node expectedNumberOfPayeesNode = grisbiFileDocument.selectSingleNode("/Grisbi/Tiers/Generalites/Nb_tiers");
-        if (expectedNumberOfPayeesNode == null) {
-            throw new ParsingException("The expected number of payees has not been found in the Grisbi file '" + pathToGrisbiFile + "'");
-        }
-        String expectedNumberOfPayeesValue = expectedNumberOfPayeesNode.getStringValue();
-        assert (expectedNumberOfPayeesValue != null);
-        long expectedNumberOfPayees = Long.parseLong(expectedNumberOfPayeesValue); // Number of expected payees ; the number of imported payees should be equal to this number
-
         // Import the payees from the Grisbi file into the embedded database
-        long numberOfImportedPayees = 0;
+        int numberOfImportedPayees = 0;
         List listOfPayees = grisbiFileDocument.selectNodes("/Grisbi/Tiers/Detail_des_tiers/Tiers");
         Iterator payeesIterator = listOfPayees.iterator();
         while (payeesIterator.hasNext() && !isImportCancelled()) { // Go through the list of payees found in the Grisbi XML file
@@ -125,6 +219,7 @@ public class GrisbiFile050 implements Importer {
             Datamodel.savePayee(payee);
 
             numberOfImportedPayees++;
+            p.progress(workUnit++);
         }
 
         // Make sure that all payees have been imported
@@ -134,10 +229,13 @@ public class GrisbiFile050 implements Importer {
 
         long endImportingPayeesTime = System.currentTimeMillis();
         log.info(numberOfImportedPayees + " payees have been successfully imported in " + (endImportingPayeesTime - startImportingPayeesTime) + " ms");
+        log.exiting(this.getClass().getName(), "importPayees");
     }
 
     /**
      * Imports the categories into the embedded database
+     * @param p Progress handle for the progress bar
+     * @param expectedNumberOfCategories Expected number of categories: the number of imported categories should be equal to this number
      * @throws ParsingException
      * <UL>
      * <LI>If there is a problem finding the needed nodes</LI>
@@ -145,7 +243,8 @@ public class GrisbiFile050 implements Importer {
      * </UL>
      * @throws NumberFormatException If a string is read when a number is expected
      */
-    private void importCategories() throws ParsingException, NumberFormatException {
+    private void importCategories(ProgressHandle p, int expectedNumberOfCategories) throws ParsingException, NumberFormatException {
+        log.entering(this.getClass().getName(), "importCategories");
         long startImportingCategoriesTime = System.currentTimeMillis();
 
         // Save system categories in the embedded database
@@ -153,17 +252,8 @@ public class GrisbiFile050 implements Importer {
         Datamodel.saveCategory(Category.BREAKDOWN_OF_TRANSACTIONS);
         Datamodel.saveCategory(Category.NO_CATEGORY);
 
-        // Get the expected number of categories written in the Grisbi file
-        Node expectedNumberOfCategoriesNode = grisbiFileDocument.selectSingleNode("/Grisbi/Categories/Generalites/Nb_categories");
-        if (expectedNumberOfCategoriesNode == null) {
-            throw new ParsingException("The expected number of categories has not been found in the Grisbi file '" + pathToGrisbiFile + "'");
-        }
-        String expectedNumberOfCategoriesValue = expectedNumberOfCategoriesNode.getStringValue();
-        assert (expectedNumberOfCategoriesValue != null);
-        long expectedNumberOfCategories = Long.parseLong(expectedNumberOfCategoriesValue); // Number of expected categories ; the number of imported categories should be equal to this number
-
         // Import the categories from the Grisbi file into the embedded database
-        long numberOfImportedCategories = 0;
+        int numberOfImportedCategories = 0;
         List listOfCategories = grisbiFileDocument.selectNodes("/Grisbi/Categories/Detail_des_categories/Categorie");
         Iterator categoriesIterator = listOfCategories.iterator();
         while (categoriesIterator.hasNext() && !isImportCancelled()) { // Go through the list of categories written in the Grisbi file
@@ -207,6 +297,7 @@ public class GrisbiFile050 implements Importer {
             Datamodel.saveCategory(noSubCategory);
 
             numberOfImportedCategories++;
+            p.progress(workUnit++);
         }
 
         // Make sure that all categories have been imported
@@ -216,10 +307,13 @@ public class GrisbiFile050 implements Importer {
 
         long endImportingCategoriesTime = System.currentTimeMillis();
         log.info(numberOfImportedCategories + " categories have been successfully imported in " + (endImportingCategoriesTime - startImportingCategoriesTime) + " ms");
+        log.exiting(this.getClass().getName(), "importCategories");
     }
 
     /**
      * Imports the currencies into the database
+     * @param p Progress handle for the progress bar
+     * @param expectedNumberOfCurrencies Expected number of currencies: the number of imported currencies should be equal to this number
      * @throws ParsingException
      * <UL>
      * <LI>If there is a problem finding the needed nodes</LI>
@@ -227,20 +321,12 @@ public class GrisbiFile050 implements Importer {
      * </UL>
      * @throws NumberFormatException If a string is read when a number is expected
      */
-    private void importCurrencies() throws ParsingException, NumberFormatException {
+    private void importCurrencies(ProgressHandle p, int expectedNumberOfCurrencies) throws ParsingException, NumberFormatException {
+        log.entering(this.getClass().getName(), "importCurrencies");
         long startImportingCurrenciesTime = System.currentTimeMillis();
 
-        // Get the expected number of currencies written in the Grisbi file
-        Node expectedNumberOfCurrenciesNode = grisbiFileDocument.selectSingleNode("/Grisbi/Devises/Generalites/Nb_devises");
-        if (expectedNumberOfCurrenciesNode == null) {
-            throw new ParsingException("The expected number of currencies has not been found in the Grisbi file '" + pathToGrisbiFile + "'");
-        }
-        String expectedNumberOfCurrenciesValue = expectedNumberOfCurrenciesNode.getStringValue();
-        assert (expectedNumberOfCurrenciesValue != null);
-        long expectedNumberOfCurrencies = Long.parseLong(expectedNumberOfCurrenciesValue); // Number of expected currencies ; the number of imported currencies should be equal to this number
-
         // Import the currencies into the embedded database
-        long numberOfImportedCurrencies = 0;
+        int numberOfImportedCurrencies = 0;
         List listOfCurrencies = grisbiFileDocument.selectNodes("/Grisbi/Devises/Detail_des_devises/Devise");
         Iterator currenciesIterator = listOfCurrencies.iterator();
         while (currenciesIterator.hasNext() && !isImportCancelled()) { // Go through the list of currencies
@@ -266,6 +352,7 @@ public class GrisbiFile050 implements Importer {
             Datamodel.saveCurrency(currency);
 
             numberOfImportedCurrencies++;
+            p.progress(workUnit++);
         }
 
         // Make sure that all currencies have been imported
@@ -275,6 +362,7 @@ public class GrisbiFile050 implements Importer {
 
         long endImportingCurrenciesTime = System.currentTimeMillis();
         log.info(numberOfImportedCurrencies + " currencies have been successfully imported in " + (endImportingCurrenciesTime - startImportingCurrenciesTime) + " ms");
+        log.exiting(this.getClass().getName(), "importCurrencies");
     }
 
     /**
@@ -285,6 +373,7 @@ public class GrisbiFile050 implements Importer {
      * @throws DateFormatException If the format of the date of the first transaction is invalid
      */
     private void importAccounts() throws ParsingException, NumberFormatException, DateFormatException {
+        log.entering(this.getClass().getName(), "importAccounts");
         long startImportingAccountsTime = System.currentTimeMillis();
 
         // Get all the currencies already saved in the database (the method importCurrencies() has to be called before)
@@ -373,17 +462,20 @@ public class GrisbiFile050 implements Importer {
 
         long endImportingAccountsTime = System.currentTimeMillis();
         log.info(numberOfImportedAccounts + " accounts have been successfully imported in " + (endImportingAccountsTime - startImportingAccountsTime) + " ms");
+        log.exiting(this.getClass().getName(), "importAccounts");
     }
 
     /**
      * Imports the transactions into the embedded database<BR/>
      * The methods <CODE>importCurrencies()</CODE>, <CODE>importPayees()</CODE>,
      * <CODE>importAccounts()</CODE>, and <CODE>importCategories()</CODE> have to be called before
+     * @param p Progress handle for the progress bar
      * @throws ParsingException If there is a problem finding the needed nodes
      * @throws NumberFormatException If a string is read when a number is expected
      * @throws DateFormatException If the date format of a transaction is invalid
      */
     private void importTransactions(ProgressHandle p) throws ParsingException, NumberFormatException, DateFormatException {
+        log.entering(this.getClass().getName(), "importTransactions");
         long startImportingTotalTransactionsTime = System.currentTimeMillis();
 
         Map<Long, Account> accounts = Datamodel.getAccountsWithId();
@@ -430,10 +522,10 @@ public class GrisbiFile050 implements Importer {
             }
             String expectedNumberOfTransactionsValue = expectedNumberOfTransactionsNode.getStringValue();
             assert (expectedNumberOfTransactionsValue != null);
-            long expectedNumberOfTransactions = Long.parseLong(expectedNumberOfTransactionsValue);
+            int expectedNumberOfTransactions = Integer.parseInt(expectedNumberOfTransactionsValue);
 
             // Import the transactions of the account into the embedded database
-            long numberOfImportedTransactions = 0;
+            int numberOfImportedTransactions = 0;
             Map<Long, Transaction> transactions = new HashMap<Long, Transaction>(); // Map containing all the saved transactions - the key of the map is the transaction's ID
             List listOfTransactions = accountNode.selectNodes("Detail_des_operations/Operation");
             Iterator transactionsIterator = listOfTransactions.iterator();
@@ -582,6 +674,7 @@ public class GrisbiFile050 implements Importer {
                 transactions.put(transactionId, transaction); // Save the transaction in the map, so that parent transactions can be found
 
                 numberOfImportedTransactions++;
+                p.progress(workUnit++);
             }
 
             // Make sure that the number of imported transactions and sub-transactions is the expected number
@@ -596,6 +689,7 @@ public class GrisbiFile050 implements Importer {
 
         long endImportingTotalTransactionsTime = System.currentTimeMillis();
         log.info(totalNumberOfImportedTransactions + " transactions have been successfully imported in " + (endImportingTotalTransactionsTime - startImportingTotalTransactionsTime) + " ms");
+        log.exiting(this.getClass().getName(), "importTransactions");
     }
 
     /**
@@ -614,53 +708,73 @@ public class GrisbiFile050 implements Importer {
      */
     @Override
     public long importFile() throws ParsingException, NumberFormatException, DateFormatException {
+        log.entering(this.getClass().getName(), "importFile");
         importCancelled = false;
-        ProgressHandle p = ProgressHandleFactory.createHandle("Import Grisbi file", new Cancellable() {
+        workUnit = 0;
+        ProgressHandle p = ProgressHandleFactory.createHandle(
+                NbBundle.getMessage(GrisbiFile050.class, "GrisbiFile050.ImportingGrisbiFile"),
+                new Cancellable() {
 
-            @Override
-            public boolean cancel() {
-                importCancelled = true;
-                log.info("Import of '" + pathToGrisbiFile + "' has been cancelled");
-                return true;
-            }
-        });
+                    @Override
+                    public boolean cancel() {
+                        importCancelled = true;
+                        log.info("Import of '" + pathToGrisbiFile + "' has been cancelled");
+                        return true;
+                    }
+                });
 
         long startImportingFileTime = System.currentTimeMillis();
-        p.start(); // Start progress bar
+
+        // Start progress bar
+        p.setInitialDelay(0);
+        p.start();
+
+        // Get number of expected entities
+        int expectedNumberOfPayees = getExpectedNumberOfPayees();
+        int expectedNumberOfCategories = getExpectedNumberOfCategories();
+        int expectedNumberOfCurrencies = getExpectedNumberOfCurrencies();
+        int expectedNumberOfTransactions = getExpectedNumberOfTransactions();
+        int totalEntities = expectedNumberOfPayees + expectedNumberOfCategories +
+                expectedNumberOfCurrencies + expectedNumberOfTransactions;
+        log.info("Expected number of entities (payees, categories, currencies, transactions): " + totalEntities);
+
+        p.switchToDeterminate(totalEntities);
 
         // Empty the embedded database
-        p.progress("Emptying database");
+        p.progress(NbBundle.getMessage(GrisbiFile050.class, "GrisbiFile050.EmptyingDatabase"));
         Datamodel.emptyDatabase();
 
         // Import the Grisbi file into the embedded database
         if (!isImportCancelled()) {
-            p.progress("Importing payees");
-            importPayees();
+            p.progress(NbBundle.getMessage(GrisbiFile050.class, "GrisbiFile050.ImportingPayees"));
+            importPayees(p, expectedNumberOfPayees);
         }
 
         if (!isImportCancelled()) {
-            p.progress("Importing categories");
-            importCategories();
+            p.progress(NbBundle.getMessage(GrisbiFile050.class, "GrisbiFile050.ImportingCategories"));
+            importCategories(p, expectedNumberOfCategories);
         }
 
         if (!isImportCancelled()) {
-            p.progress("Importing currencies");
-            importCurrencies();
+            p.progress(NbBundle.getMessage(GrisbiFile050.class, "GrisbiFile050.ImportingCurrencies"));
+            importCurrencies(p, expectedNumberOfCurrencies);
         }
 
         if (!isImportCancelled()) {
-            p.progress("Importing accounts");
+            p.progress(NbBundle.getMessage(GrisbiFile050.class, "GrisbiFile050.ImportingAccounts"));
             importAccounts();
         }
 
         if (!isImportCancelled()) {
-            p.progress("Importing transactions");
+            p.progress(NbBundle.getMessage(GrisbiFile050.class, "GrisbiFile050.ImportingTransactions"));
             importTransactions(p);
         }
 
         p.finish();
         long endImportingFileTime = System.currentTimeMillis();
         long importDuration = endImportingFileTime - startImportingFileTime;
+
+        log.exiting(this.getClass().getName(), "importFile", importDuration);
         return importDuration;
     }
 

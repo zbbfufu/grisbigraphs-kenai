@@ -80,6 +80,8 @@ public final class CategoriesBalancesTopComponent extends TopComponent implement
     private SearchFilter displayedSearchFilter;
     /** Defines which filters are supported by this view */
     private FieldsVisibility fieldsVisibility = new FieldsVisibility();
+    /** Logger */
+    private Logger log = Logger.getLogger(this.getClass().getName());
 
     /** Creates a new instance of CategoriesBalancesTopComponent */
     public CategoriesBalancesTopComponent() {
@@ -339,6 +341,8 @@ public final class CategoriesBalancesTopComponent extends TopComponent implement
      * @param searchFilter Search filter for which the table must be computed
      */
     private void displayData(SearchFilter searchFilter) {
+        log.info("Categories' balances table computed and displayed");
+
         // Display hourglass cursor
         Utilities.changeCursorWaitStatus(true);
 
@@ -492,7 +496,7 @@ public final class CategoriesBalancesTopComponent extends TopComponent implement
                 treeModel,
                 new CategoriesBalancesRowModel(searchCriterias, categoryBalances),
                 true,
-                "Category");
+                NbBundle.getMessage(CategoriesBalancesTopComponent.class, "CategoriesBalancesTopComponent.Category"));
         outlineCategoriesBalances.setModel(outlineModel);
 
         // Expand all nodes of the outline

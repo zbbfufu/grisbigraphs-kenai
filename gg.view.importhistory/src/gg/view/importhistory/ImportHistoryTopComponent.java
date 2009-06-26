@@ -61,6 +61,8 @@ public final class ImportHistoryTopComponent extends TopComponent {
     private static final byte COLUMN_DURATION = 2;
     /** Position of 'success' in the model */
     private static final byte COLUMN_SUCCESS = 3;
+    /** Logger */
+    private Logger log = Logger.getLogger(this.getClass().getName());
 
     /** Creates a new instance of ImportHistoryTopComponent */
     public ImportHistoryTopComponent() {
@@ -73,9 +75,12 @@ public final class ImportHistoryTopComponent extends TopComponent {
 
         // Initialize the table that shows the file imports
         eTableImportHistory.setModel(new DefaultTableModel(
-                new Object[][]{},
-                new String[]{
-                    "Imported on", "File", "Duration (s)", "Success"
+                new Object[][] {},
+                new String[] {
+                    NbBundle.getMessage(ImportHistoryTopComponent.class, "ImportHistoryTopComponent.ImportedOn"),
+                    NbBundle.getMessage(ImportHistoryTopComponent.class, "ImportHistoryTopComponent.File"),
+                    NbBundle.getMessage(ImportHistoryTopComponent.class, "ImportHistoryTopComponent.Duration"),
+                    NbBundle.getMessage(ImportHistoryTopComponent.class, "ImportHistoryTopComponent.Success")
                 }) {
 
             Class[] types = new Class[]{
@@ -107,12 +112,12 @@ public final class ImportHistoryTopComponent extends TopComponent {
                     case COLUMN_SUCCESS:
                         boolean success = (Boolean) super.getValueAt(row, column);
                         if (success) {
-                            return "Yes";
+                            return NbBundle.getMessage(ImportHistoryTopComponent.class, "ImportHistoryTopComponent.Yes");
                         } else {
-                            return "No";
+                            return NbBundle.getMessage(ImportHistoryTopComponent.class, "ImportHistoryTopComponent.No");
                         }
                     default:
-                        throw new AssertionError("Unknown column");
+                        throw new AssertionError("Unknown column: " + column);
                 }
             }
         });
@@ -251,6 +256,7 @@ public final class ImportHistoryTopComponent extends TopComponent {
     public void componentOpened() {
         // Refill the table when the component is opened so that when a new Grisbi file is
         // imported into the embedded DB, the new row is displayed in the table
+        log.info("Import history table computed and displayed");
 
         // Display hourglass cursor
         Utilities.changeCursorWaitStatus(true);
@@ -274,6 +280,6 @@ public final class ImportHistoryTopComponent extends TopComponent {
         Utilities.packColumns(eTableImportHistory);
 
         // Display normal cursor
-        Utilities.changeCursorWaitStatus(true);
+        Utilities.changeCursorWaitStatus(false);
     }
 }

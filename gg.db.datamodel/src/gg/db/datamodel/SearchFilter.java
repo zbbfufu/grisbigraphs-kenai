@@ -268,4 +268,41 @@ public class SearchFilter implements Comparable<SearchFilter> {
 
         return period.compareTo(searchFilter.getPeriod());
     }
+
+    @Override
+    public String toString() {
+        String description = "";
+        if (hasPeriodFilter()) {
+            description += "Period filter: " + period + "\n";
+        }
+        if (hasCurrencyFilter()) {
+            description += "Currency filter: " + currency + "\n";
+        }
+        if (hasAccountsFilter()) {
+            description += "Accounts filter: ";
+            for (Account account : accounts) {
+                description += account + " ";
+            }
+            description += "\n";
+        }
+        if (hasCategoriesFilter()) {
+            description += "Categories filter: ";
+            for (Category category : categories) {
+                description += category + " ";
+            }
+            description += "\n";
+        }
+        if (hasPayeesFilter()) {
+            description += "Payees filter: ";
+            for (Payee payee : payees) {
+                description += payee + " ";
+            }
+            description += "\n";
+        }
+        if (hasKeywordsFilter()) {
+            description += "Keywords filter: " + keywords;
+        }
+
+        return description;
+    }
 }

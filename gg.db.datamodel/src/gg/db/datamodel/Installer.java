@@ -23,6 +23,7 @@ package gg.db.datamodel;
 
 import gg.application.Constants;
 import java.io.File;
+import java.util.logging.Logger;
 import org.hibernate.Session;
 import org.hibernate.SessionFactory;
 import org.hibernate.cfg.Configuration;
@@ -34,12 +35,19 @@ import org.openide.modules.ModuleInstall;
  */
 public class Installer extends ModuleInstall {
 
+    /** Class name */
+    private static final String CLASS_NAME = "gg.db.datamodel.Installer";
+    /** Logger */
+    private static Logger log = Logger.getLogger(CLASS_NAME);
+
     /** Session factory */
     private static final SessionFactory sessionFactory;
 
     /** Set the database folder and initializes the connection with the DB */
     static {
         try {
+            log.entering(CLASS_NAME, "restored");
+
             // Set the DB system directory
             System.setProperty("derby.system.home", Constants.DATABASE_FOLDER_PATH);
 
@@ -51,6 +59,8 @@ public class Installer extends ModuleInstall {
 
             // Create the SessionFactory from hibernate.cfg.xml (create the DB is it does not already exist)
             sessionFactory = new Configuration().configure().buildSessionFactory();
+
+            log.exiting(CLASS_NAME, "restored");
         } catch (Throwable ex) {
             throw new ExceptionInInitializerError(ex);
         }
@@ -75,6 +85,10 @@ public class Installer extends ModuleInstall {
     /** Closes the session */
     @Override
     public void close() {
+        log.entering(CLASS_NAME, "close");
+
         sessionFactory.close();
+
+        log.exiting(CLASS_NAME, "close");
     }
 }

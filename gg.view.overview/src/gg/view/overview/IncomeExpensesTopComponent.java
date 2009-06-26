@@ -67,6 +67,8 @@ public final class IncomeExpensesTopComponent extends TopComponent {
     private static final String ICON_PATH = "gg/resources/icons/IncomeExpenses.png";
     /** ID of the component */
     private static final String PREFERRED_ID = "IncomeExpensesTopComponent";
+    /** Logger */
+    private Logger log = Logger.getLogger(this.getClass().getName());
 
     /** Creates a new instance of IncomeExpensesTopComponent */
     public IncomeExpensesTopComponent() {
@@ -192,6 +194,8 @@ public final class IncomeExpensesTopComponent extends TopComponent {
 
     /** Displays the total income vs expenses for the current month */
     public void displayData() {
+        log.info("Income vs Expenses graph computed and displayed");
+
         // Display hourglass cursor
         Utilities.changeCursorWaitStatus(true);
 
@@ -202,7 +206,7 @@ public final class IncomeExpensesTopComponent extends TopComponent {
         JFreeChart chart = ChartFactory.createBarChart(
                 "", // chart title
                 "", // x axis label
-                "Amount", // y axis label
+                NbBundle.getMessage(IncomeExpensesTopComponent.class, "IncomeExpensesTopComponent.Amount"), // y axis label
                 dataset, // data displayed in the chart
                 PlotOrientation.VERTICAL,
                 false, // include legend
@@ -255,8 +259,15 @@ public final class IncomeExpensesTopComponent extends TopComponent {
             currencyExpenses = currencyExpenses.setScale(2, RoundingMode.HALF_EVEN);
 
             // Plot income and expenses for the current month and for the current currency on the chart
-            dataset.addValue(currencyIncome, currency.getName(), "Income (" + currency + ")");
-            dataset.addValue(currencyExpenses, currency.getName(), "Expenses (" + currency + ")");
+            dataset.addValue(
+                    currencyIncome,
+                    currency.getName(),
+                    NbBundle.getMessage(IncomeExpensesTopComponent.class, "IncomeExpensesTopComponent.Income", new Object[] {currency}));
+
+            dataset.addValue(
+                    currencyExpenses,
+                    currency.getName(),
+                    NbBundle.getMessage(IncomeExpensesTopComponent.class, "IncomeExpensesTopComponent.Expenses", new Object[] {currency}));
         }
 
         // Create the chart panel that contains the chart

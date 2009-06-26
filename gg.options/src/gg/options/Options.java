@@ -30,11 +30,11 @@ import org.openide.util.NbPreferences;
 public final class Options {
 
     /** Zeros are displayed by default on the UI */
-    private static boolean defaultDisplayZero = true;
+    private static final boolean DEFAULT_DISPLAY_ZERO = true;
     /** Sums are displayed by default on the UI */
-    private static boolean defaultCalculateSums = true;
+    private static final boolean DEFAULT_CALCULATE_SUMS = true;
     /** Default maximum number of periods that can be displayed on the UI */
-    private static int defaultMaxNumberPeriods = 10;
+    private static final int DEFAULT_MAX_NUMBER_PERIODS = 10;
 
     /**
      * Should zeros be displayed in the tables
@@ -43,7 +43,7 @@ public final class Options {
     public static boolean displayZero() {
         return NbPreferences.forModule(GeneralPanel.class).getBoolean(
                 GeneralPanel.DISPLAY_ZEROS_KEY,
-                defaultDisplayZero);
+                DEFAULT_DISPLAY_ZERO);
     }
 
     /**
@@ -53,7 +53,7 @@ public final class Options {
     public static boolean calculateSums() {
         return NbPreferences.forModule(GeneralPanel.class).getBoolean(
                 GeneralPanel.CALCULATE_SUMS_KEY,
-                defaultCalculateSums);
+                DEFAULT_CALCULATE_SUMS);
     }
 
     /**
@@ -63,6 +63,6 @@ public final class Options {
     public static int getMaxPeriods() {
         return NbPreferences.forModule(GeneralPanel.class).getInt(
                 GeneralPanel.MAX_PERIODS_KEY,
-                defaultMaxNumberPeriods);
+                DEFAULT_MAX_NUMBER_PERIODS);
     }
 }
