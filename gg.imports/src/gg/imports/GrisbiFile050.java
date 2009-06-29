@@ -30,6 +30,7 @@ import gg.db.entities.Currency;
 import gg.db.entities.Payee;
 import gg.db.entities.Transaction;
 import gg.db.datamodel.Period;
+import gg.utilities.Utilities;
 import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.util.HashMap;
@@ -717,6 +718,7 @@ public class GrisbiFile050 implements Importer {
 
                     @Override
                     public boolean cancel() {
+                        Utilities.changeCursorWaitStatus(false);
                         importCancelled = true;
                         log.info("Import of '" + pathToGrisbiFile + "' has been cancelled");
                         return true;

@@ -28,6 +28,7 @@ import gg.db.entities.Currency;
 import gg.db.entities.FileImport;
 import gg.db.datamodel.DateFormatException;
 import gg.db.entities.Transaction;
+import gg.utilities.Utilities;
 import gg.view.overview.OverviewTopComponent;
 import gg.wallet.Wallet;
 import java.awt.EventQueue;
@@ -201,6 +202,8 @@ public class ImporterEngine implements Runnable {
                 log.severe("This version of Grisbi file is not supported");
                 throw new AssertionError("This version of Grisbi file is not supported");
         }
+
+        // Import the file
         long importDuration = grisbiFileImporter.importFile();
         setImportCancelled(grisbiFileImporter.isImportCancelled());
 
@@ -212,6 +215,7 @@ public class ImporterEngine implements Runnable {
     public void run() {
         try {
             // Import the Grisbi file
+            Utilities.changeCursorWaitStatus(true);
             long importDuration = importFile();
 
             // Display a message in the status bar
@@ -278,26 +282,31 @@ public class ImporterEngine implements Runnable {
                 }
             };
             EventQueue.invokeLater(worker);
+            Utilities.changeCursorWaitStatus(false);
 
         } catch (DocumentException ex) {
+            Utilities.changeCursorWaitStatus(false);
             log.log(Level.SEVERE, "DocumentException catched", ex);
             NotifyDescriptor.Exception message = new NotifyDescriptor.Exception(ex);
             message.setTitle(Constants.APPLICATION_TITLE);
             DialogDisplayer.getDefault().notifyLater(message);
 
         } catch (ParsingException ex) {
+            Utilities.changeCursorWaitStatus(false);
             log.log(Level.SEVERE, "ParsingException catched", ex);
             NotifyDescriptor.Exception message = new NotifyDescriptor.Exception(ex);
             message.setTitle(Constants.APPLICATION_TITLE);
             DialogDisplayer.getDefault().notifyLater(message);
 
         } catch (NumberFormatException ex) {
+            Utilities.changeCursorWaitStatus(false);
             log.log(Level.SEVERE, "NumberFormatException catched", ex);
             NotifyDescriptor.Exception message = new NotifyDescriptor.Exception(ex);
             message.setTitle(Constants.APPLICATION_TITLE);
             DialogDisplayer.getDefault().notifyLater(message);
 
         } catch (DateFormatException ex) {
+            Utilities.changeCursorWaitStatus(false);
             log.log(Level.SEVERE, "DateFormatException catched", ex);
             NotifyDescriptor.Exception message = new NotifyDescriptor.Exception(ex);
             message.setTitle(Constants.APPLICATION_TITLE);
