@@ -345,11 +345,20 @@ public class GrisbiFile050 implements Importer {
             assert (currencyCode != null);
             String currencyIsoCode = currencyNode.valueOf("@IsoCode"); // Get the code ISO of the currency
             assert (currencyIsoCode != null);
+            String currencyExchangeRateValue = currencyNode.valueOf("@Change"); // Get the exchange rate of the currency
+            assert (currencyExchangeRateValue != null);
+            BigDecimal currencyExchangeRate = new BigDecimal(currencyExchangeRateValue.replace(',', '.'));
+            String currencyRelation = currencyNode.valueOf("@Rapport_entre_devises");
+            assert (currencyRelation != null);
+            boolean currencyMultiply = (currencyRelation.compareTo("1") == 0);
+            String euroConversionValue = currencyNode.valueOf("@Passage_euro");
+            assert (euroConversionValue != null);
+            boolean currencyEuroConversion = (euroConversionValue.compareTo("1") == 0);
 
             // Create a new currency and save the currency in the database
             // By default the currencies are not active
             // When the accounts are imported, the currencies are activated
-            Currency currency = new Currency(currencyId, currencyName, currencyCode, currencyIsoCode, new BigDecimal(0), new BigDecimal(0), false);
+            Currency currency = new Currency(currencyId, currencyName, currencyCode, currencyIsoCode, new BigDecimal(0), new BigDecimal(0), currencyExchangeRate, currencyMultiply, currencyEuroConversion, false);
             Datamodel.saveCurrency(currency);
 
             numberOfImportedCurrencies++;
@@ -552,38 +561,55 @@ public class GrisbiFile050 implements Importer {
                 // Get the exchange rate
                 String exchangeRateValue = transactionNode.valueOf("@Tc");
                 assert (exchangeRateValue != null);
-                BigDecimal exchangeRate = new BigDecimal(exchangeRateValue); // exchangeRate = 0 if there is no echange rate
+                BigDecimal exchangeRate = new BigDecimal(exchangeRateValue.replace(',', '.')); // exchangeRate = 0 if there is no echange rate
 
                 // Get the fees
                 String feesValue = transactionNode.valueOf("@Fc");
                 assert (feesValue != null);
-                BigDecimal fees = new BigDecimal(feesValue);
+                BigDecimal fees = new BigDecimal(feesValue.replace(',', '.'));
 
                 // Get the amount of the transaction
                 String transactionAmountValue = transactionNode.valueOf("@M");
                 assert (transactionAmountValue != null);
                 BigDecimal transactionAmount = new BigDecimal(transactionAmountValue.replace(',', '.'));
 
+                // Get the currency of the transaction
+                String transactionCurrencyIdValue = transactionNode.valueOf("@De");
+                assert (transactionCurrencyIdValue != null);
+                long transactionCurrencyId = Long.parseLong(transactionCurrencyIdValue); // Get the ID of the currency
+                Currency transactionCurrency = currencies.get(transactionCurrencyId);
+                assert (transactionCurrency != null);
+                Currency accountCurrency = currencies.get(account.getCurrency().getId());
+                assert (accountCurrency != null);
+
                 // Update the amount of the transaction if the currency of the transaction is different from the currency of the account
-                // Method found in the Grisbi source file: devises.c/calcule_montant_devise_renvoi
-                if (exchangeRate.compareTo(BigDecimal.ZERO) != 0) {
+                // (Method found in the Grisbi source file: devises.c/calcule_montant_devise_renvoi)
+                if (transactionCurrency.getId().compareTo(accountCurrency.getId()) != 0) {
+                    if (accountCurrency.getEuroConversion()) {
+                        if (transactionCurrency.getName().compareToIgnoreCase("euro") == 0) {
+                            transactionAmount = transactionAmount.multiply(accountCurrency.getExchangeRate());
+                        }
+                    } else if (accountCurrency.getEuroConversion() && transactionCurrency.getName().compareToIgnoreCase("euro") != 0) {
+                        transactionAmount = transactionAmount.divide(transactionCurrency.getExchangeRate(), RoundingMode.HALF_EVEN);
+                    } else {
+                        if (exchangeRate.compareTo(BigDecimal.ZERO) != 0) {
+                            String transactionRdcValue = transactionNode.valueOf("@Rdc");
+                            assert (transactionRdcValue != null);
+                            long transactionRdc = Long.parseLong(transactionRdcValue);
 
-                    // Get the currency of the transaction
-                    String transactionCurrencyIdValue = transactionNode.valueOf("@De");
-                    assert (transactionCurrencyIdValue != null);
-                    long transactionCurrencyId = Long.parseLong(transactionCurrencyIdValue); // Get the ID of the currency
-                    Currency transactionCurrency = currencies.get(transactionCurrencyId);
-                    assert (transactionCurrency != null);
-
-                    if (transactionCurrency.getId().compareTo(account.getCurrency().getId()) != 0) {
-                        String transactionRdcValue = transactionNode.valueOf("@Rdc");
-                        assert (transactionRdcValue != null);
-                        long transactionRdc = Long.parseLong(transactionRdcValue);
-
-                        if (transactionRdc == 1) {
-                            transactionAmount = (transactionAmount.divide(exchangeRate, RoundingMode.HALF_EVEN)).subtract(fees);
+                            if (transactionRdc == 1) {
+                                transactionAmount = (transactionAmount.divide(exchangeRate, RoundingMode.HALF_EVEN)).subtract(fees);
+                            } else {
+                                transactionAmount = (transactionAmount.multiply(exchangeRate)).subtract(fees);
+                            }
+                        } else if (transactionCurrency.getExchangeRate().compareTo(BigDecimal.ZERO) != 0) {
+                            if (transactionCurrency.getMultiply()) {
+                                transactionAmount = (transactionAmount.multiply(transactionCurrency.getExchangeRate())).subtract(fees);
+                            } else {
+                                transactionAmount = (transactionAmount.divide(transactionCurrency.getExchangeRate(), RoundingMode.HALF_EVEN)).subtract(fees);
+                            }
                         } else {
-                            transactionAmount = (transactionAmount.multiply(exchangeRate)).subtract(fees);
+                            transactionAmount = new BigDecimal(0);
                         }
                     }
                 }

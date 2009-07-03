@@ -48,6 +48,12 @@ public class Currency implements MoneyContainer {
     private BigDecimal balance;
     /** Is the currency active (does it contains active accounts) */
     private Boolean active;
+    /** Exchange rate */
+    private BigDecimal exchangeRate;
+    /** Must transactions be multiplicated or divided by the exchange rate?*/
+    private Boolean multiply;
+    /** Must the currency be converted into euros? */
+    private Boolean euroConversion;
     /** List of accounts that have the currency */
     private Set<Account> accounts;
 
@@ -63,9 +69,12 @@ public class Currency implements MoneyContainer {
      * @param isoCode ISO Code of the currency ; i.e. "EUR", "USD"
      * @param initialAmount Initial amount of the account
      * @param balance Current balance of the currency
+     * @param exchangeRate Exchange rate
+     * @param multiply Whether a transaction will have to be multiplicated or divided by the exchange rate
+     * @param euroConversion Euro conversion (old currency)
      * @param active Is the currency active (does it contain active accounts?)
      */
-    public Currency(Long id, String name, String code, String isoCode, BigDecimal initialAmount, BigDecimal balance, Boolean active) {
+    public Currency(Long id, String name, String code, String isoCode, BigDecimal initialAmount, BigDecimal balance, BigDecimal exchangeRate, Boolean multiply, Boolean euroConversion, Boolean active) {
         setId(id);
         setName(name);
         setCode(code);
@@ -73,6 +82,9 @@ public class Currency implements MoneyContainer {
         setInitialAmount(initialAmount);
         setBalance(balance);
         setActive(active);
+        setExchangeRate(exchangeRate);
+        setMultiply(multiply);
+        setEuroConversion(euroConversion);
     }
 
     /**
@@ -191,6 +203,22 @@ public class Currency implements MoneyContainer {
     }
 
     /**
+     * Gets the exchange rate of the currency
+     * @return Exchange rate of the currency
+     */
+    public BigDecimal getExchangeRate() {
+        return exchangeRate;
+    }
+
+    /**
+     * Sets the exchange rate of the currency
+     * @param exchangeRate Exchange rate of the currency
+     */
+    public void setExchangeRate(BigDecimal exchangeRate) {
+        this.exchangeRate = exchangeRate;
+    }
+
+    /**
      * Is the currency active ?
      * @return true if the currency contains accounts that are active (not closed), false otherwise
      */
@@ -204,6 +232,38 @@ public class Currency implements MoneyContainer {
      */
     public void setActive(Boolean active) {
         this.active = active;
+    }
+
+    /**
+     * Should a transaction be multiplicated or divided by the exchange rate?
+     * @return true if a transaction must be multiplicated by the exchange rate
+     */
+    public boolean getMultiply() {
+        return multiply;
+    }
+
+    /**
+     * Sets the multiply flag
+     * @param multiply true means that a transaction will be multiplicated by the exchange rate
+     */
+    public void setMultiply(boolean multiply) {
+        this.multiply = multiply;
+    }
+
+    /**
+     * Is the currency an old currency that has to be converted into euros?
+     * @return true if the currency must be converted into euros
+     */
+    public boolean getEuroConversion() {
+        return euroConversion;
+    }
+
+    /**
+     * Sets the euro conversion flag
+     * @param euroConversion true means that the currency must be converted into euros
+     */
+    public void setEuroConversion(boolean euroConversion) {
+        this.euroConversion = euroConversion;
     }
 
     /**

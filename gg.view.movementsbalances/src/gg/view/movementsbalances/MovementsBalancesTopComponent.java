@@ -24,7 +24,6 @@ package gg.view.movementsbalances;
 import gg.searchfilter.FieldsVisibility;
 import gg.db.datamodel.Datamodel;
 import gg.db.datamodel.Period;
-import gg.db.datamodel.PeriodType;
 import gg.db.datamodel.Periods;
 import gg.db.datamodel.SearchCriteria;
 import gg.db.entities.Account;
@@ -260,8 +259,10 @@ public final class MovementsBalancesTopComponent extends TopComponent implements
         super.componentHidden();
 
         // Remove listener on search filter top component
-        result.removeLookupListener(this);
-        result = null;
+        if (result != null) {
+            result.removeLookupListener(this);
+            result = null;
+        }
 
         // Close movements' balances group
         TopComponentGroup movementsBalancesGroup = WindowManager.getDefault().findTopComponentGroup("MovementsBalancesGroup");
@@ -286,7 +287,7 @@ public final class MovementsBalancesTopComponent extends TopComponent implements
                 newSearchFilter.getCurrency().compareTo(oldSearchFilter.getCurrency()) == 0 &&
                 newSearchFilter.getAccounts().equals(oldSearchFilter.getAccounts()));
     }
-    
+
     /** Called when the lookup content is changed (button Search clicked in Search Filter tc) */
     @Override
     public void resultChanged(LookupEvent ev) {
@@ -297,8 +298,7 @@ public final class MovementsBalancesTopComponent extends TopComponent implements
             SearchFilter searchFilter = (SearchFilter) instances.iterator().next();
 
             // If the filters specified by the user are different from the ones that are already displayed, refresh table
-            if (!isSame(searchFilter, displayedSearchFilter) &&
-                    searchFilter.getPeriodType().compareTo(PeriodType.FREE) != 0) {
+            if (!isSame(searchFilter, displayedSearchFilter)) {
                 displayData(searchFilter);
             }
         }
@@ -321,7 +321,7 @@ public final class MovementsBalancesTopComponent extends TopComponent implements
         // ((Currency/Account) --> (SearchCriteria --> Currency/Account movement balance))
         Map<MoneyContainer, Map<SearchCriteria, BigDecimal>> balances =
                 new HashMap<MoneyContainer, Map<SearchCriteria, BigDecimal>>();
-        
+
         // List of periods (one per column)
         Periods periods = new Periods(searchFilter.getFrom(),
                 searchFilter.getTo(),

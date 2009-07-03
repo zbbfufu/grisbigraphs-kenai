@@ -252,8 +252,10 @@ public final class TransactionsTopComponent extends TopComponent implements Look
         super.componentHidden();
 
         // Remove listener on search filter top component
-        result.removeLookupListener(this);
-        result = null;
+        if (result != null) {
+            result.removeLookupListener(this);
+            result = null;
+        }
     }
 
     /**
@@ -268,7 +270,6 @@ public final class TransactionsTopComponent extends TopComponent implements Look
         return (oldSearchFilter != null &&
                 newSearchFilter.getFrom().compareTo(oldSearchFilter.getFrom()) == 0 &&
                 newSearchFilter.getTo().compareTo(oldSearchFilter.getTo()) == 0 &&
-                newSearchFilter.getPeriodType().compareTo(oldSearchFilter.getPeriodType()) == 0 &&
                 newSearchFilter.getCurrency().compareTo(oldSearchFilter.getCurrency()) == 0 &&
                 newSearchFilter.getAccounts().equals(oldSearchFilter.getAccounts()) &&
                 newSearchFilter.getCategories().equals(oldSearchFilter.getCategories()) &&

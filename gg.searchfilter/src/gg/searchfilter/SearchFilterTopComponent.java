@@ -36,6 +36,7 @@ import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
+import java.text.DateFormat;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
@@ -166,9 +167,11 @@ public final class SearchFilterTopComponent extends TopComponent implements Look
         // Initiate the controls
         jLabelFrom = new JLabel(NbBundle.getMessage(SearchFilterTopComponent.class, "SearchFilterTopComponent.jLabelFrom.text"));
         jXDatePickerFrom = new JXDatePicker();
+        jXDatePickerFrom.setFormats(new DateFormat[]{DateFormat.getDateInstance(DateFormat.MEDIUM)});
 
         jLabelTo = new JLabel(NbBundle.getMessage(SearchFilterTopComponent.class, "SearchFilterTopComponent.jLabelTo.text"));
         jXDatePickerTo = new JXDatePicker();
+        jXDatePickerTo.setFormats(new DateFormat[]{DateFormat.getDateInstance(DateFormat.MEDIUM)});
 
         jLabelBy = new JLabel(NbBundle.getMessage(SearchFilterTopComponent.class, "SearchFilterTopComponent.jLabelBy.text"));
         jComboBoxBy = new JComboBox();
@@ -401,7 +404,17 @@ public final class SearchFilterTopComponent extends TopComponent implements Look
     public void search() {
         log.entering(this.getClass().getName(), "search");
 
-        if (jComboBoxBy.isVisible() && jXDatePickerFrom.getDate() == null) {
+        // A search can be performed only by the views that support the search button
+        if (!jButtonSearch.isVisible()) {
+            return;
+        }
+
+        // A search can be performed only if a Grisbi file has already been imported into the embedded DB
+        if (Wallet.getInstance().getCurrenciesWithId().size() == 0) {
+            return;
+        }
+
+        if (jXDatePickerFrom.getDate() == null) {
             // 'from' date has not been entered
             NotifyDescriptor message = new NotifyDescriptor.Message(
                     NbBundle.getMessage(SearchFilterTopComponent.class, "SearchFilterTopComponent.FromMandatory"),
@@ -411,7 +424,7 @@ public final class SearchFilterTopComponent extends TopComponent implements Look
             return;
         }
 
-        if (jComboBoxBy.isVisible() && jXDatePickerTo.getDate() == null) {
+        if (jXDatePickerTo.getDate() == null) {
             // 'to' date has not been entered
             NotifyDescriptor message = new NotifyDescriptor.Message(
                     NbBundle.getMessage(SearchFilterTopComponent.class, "SearchFilterTopComponent.ToMandatory"),
@@ -452,22 +465,25 @@ public final class SearchFilterTopComponent extends TopComponent implements Look
             assert (jComboBoxBy.getSelectedIndex() != -1);
             periodType = (PeriodType) jComboBoxBy.getSelectedItem();
             assert (periodType != null);
-        } else {
-            periodType = PeriodType.FREE;
-        }
 
-        Periods periods = new Periods(from, to, periodType);
-        assert (periods != null);
+            // Check that the number of periods is not too big
+            Periods periods = new Periods(from, to, periodType);
+            assert (periods != null);
 
-        // Check that the number of periods is not too big
-        int maxNumberPeriods = Options.getMaxPeriods(); // Get the max number of periods allowed in the options
-        if (periods.getPeriods().size() > maxNumberPeriods) {
-            NotifyDescriptor message = new NotifyDescriptor.Message(
-                    NbBundle.getMessage(SearchFilterTopComponent.class, "SearchFilterTopComponent.MaxPeriods", new Object[] {maxNumberPeriods}),
-                    NotifyDescriptor.WARNING_MESSAGE);
-            message.setTitle(Constants.APPLICATION_TITLE);
-            DialogDisplayer.getDefault().notify(message);
-            return;
+            int maxNumberPeriods = Options.getMaxPeriods(); // Get the max number of periods allowed in the options
+            if (periods.getPeriods().size() > maxNumberPeriods) {
+                NotifyDescriptor message = new NotifyDescriptor.Message(
+                        NbBundle.getMessage(SearchFilterTopComponent.class, "SearchFilterTopComponent.MaxPeriods", new Object[]{maxNumberPeriods}),
+                        NotifyDescriptor.WARNING_MESSAGE);
+                message.setTitle(Constants.APPLICATION_TITLE);
+                DialogDisplayer.getDefault().notify(message);
+                return;
+            }
+        } else { // Transactions view
+            String storedPeriodTypeString = NbPreferences.forModule(SearchFilterTopComponent.class).get(
+                    PERIOD_TYPE_KEY,
+                    PeriodType.WEEK.name());
+            periodType = PeriodType.valueOf(storedPeriodTypeString);
         }
 
         // Save 'from', 'to' and 'by' fields so that they will be loaded by default when the component will be opened
@@ -532,6 +548,7 @@ public final class SearchFilterTopComponent extends TopComponent implements Look
 
         // Put the search filter in the lookup of the TC
         content.set(Collections.singleton(searchFilter), null);
+
         log.exiting(this.getClass().getName(), "search");
     }
 
@@ -654,7 +671,6 @@ public final class SearchFilterTopComponent extends TopComponent implements Look
         // Deselect all payees
         jListPayees.clearSelection();
     }//GEN-LAST:event_jMenuItemDeselectAllPayeesActionPerformed
-
     // Variables declaration - do not modify//GEN-BEGIN:variables
     private javax.swing.JMenuItem jMenuItemDeselectAllAccounts;
     private javax.swing.JMenuItem jMenuItemDeselectAllCategories;
@@ -771,8 +787,10 @@ public final class SearchFilterTopComponent extends TopComponent implements Look
     /** Unregisters listener when the component is closed */
     @Override
     public void componentClosed() {
-        result.removeLookupListener(this);
-        result = null;
+        if (result != null) {
+            result.removeLookupListener(this);
+            result = null;
+        }
     }
 
     /**

@@ -24,7 +24,6 @@ package gg.view.categoriesbalances;
 import gg.searchfilter.FieldsVisibility;
 import gg.db.datamodel.Datamodel;
 import gg.db.datamodel.Period;
-import gg.db.datamodel.PeriodType;
 import gg.db.datamodel.Periods;
 import gg.db.datamodel.SearchCriteria;
 import gg.db.entities.Category;
@@ -259,8 +258,10 @@ public final class CategoriesBalancesTopComponent extends TopComponent implement
         super.componentHidden();
 
         // Remove listener on search filter top component
-        result.removeLookupListener(this);
-        result = null;
+        if (result != null) {
+            result.removeLookupListener(this);
+            result = null;
+        }
 
         // Close categories' balance group
         TopComponentGroup categoriesBalancesGroup = WindowManager.getDefault().findTopComponentGroup("CategoriesBalancesGroup");
@@ -297,8 +298,7 @@ public final class CategoriesBalancesTopComponent extends TopComponent implement
             SearchFilter searchFilter = (SearchFilter) instances.iterator().next();
 
             // If the filters specified by the user are different from the ones that are already displayed, refresh table
-            if (!isSame(searchFilter, displayedSearchFilter) &&
-                    searchFilter.getPeriodType().compareTo(PeriodType.FREE) != 0) {
+            if (!isSame(searchFilter, displayedSearchFilter)) {
                 displayData(searchFilter);
             }
         }

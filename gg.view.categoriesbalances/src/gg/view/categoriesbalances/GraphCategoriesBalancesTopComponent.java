@@ -207,8 +207,10 @@ public final class GraphCategoriesBalancesTopComponent extends TopComponent impl
     /** Unregisters the lookup listener when the topcomponent is closed */
     @Override
     public void componentClosed() {
-        result.removeLookupListener(this);
-        result = null;
+        if (result != null) {
+            result.removeLookupListener(this);
+            result = null;
+        }
     }
 
     /** Called when the lookup content is changed (content of table changed)*/
