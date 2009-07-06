@@ -720,6 +720,43 @@ public class Datamodel {
     }
 
     /**
+     * Gets the balance corresponding to a search criteria (until a certain date)
+     * @param searchCriteria Search criteria
+     * @return Balance
+     */
+    public static BigDecimal getBalanceUntil(SearchCriteria searchCriteria) {
+        log.entering(CLASS_NAME, "getBalance", searchCriteria);
+        if (searchCriteria == null) {
+            throw new IllegalArgumentException("The parameter 'searchCriteria' is null");
+        }
+        Session session = Installer.createSession();
+        Transaction tx = session.beginTransaction();
+
+        Query query = getQuery(session,
+                searchCriteria,
+                false, // From date is not taken into account
+                true, // Search until end
+                false, // No filter on categories
+                false, // No filter on payees
+                false, // No filter on keywords
+                "select sum(t.amount)",
+                null, // No specific where clause
+                ""); // No group by
+
+        // Execute the query
+        BigDecimal balance = (BigDecimal) query.uniqueResult();
+        if (balance == null) {
+            balance = new BigDecimal(0);
+        }
+        session.flush();
+        tx.commit();
+        session.close();
+
+        log.exiting(CLASS_NAME, "getBalance", balance);
+        return balance;
+    }
+
+    /**
      * Gets the balances for categories and sub-categories
      * @param searchCriteria Search criteria
      * @return List of category balances: each item of the list is an array.
@@ -754,43 +791,6 @@ public class Datamodel {
 
         log.exiting(CLASS_NAME, "getCategoriesBalances", categoriesBalances);
         return categoriesBalances;
-    }
-
-    /**
-     * Gets the balances for accounts until a date (from is not taken into account)
-     * @param searchCriteria Search criteria
-     * @return List of account balances: each item of the list is an array.
-     * The first element of the array is the account ID.
-     * The second element of the array is the corresponding account balance.
-     */
-    public static List getAccountsBalancesUntil(SearchCriteria searchCriteria) {
-        log.entering(CLASS_NAME, "getAccountsBalancesUntil", searchCriteria);
-        if (searchCriteria == null) {
-            throw new IllegalArgumentException("The parameter 'searchCriteria' is null");
-        }
-        Session session = Installer.createSession();
-        Transaction tx = session.beginTransaction();
-
-        Query query = getQuery(session,
-                searchCriteria,
-                false, // from is not taken into account
-                true, // Search until end
-                false, // No filter on categories
-                false, // No filter on payees
-                false, // No filter on keywords
-                "select t.account.id, sum(t.amount)",
-                null, // No specific where clause
-                "group by t.account.id");
-
-        // Execute the query
-        List accountsBalances = query.list();
-
-        session.flush();
-        tx.commit();
-        session.close();
-
-        log.exiting(CLASS_NAME, "getAccountsBalancesUntil", accountsBalances);
-        return accountsBalances;
     }
 
     /**

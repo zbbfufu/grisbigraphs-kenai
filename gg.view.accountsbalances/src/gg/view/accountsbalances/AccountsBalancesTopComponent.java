@@ -317,101 +317,29 @@ public final class AccountsBalancesTopComponent extends TopComponent implements 
 
         // Map containing the balances by currency/account and by search criteria
         // ((Currency/Account) --> (SearchCriteria --> Currency/Account balance))
-        Map<MoneyContainer, Map<SearchCriteria, BigDecimal>> moneyContainerBalances =
+        Map<MoneyContainer, Map<SearchCriteria, BigDecimal>> balances =
                 new HashMap<MoneyContainer, Map<SearchCriteria, BigDecimal>>();
-
-        // List of search criteria (one per column)
-        List<SearchCriteria> searchCriterias = new ArrayList<SearchCriteria>();
 
         // List of periods (one per column)
         Periods periods = new Periods(searchFilter.getFrom(),
                 searchFilter.getTo(),
                 searchFilter.getPeriodType());
 
-        // Compute the accounts' balances for each period
+        // List of search criteria (one per column)
+        List<SearchCriteria> searchCriterias = new ArrayList<SearchCriteria>();
         for (Period period : periods.getPeriods()) {
-
-            // Define the search criteria to query the database
             SearchCriteria searchCriteria = new SearchCriteria();
             searchCriteria.setPeriod(period);
             searchCriteria.setCurrency(searchFilter.getCurrency());
             searchCriteria.setAccounts(searchFilter.getAccounts());
 
             searchCriterias.add(searchCriteria);
-
-            // Get all accounts' balances for the current search criteria
-            List accountsBalancesForCurrentSearchFilter = Datamodel.getAccountsBalancesUntil(searchCriteria);
-
-            // For each account, add (SearchCriteria --> Account balance)
-            for (Object rowAccountBalanceObject : accountsBalancesForCurrentSearchFilter) {
-                Object[] rowAccountBalance = (Object[]) rowAccountBalanceObject;
-                // Get account
-                Long accountId = (Long) rowAccountBalance[0];
-                assert (accountId != null);
-                Account account = Wallet.getInstance().getAccountsWithId().get(accountId);
-                assert (account != null);
-                // Get account balance
-                BigDecimal accountBalance = (BigDecimal) rowAccountBalance[1];
-                assert (accountBalance != null);
-                accountBalance = accountBalance.add(account.getInitialAmount());
-
-                // Map that contains the account's balance for the current search criteria
-                // (SearchCriteria --> Account balance)
-                Map<SearchCriteria, BigDecimal> balancesForCurrentAccount =
-                        new HashMap<SearchCriteria, BigDecimal>();
-                // If accounts' balances have already been added for this account
-                if (moneyContainerBalances.get(account) != null) {
-                    balancesForCurrentAccount.putAll(moneyContainerBalances.get(account));
-                }
-                // Add the balance of the current account
-                balancesForCurrentAccount.put(searchCriteria, accountBalance);
-
-
-                // Add (SearchCriteria, Account balance) to the current account
-                moneyContainerBalances.put(account, balancesForCurrentAccount);
-            }
-
-            // Compute the currency balance
-            for (Currency currency : Wallet.getInstance().getActiveCurrencies()) {
-                BigDecimal currencyBalance = new BigDecimal(0);
-
-                // For each active account that belong to the currency
-                for (Account account : Wallet.getInstance().getActiveAccountsWithCurrency().get(currency)) {
-                    if (!searchCriteria.hasAccountsFilter() ||
-                            searchCriteria.getAccounts().contains(account)) {
-                        // Map that contains the current account's balances
-                        Map<SearchCriteria, BigDecimal> balancesForCurrentAccount =
-                                moneyContainerBalances.get(account);
-                        if (balancesForCurrentAccount != null) {
-                            // Get the balance of the account for the current search criteria
-                            BigDecimal accountBalance = balancesForCurrentAccount.get(searchCriteria);
-                            assert (accountBalance != null);
-
-                            // Add it to the currency's balance
-                            currencyBalance = currencyBalance.add(accountBalance);
-                        }
-                    }
-                }
-
-                // Map that contains the currency's balances for the current currency
-                // (Search criteria --> Currency's balance)
-                Map<SearchCriteria, BigDecimal> balancesForCurrentCurrency = new HashMap<SearchCriteria, BigDecimal>();
-                // If currency' balances have already been added for other search criteria
-                if (moneyContainerBalances.get(currency) != null) {
-                    balancesForCurrentCurrency.putAll(moneyContainerBalances.get(currency));
-                }
-                // Add the balance of the currency for the current search criteria
-                balancesForCurrentCurrency.put(searchCriteria, currencyBalance);
-
-                // Add (SearchCriteria, Currency balance) to the current currency
-                moneyContainerBalances.put(currency, balancesForCurrentCurrency);
-            }
         }
 
-        // Prepare the tree
+        // Prepare treetable
         DefaultMutableTreeNode rootNode = new DefaultMutableTreeNode(); // Root (Not displayed)
 
-        // Add the currencies and the accounts into the tree
+        // Add the currencies into the tree
         for (Currency currency : Wallet.getInstance().getActiveCurrencies()) {
             // Add the currency <currency> if
             // - the user didn't select any currency in the search filter or
@@ -421,6 +349,12 @@ public final class AccountsBalancesTopComponent extends TopComponent implements 
                 // Add currency to the tree
                 DefaultMutableTreeNode currencyNode = new DefaultMutableTreeNode(currency);
                 rootNode.add(currencyNode);
+
+                // Map containing the currency's balances by search criteria
+                Map<SearchCriteria, BigDecimal> currencyBalances = new HashMap<SearchCriteria, BigDecimal>();
+                for (SearchCriteria searchCriteria : searchCriterias) {
+                    currencyBalances.put(searchCriteria, new BigDecimal(0));
+                }
 
                 // Add the accounts of <currency> into the tree
                 for (Account account : Wallet.getInstance().getActiveAccountsWithCurrency().get(currency)) {
@@ -432,8 +366,27 @@ public final class AccountsBalancesTopComponent extends TopComponent implements 
                         // Add account to the tree
                         DefaultMutableTreeNode accountNode = new DefaultMutableTreeNode(account);
                         currencyNode.add(accountNode);
+
+                        // Compute the accounts' balances for each search criteria
+                        Map<SearchCriteria, BigDecimal> accountBalances = new HashMap<SearchCriteria, BigDecimal>();
+                        for (SearchCriteria searchCriteria : searchCriterias) {
+                            SearchCriteria newSearchCriteria = new SearchCriteria();
+                            newSearchCriteria.setCurrency(currency);
+                            List<Account> accounts = new ArrayList<Account>();
+                            accounts.add(account);
+                            newSearchCriteria.setAccounts(accounts);
+                            newSearchCriteria.setPeriod(searchCriteria.getPeriod());
+
+                            BigDecimal accountBalance = Datamodel.getBalanceUntil(newSearchCriteria);
+                            accountBalances.put(searchCriteria, accountBalance);
+
+                            currencyBalances.put(searchCriteria,
+                                    currencyBalances.get(searchCriteria).add(accountBalance));
+                        }
+                        balances.put(account, accountBalances);
                     }
                 }
+                balances.put(currency, currencyBalances);
             }
         }
 
@@ -441,7 +394,7 @@ public final class AccountsBalancesTopComponent extends TopComponent implements 
         DefaultTreeModel treeModel = new DefaultTreeModel(rootNode);
         OutlineModel outlineModel = DefaultOutlineModel.createOutlineModel(
                 treeModel,
-                new AccountsBalancesRowModel(searchCriterias, moneyContainerBalances),
+                new AccountsBalancesRowModel(searchCriterias, balances),
                 true,
                 NbBundle.getMessage(AccountsBalancesTopComponent.class, "AccountsBalancesTopComponent.Account"));
         outlineAccountsBalances.setModel(outlineModel);
@@ -458,7 +411,7 @@ public final class AccountsBalancesTopComponent extends TopComponent implements 
         this.displayedSearchFilter = searchFilter;
 
         // Put the balances map so that it can be displayed as a chart by another topcomponent
-        content.set(Collections.singleton(moneyContainerBalances), null);
+        content.set(Collections.singleton(balances), null);
         content.add(fieldsVisibility); // Add a description of the supported filters for the search filter topcomponent
 
         // Display normal cursor
@@ -544,6 +497,7 @@ public final class AccountsBalancesTopComponent extends TopComponent implements 
                 assert (searchCriteria != null);
                 BigDecimal moneyContainerBalance = balances.get(moneyContainer).get(searchCriteria);
                 assert (moneyContainerBalance != null);
+
                 if (moneyContainerBalance.compareTo(BigDecimal.ZERO) != 0 || Options.displayZero()) {
                     value = Utilities.getBalance(moneyContainerBalance);
                 }
