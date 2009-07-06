@@ -377,7 +377,7 @@ public final class AccountsBalancesTopComponent extends TopComponent implements 
                             newSearchCriteria.setAccounts(accounts);
                             newSearchCriteria.setPeriod(searchCriteria.getPeriod());
 
-                            BigDecimal accountBalance = Datamodel.getBalanceUntil(newSearchCriteria);
+                            BigDecimal accountBalance = Datamodel.getBalanceUntil(newSearchCriteria).add(account.getInitialAmount());
                             accountBalances.put(searchCriteria, accountBalance);
 
                             currencyBalances.put(searchCriteria,
