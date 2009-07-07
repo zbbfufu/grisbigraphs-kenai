@@ -5,4 +5,30 @@
 <project name="GrisbiGraphs" basedir=".">
     <description>Builds the module suite GrisbiGraphs.</description>
     <import file="nbproject/build-impl.xml"/>
+
+    <!-- step (1) see depend suite.build-zip -->
+    <target name="build-zip" depends="suite.build-zip">
+        <property name="nbdist.dir" value="dist"/>
+        <property name="nbrelease.dir" value="${nbdist.dir}/${app.name}"/>
+
+        <!-- step (2) unzip the result  -->
+        <unzip src="${nbdist.dir}/${app.name}.zip" dest="${nbdist.dir}"/>
+
+        <delete file="${nbdist.dir}/${app.name}.zip"/>
+
+        <!-- step (3) do your copying stuff here, check the ant doc for copy, move, etc file -->
+        <copy file="app.conf" tofile="${nbdist.dir}/${app.name}/etc/${app.name}.conf">
+            <filterchain>
+                <replacestring from="$${branding.token}" to="${branding.token}"/>
+            </filterchain>
+        </copy>
+
+        <!-- step (4) zip again -->
+        <zip destfile="${nbdist.dir}/${app.name}.zip">
+            <zipfileset dir="${nbrelease.dir}" prefix="${app.name}/"/>
+        </zip>
+
+        <echo message="cleaning and finalizing release" />
+        <delete dir="${nbrelease.dir}"/>
+    </target>
 </project>
