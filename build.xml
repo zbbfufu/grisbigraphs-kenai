@@ -16,8 +16,8 @@
 
         <delete file="${nbdist.dir}/${app.name}.zip"/>
 
-        <!-- step (3) do your copying stuff here, check the ant doc for copy, move, etc file -->
-        <copy file="app.conf" tofile="${nbdist.dir}/${app.name}/etc/${app.name}.conf">
+        <!-- step (3) copy files -->
+        <copy file="app.conf" tofile="${nbdist.dir}/${app.name}/etc/${app.name}.conf" overwrite="true">
             <filterchain>
                 <replacestring from="$${branding.token}" to="${branding.token}"/>
             </filterchain>
