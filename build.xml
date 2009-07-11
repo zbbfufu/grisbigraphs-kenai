@@ -12,7 +12,7 @@
         <property name="nbrelease.dir" value="${nbdist.dir}/${app.name}"/>
 
         <!-- step (2) unzip the result  -->
-        <unzip src="${nbdist.dir}/${app.name}.zip" dest="${nbdist.dir}"/>
+        <unzip src="${nbdist.dir}/${app.name}.zip" dest="${nbdist.dir}" overwrite="true"/>
 
         <delete file="${nbdist.dir}/${app.name}.zip"/>
 
@@ -30,6 +30,7 @@
         <!-- step (4) zip again -->
         <zip destfile="${nbdist.dir}/${app.name}.zip">
             <zipfileset dir="${nbrelease.dir}" prefix="${app.name}/"/>
+            <zipfileset dir="${nbrelease.dir}/bin/" filemode="755" prefix="${app.name}/bin"/>
         </zip>
 
         <echo message="cleaning and finalizing release" />
