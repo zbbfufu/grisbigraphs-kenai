@@ -8,6 +8,7 @@
 
     <!-- step (1) see depend suite.build-zip -->
     <target name="build-zip" depends="suite.build-zip">
+        <property name="appversion" value="0.1.0"/>
         <property name="nbdist.dir" value="dist"/>
         <property name="nbrelease.dir" value="${nbdist.dir}/${app.name}"/>
 
@@ -17,7 +18,7 @@
         <delete file="${nbdist.dir}/${app.name}.zip"/>
 
         <!-- step (3) do your copying stuff here, check the ant doc for copy, move, etc file -->
-        <copy file="app.conf" tofile="${nbdist.dir}/${app.name}/etc/${app.name}.conf">
+        <copy file="app.conf" tofile="${nbdist.dir}/${app.name}/etc/${app.name}.conf" overwrite="true">
             <filterchain>
                 <replacestring from="$${branding.token}" to="${branding.token}"/>
             </filterchain>
@@ -28,8 +29,10 @@
         </copy>
 
         <!-- step (4) zip again -->
-        <zip destfile="${nbdist.dir}/${app.name}.zip">
-            <zipfileset dir="${nbrelease.dir}" prefix="${app.name}/"/>
+        <zip destfile="${nbdist.dir}/${app.name}-${appversion}.zip">
+            <zipfileset dir="${nbrelease.dir}" prefix="${app.name}/">
+                <exclude name="bin/"/>
+            </zipfileset>
             <zipfileset dir="${nbrelease.dir}/bin/" filemode="755" prefix="${app.name}/bin"/>
         </zip>
 
